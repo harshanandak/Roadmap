@@ -4497,15 +4497,10 @@
             // Initialize and get/create anonymous user ID
             async init() {
                 try {
-                    // Get or create anonymous user ID
-                    this.userId = localStorage.getItem('anonymousUserId');
-                    if (!this.userId) {
-                        this.userId = 'anon_' + this.generateId();
-                        localStorage.setItem('anonymousUserId', this.userId);
-                        console.log('✅ Created anonymous user ID:', this.userId);
-                    } else {
-                        console.log('✅ Using existing anonymous user ID:', this.userId);
-                    }
+                    // Use a shared 'default' user ID so all browsers see the same data
+                    // Perfect for personal roadmap manager - your data syncs everywhere!
+                    this.userId = 'default';
+                    console.log('✅ Using shared user ID for cross-browser sync:', this.userId);
 
                     // Test connection
                     const { error } = await supabase.from('features').select('count', { count: 'exact', head: true });

@@ -1,22 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(claude mcp add --transport stdio filesystem -- npx -y @modelcontextprotocol/server-filesystem .)",
-      "Bash(claude mcp add:*)",
-      "Bash(claude mcp remove:*)",
-      "Bash(claude mcp list:*)",
-      "Bash(mkdir:*)",
-      "Bash(git clone:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "Read(//c/Users/harsh/.claude/agents/**)",
-      "Bash(rm:*)",
-      "Read(//c/Users/harsh/**)",
-      "Bash(cat:*)",
-      "Bash(scoop --version:*)",
-      "Bash(choco --version:*)",
-      "Bash(npx supabase:*)",
-      "Bash(git add:*)"
+      "Bash(git push:*)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel --prod)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel inspect:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
