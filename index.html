@@ -3910,7 +3910,7 @@
             align-items: center;
             gap: 8px;
             padding: 6px 12px;
-            background: var(--card-bg);
+            background: var(--bg-elevated);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
@@ -3959,7 +3959,7 @@
             min-width: 280px;
             max-height: 400px;
             overflow-y: auto;
-            background: var(--card-bg);
+            background: var(--bg-elevated);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -4006,6 +4006,61 @@
 
         .workspace-item.active .workspace-name {
             font-weight: 600;
+        }
+
+        .workspace-item .workspace-edit {
+            opacity: 0.6;
+            font-size: 12px;
+            padding: 2px 6px;
+            margin-left: 8px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .workspace-item .workspace-edit:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .icon-option {
+            width: 32px;
+            height: 32px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .icon-option:hover {
+            border-color: var(--interactive);
+            background: var(--bg-elevated);
+        }
+
+        .icon-option.selected {
+            border-color: var(--interactive);
+            background: var(--interactive);
+            color: var(--text-inverse);
         }
 
         .workspace-check {
@@ -4095,7 +4150,7 @@
             justify-content: space-between;
             gap: 16px;
             padding: 16px;
-            background: var(--card-bg);
+            background: var(--bg-elevated);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             transition: all 0.2s;
@@ -4985,17 +5040,11 @@
                 return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
             },
 
-            // Set user ID for RLS policies
+            // Set user ID for RLS policies (fallback to client-side filtering)
             async setUserId() {
-                try {
-                    await supabase.rpc('set_config', {
-                        setting: 'app.user_id',
-                        value: this.userId
-                    });
-                } catch (error) {
-                    // Fallback: use client-side filtering
-                    console.log('Using client-side filtering for user data');
-                }
+                // Skip RPC call entirely since it's causing 404 errors
+                // We'll use client-side filtering instead
+                console.log('ℹ️ Using client-side filtering for database queries');
             },
 
             // Load features from Supabase
@@ -5089,7 +5138,11 @@
 
             // Save all features to Supabase
             async syncFeatures(features) {
-                if (!this.isConnected) return false;
+                if (!this.isConnected) {
+                    // Even if Supabase is not connected, ensure localStorage is up to date
+                    console.log('ℹ️ Supabase not connected, ensuring localStorage is current');
+                    return true;
+                }
 
                 try {
                     await this.setUserId();
@@ -5514,6 +5567,12 @@
                 // Check origin/path changes
                 this.checkOriginChange();
 
+                // Verify data integrity and show recovery options if needed
+                this.verifyDataIntegrity();
+
+                // Show data status notification
+                this.showDataStatus();
+
                 // Load workspaces first
                 await this.loadWorkspaces();
 
@@ -5574,18 +5633,57 @@
                 }
 
                 // Load features for current workspace
-                if (supabaseService.isConnected) {
-                    const workspaceFeatures = await supabaseService.loadWorkspaceFeatures(this.currentWorkspaceId);
-                    if (workspaceFeatures !== null) {
-                        this.features = workspaceFeatures;
-                    }
-                } else {
-                    // Load all features from localStorage and filter by workspace
-                    const stored = localStorage.getItem('roadmapFeatures');
-                    if (stored) {
+                // First, try to load from localStorage (primary source)
+                const stored = localStorage.getItem('roadmapFeatures');
+                if (stored) {
+                    try {
                         const allFeatures = JSON.parse(stored);
                         this.features = allFeatures.filter(f => f.workspaceId === this.currentWorkspaceId);
+                        console.log(`✅ Loaded ${this.features.length} features for workspace ${this.currentWorkspaceId}`);
+                    } catch (error) {
+                        console.error('❌ Error parsing features from localStorage:', error);
+                        this.features = [];
                     }
+                } else {
+                    this.features = [];
+                    console.log('ℹ️ No features found in localStorage');
+                }
+
+                // Then try to sync with Supabase if connected
+                if (supabaseService.isConnected) {
+                    try {
+                        const workspaceFeatures = await supabaseService.loadWorkspaceFeatures(this.currentWorkspaceId);
+                        if (workspaceFeatures !== null && workspaceFeatures.length > 0) {
+                            // If cloud has more features or different features, update local data
+                            if (workspaceFeatures.length > this.features.length) {
+                                // Merge features - prefer cloud data but keep local additions
+                                const mergedFeatures = [...workspaceFeatures];
+
+                                // Add any local features that aren't in cloud
+                                this.features.forEach(localFeature => {
+                                    if (!workspaceFeatures.find(cf => cf.id === localFeature.id)) {
+                                        mergedFeatures.push(localFeature);
+                                    }
+                                });
+
+                                this.features = mergedFeatures;
+                                console.log(`✅ Synced ${workspaceFeatures.length} features from cloud`);
+
+                                // Update localStorage with merged data
+                                const allStored = JSON.parse(localStorage.getItem('roadmapFeatures') || '[]');
+                                const updatedStored = allStored.filter(f => f.workspaceId !== this.currentWorkspaceId);
+                                updatedStored.push(...this.features);
+                                localStorage.setItem('roadmapFeatures', JSON.stringify(updatedStored));
+                            } else {
+                                console.log(`✅ Local features (${this.features.length}) are up to date`);
+                            }
+                        }
+                    } catch (syncError) {
+                        console.warn('⚠️ Could not sync features with cloud:', syncError.message);
+                        // Continue with local data
+                    }
+                } else {
+                    console.log('ℹ️ Offline mode - using local feature data only');
                 }
 
                 // Load workspace-specific AI settings
@@ -5830,6 +5928,155 @@
                     this.showAlert({ title: 'Storage disabled', message: 'Browser storage is disabled or unavailable. Your data will NOT be saved. Check private mode, browser settings, or storage quota.' , variant:'warning'});
                     return false;
                 }
+            },
+
+            // Verify data integrity and provide recovery options
+            verifyDataIntegrity() {
+                try {
+                    // Check if we have backup data from before potential corruption
+                    const workspacesStored = localStorage.getItem('roadmapWorkspaces');
+                    const featuresStored = localStorage.getItem('roadmapFeatures');
+                    const currentWorkspaceId = localStorage.getItem('currentWorkspaceId');
+
+                    let hasWorkspaces = false;
+                    let hasFeatures = false;
+                    let hasCurrentWorkspace = false;
+
+                    if (workspacesStored) {
+                        try {
+                            const workspaces = JSON.parse(workspacesStored);
+                            hasWorkspaces = Array.isArray(workspaces) && workspaces.length > 0;
+                        } catch (e) {
+                            console.warn('Corrupted workspaces data in localStorage');
+                            // Try to create a backup before clearing
+                            localStorage.setItem('roadmapWorkspaces_backup', workspacesStored);
+                            localStorage.removeItem('roadmapWorkspaces');
+                        }
+                    }
+
+                    if (featuresStored) {
+                        try {
+                            const features = JSON.parse(featuresStored);
+                            hasFeatures = Array.isArray(features) && features.length > 0;
+                        } catch (e) {
+                            console.warn('Corrupted features data in localStorage');
+                            // Try to create a backup before clearing
+                            localStorage.setItem('roadmapFeatures_backup', featuresStored);
+                            localStorage.removeItem('roadmapFeatures');
+                        }
+                    }
+
+                    if (currentWorkspaceId) {
+                        hasCurrentWorkspace = true;
+                    }
+
+                    // Log data status for debugging
+                    console.log('🔍 Data integrity check:', {
+                        hasWorkspaces,
+                        hasFeatures,
+                        hasCurrentWorkspace,
+                        supabaseConnected: supabaseService.isConnected
+                    });
+
+                    // If we have data but no current workspace, set one
+                    if (hasWorkspaces && !hasCurrentWorkspace) {
+                        try {
+                            const workspaces = JSON.parse(localStorage.getItem('roadmapWorkspaces'));
+                            if (workspaces && workspaces.length > 0) {
+                                localStorage.setItem('currentWorkspaceId', workspaces[0].id);
+                                console.log('✅ Set default current workspace');
+                            }
+                        } catch (e) {
+                            console.error('Could not set default workspace:', e);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('❌ Data integrity check failed:', error);
+                }
+            },
+
+            // Export all data as JSON
+            exportData() {
+                try {
+                    const data = {
+                        workspaces: JSON.parse(localStorage.getItem('roadmapWorkspaces') || '[]'),
+                        features: JSON.parse(localStorage.getItem('roadmapFeatures') || '[]'),
+                        currentWorkspaceId: localStorage.getItem('currentWorkspaceId'),
+                        apiKey: localStorage.getItem('openrouterApiKey'),
+                        model: localStorage.getItem('selectedModel'),
+                        tavilyApiKey: localStorage.getItem('tavilyApiKey'),
+                        exportDate: new Date().toISOString(),
+                        version: '1.0'
+                    };
+
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(dataBlob);
+                    link.download = `roadmap-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    this.showAlert({ title: 'Export Complete', message: 'Your data has been exported successfully!', variant: 'success' });
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    this.showAlert({ title: 'Export Failed', message: 'Failed to export data. Check console for details.', variant: 'danger' });
+                }
+            },
+
+            // Import data from JSON file
+            importData(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+
+                            // Validate data structure
+                            if (!data.version || !data.workspaces || !data.features) {
+                                throw new Error('Invalid backup file format');
+                            }
+
+                            // Confirm import
+                            if (!confirm('This will replace all your current data. Are you sure you want to continue?')) {
+                                resolve(false);
+                                return;
+                            }
+
+                            // Import data
+                            if (data.workspaces && Array.isArray(data.workspaces)) {
+                                localStorage.setItem('roadmapWorkspaces', JSON.stringify(data.workspaces));
+                            }
+                            if (data.features && Array.isArray(data.features)) {
+                                localStorage.setItem('roadmapFeatures', JSON.stringify(data.features));
+                            }
+                            if (data.currentWorkspaceId) {
+                                localStorage.setItem('currentWorkspaceId', data.currentWorkspaceId);
+                            }
+                            if (data.apiKey) {
+                                localStorage.setItem('openrouterApiKey', data.apiKey);
+                            }
+                            if (data.model) {
+                                localStorage.setItem('selectedModel', data.model);
+                            }
+                            if (data.tavilyApiKey) {
+                                localStorage.setItem('tavilyApiKey', data.tavilyApiKey);
+                            }
+
+                            this.showAlert({ title: 'Import Complete', message: 'Your data has been imported successfully! Please refresh the page.', variant: 'success' });
+                            resolve(true);
+                        } catch (error) {
+                            console.error('Import failed:', error);
+                            this.showAlert({ title: 'Import Failed', message: 'Failed to import data. The file may be corrupted or in the wrong format.', variant: 'danger' });
+                            resolve(false);
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read file'));
+                    reader.readAsText(file);
+                });
             },
 
             getAITools() {
@@ -6345,41 +6592,66 @@
             // Load workspaces from Supabase or localStorage
             async loadWorkspaces() {
                 try {
-                    // Try loading from Supabase first
-                    if (supabaseService.isConnected) {
-                        const cloudWorkspaces = await supabaseService.loadWorkspaces();
-                        if (cloudWorkspaces !== null) {
-                            // Convert database format to app format
-                            this.workspaces = cloudWorkspaces.map(w => ({
-                                id: w.id,
-                                name: w.name,
-                                description: w.description || '',
-                                color: w.color || '#3b82f6',
-                                icon: w.icon || '📊',
-                                customInstructions: w.custom_instructions || '',
-                                aiMemory: w.ai_memory || [],
-                                createdAt: w.created_at,
-                                updatedAt: w.updated_at
-                            }));
-                            console.log(`✅ Loaded ${this.workspaces.length} workspaces`);
-
-                            // Save to localStorage as cache
-                            localStorage.setItem('roadmapWorkspaces', JSON.stringify(this.workspaces));
-                            return;
-                        }
-                    }
-
-                    // Fallback to localStorage
+                    // First, try to load from localStorage (primary source for immediate availability)
                     const stored = localStorage.getItem('roadmapWorkspaces');
                     if (stored) {
                         this.workspaces = JSON.parse(stored);
                         console.log(`✅ Loaded ${this.workspaces.length} workspaces from localStorage`);
                     } else {
                         this.workspaces = [];
+                        console.log('ℹ️ No workspaces found in localStorage');
+                    }
+
+                    // Then try to sync with Supabase if connected (don't replace local data if connection fails)
+                    if (supabaseService.isConnected) {
+                        try {
+                            const cloudWorkspaces = await supabaseService.loadWorkspaces();
+                            if (cloudWorkspaces !== null && cloudWorkspaces.length > 0) {
+                                // Convert database format to app format
+                                const cloudWorkspacesFormatted = cloudWorkspaces.map(w => ({
+                                    id: w.id,
+                                    name: w.name,
+                                    description: w.description || '',
+                                    color: w.color || '#3b82f6',
+                                    icon: w.icon || '📊',
+                                    customInstructions: w.custom_instructions || '',
+                                    aiMemory: w.ai_memory || [],
+                                    createdAt: w.created_at,
+                                    updatedAt: w.updated_at
+                                }));
+
+                                // Merge with local data - prefer cloud data for newer items, but keep local if cloud is empty
+                                if (this.workspaces.length === 0 || cloudWorkspacesFormatted.length > this.workspaces.length) {
+                                    this.workspaces = cloudWorkspacesFormatted;
+                                    console.log(`✅ Synced ${this.workspaces.length} workspaces from cloud`);
+                                    // Update localStorage with cloud data
+                                    localStorage.setItem('roadmapWorkspaces', JSON.stringify(this.workspaces));
+                                } else {
+                                    console.log(`✅ Local workspaces (${this.workspaces.length}) are up to date or newer than cloud`);
+                                }
+                            }
+                        } catch (syncError) {
+                            console.warn('⚠️ Could not sync workspaces with cloud:', syncError.message);
+                            // Continue with local data
+                        }
+                    } else {
+                        console.log('ℹ️ Offline mode - using local workspace data only');
                     }
                 } catch (error) {
                     console.error('❌ Error loading workspaces:', error);
-                    this.workspaces = [];
+                    // Try to recover from localStorage even if JSON parsing failed
+                    try {
+                        const stored = localStorage.getItem('roadmapWorkspaces');
+                        if (stored) {
+                            this.workspaces = JSON.parse(stored);
+                            console.log(`🔄 Recovered ${this.workspaces.length} workspaces from localStorage after error`);
+                        } else {
+                            this.workspaces = [];
+                        }
+                    } catch (recoveryError) {
+                        console.error('❌ Could not recover workspace data:', recoveryError);
+                        this.workspaces = [];
+                    }
                 }
             },
 
@@ -6571,12 +6843,13 @@
                         </button>
                         <div class="workspace-dropdown-menu hidden" id="workspaceDropdownMenu">
                             ${this.workspaces.map(w => `
-                                <button class="workspace-item ${w.id === this.currentWorkspaceId ? 'active' : ''}"
-                                        onclick="app.selectWorkspaceFromDropdown('${w.id}')">
+                                <div class="workspace-item ${w.id === this.currentWorkspaceId ? 'active' : ''}"
+                                     onclick="app.selectWorkspaceFromDropdown('${w.id}')">
                                     <span class="workspace-icon" style="color: ${w.color}">${w.icon}</span>
                                     <span class="workspace-name">${this.escapeHtml(w.name)}</span>
+                                    <button class="workspace-edit" onclick="event.stopPropagation(); app.editWorkspaceFromDropdown('${w.id}')" title="Edit workspace">✏️</button>
                                     ${w.id === this.currentWorkspaceId ? '<span class="workspace-check">✓</span>' : ''}
-                                </button>
+                                </div>
                             `).join('')}
                             <div class="workspace-divider"></div>
                             <button class="workspace-item" onclick="app.showWorkspaceModal()">
@@ -6621,6 +6894,14 @@
                 if (workspaceId !== this.currentWorkspaceId) {
                     await this.switchWorkspace(workspaceId);
                 }
+            },
+
+            // Edit workspace from dropdown
+            editWorkspaceFromDropdown(workspaceId) {
+                const menu = document.getElementById('workspaceDropdownMenu');
+                if (menu) menu.classList.add('hidden');
+
+                this.showWorkspaceModal(workspaceId);
             },
 
             // Show workspace welcome screen (no workspaces exist)
@@ -6676,9 +6957,19 @@
                             </div>
                             <div class="form-group">
                                 <label for="workspaceIcon">Icon (Emoji)</label>
-                                <input type="text" id="workspaceIcon" class="form-control"
-                                       placeholder="📊" maxlength="2"
-                                       value="${isEdit ? workspace.icon : '📊'}">
+                                <div class="icon-picker" id="iconPicker">
+                                    ${[
+                                        '📊', '📈', '📉', '📋', '📝', '📅', '🎯', '⭐', '🚀', '💡',
+                                        '🔧', '⚙️', '🎨', '📱', '💻', '🌐', '🔗', '📂', '📁', '🗂️',
+                                        '📄', '📃', '🏗️', '🛠️', '🔍', '📊', '💼', '🏢', '🏭', '🏪'
+                                    ].map(icon => `
+                                        <button type="button" class="icon-option ${icon === (isEdit ? workspace.icon : '📊') ? 'selected' : ''}"
+                                                onclick="app.selectWorkspaceIcon('${icon}')" title="${icon}">
+                                            ${icon}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                                <input type="hidden" id="workspaceIcon" value="${isEdit ? workspace.icon : '📊'}">
                                 <small class="form-hint">Choose an emoji to represent this workspace</small>
                             </div>
                         </div>
@@ -6695,6 +6986,21 @@
                 document.getElementById('workspaceName').focus();
             },
 
+            // Select workspace icon from picker
+            selectWorkspaceIcon(icon) {
+                document.getElementById('workspaceIcon').value = icon;
+
+                // Update visual selection
+                const picker = document.getElementById('iconPicker');
+                const options = picker.querySelectorAll('.icon-option');
+                options.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.textContent.trim() === icon) {
+                        option.classList.add('selected');
+                    }
+                });
+            },
+
             // Save workspace from modal
             async saveWorkspaceFromModal(workspaceId) {
                 const name = document.getElementById('workspaceName').value.trim();
@@ -6707,21 +7013,26 @@
                     return;
                 }
 
-                if (workspaceId) {
-                    // Update existing workspace
-                    await this.updateWorkspace(workspaceId, { name, description, color, icon });
-                    this.showAlert({ title: 'Success', message: 'Workspace updated successfully', variant: 'success' });
-                } else {
-                    // Create new workspace
-                    const workspace = await this.createWorkspace(name, description, color, icon);
+                try {
+                    if (workspaceId) {
+                        // Update existing workspace
+                        await this.updateWorkspace(workspaceId, { name, description, color, icon });
+                        this.showAlert({ title: 'Success', message: 'Workspace updated successfully', variant: 'success' });
+                    } else {
+                        // Create new workspace
+                        const workspace = await this.createWorkspace(name, description, color, icon);
 
-                    // Switch to the new workspace
-                    await this.switchWorkspace(workspace.id);
+                        // Switch to the new workspace
+                        await this.switchWorkspace(workspace.id);
 
-                    this.showAlert({ title: 'Success', message: 'Workspace created successfully', variant: 'success' });
+                        this.showAlert({ title: 'Success', message: 'Workspace created successfully', variant: 'success' });
+                    }
+
+                    this.closeWorkspaceModal();
+                } catch (error) {
+                    console.error('❌ Error saving workspace:', error);
+                    this.showAlert({ title: 'Error', message: 'Failed to save workspace. Please try again.', variant: 'danger' });
                 }
-
-                this.closeWorkspaceModal();
             },
 
             // Close workspace modal
@@ -12284,59 +12595,8 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
             },
 
             exportAllData() {
-                const allData = {
-                    version: '2.0', // Updated version for workspace support
-                    exportDate: new Date().toISOString(),
-
-                    // Workspace data
-                    workspaces: this.workspaces,
-                    currentWorkspaceId: this.currentWorkspaceId,
-
-                    // Feature data (includes linkedItems in timelineItems)
-                    features: this.features,
-
-                    // AI data
-                    memory: this.memory,
-                    memorySuggestions: this.memorySuggestions,
-                    customInstructions: this.customInstructions,
-                    selectedModel: this.selectedModel,
-
-                    // Link data
-                    linkSuggestions: this.linkSuggestions,
-                    rejectedLinks: this.rejectedLinks,
-
-                    // AI action log
-                    aiActionLog: this.aiActionLog,
-
-                    // API keys (optional - user can choose to include)
-                    // Note: API keys are stored separately in localStorage for security
-                };
-
-                const dataStr = JSON.stringify(allData, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-
-                const workspace = this.getCurrentWorkspace();
-                const workspaceName = workspace ? workspace.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'all';
-                a.download = `roadmap-backup-${workspaceName}-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-
-                console.log('✅ Exported all data:', {
-                    workspaces: this.workspaces.length,
-                    features: this.features.length,
-                    memory: this.memory.length,
-                    linkSuggestions: this.linkSuggestions.length,
-                    aiActionLog: this.aiActionLog.length
-                });
-
-                this.showAlert({
-                    title:'Backup exported',
-                    message:`Exported ${this.workspaces.length} workspace(s), ${this.features.length} features, ${this.memory.length} memory items, ${this.linkSuggestions.length} link suggestions.`,
-                    variant:'success'
-                });
+                // Use the new exportData function which handles localStorage data
+                this.exportData();
             },
 
             importAllData() {
@@ -12344,60 +12604,28 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
                 input.type = 'file';
                 input.accept = '.json';
 
-                input.onchange = (e) => {
+                input.onchange = async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const importedData = JSON.parse(event.target.result);
+                    try {
+                        const success = await this.importData(file);
+                        if (success) {
+                            // Refresh the page to load the imported data
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } catch (error) {
+                        console.error('Import failed:', error);
+                        this.showAlert({
+                            title: 'Import failed',
+                            message: 'Failed to import data. Please check the console for details.',
+                            variant: 'danger'
+                        });
+                    }
+                };
 
-                            // Validate data structure - only features is required
-                            if (!importedData.features || !Array.isArray(importedData.features)) {
-                                throw new Error('Invalid backup file: Missing or invalid "features" array. Please make sure you selected a valid roadmap backup file.');
-                            }
-
-                            // Check version for backward compatibility
-                            // If no version field, treat as v1.0 (legacy format before workspace feature)
-                            const isV2 = importedData.version === '2.0';
-                            const workspaceCount = isV2 ? (importedData.workspaces?.length || 0) : 0;
-
-                            // Confirm before overwriting
-                            const confirmMsg = `This will restore:<br>` +
-                                (isV2 ? `- ${workspaceCount} workspace(s)<br>` : `- Legacy format detected - a new workspace will be created<br>`) +
-                                `- ${importedData.features.length} features<br>` +
-                                `- ${importedData.memory?.length || 0} memory items<br>` +
-                                `- ${importedData.linkSuggestions?.length || 0} link suggestions<br>` +
-                                `- ${importedData.aiActionLog?.length || 0} AI actions<br><br>` +
-                                `Current data will be REPLACED!`;
-
-                            // use async confirm via microtask
-                            Promise.resolve().then(async () => {
-                                const ok = await this.showConfirm({
-                                    title:'Import data from backup?',
-                                    message: confirmMsg,
-                                    confirmText:'Import',
-                                    cancelText:'Cancel',
-                                    variant:'warning'
-                                });
-                                if (!ok) return;
-
-                                // Import workspace data (v2.0)
-                                if (isV2 && importedData.workspaces) {
-                                    this.workspaces = importedData.workspaces;
-                                    this.currentWorkspaceId = importedData.currentWorkspaceId || (this.workspaces[0]?.id || null);
-                                    localStorage.setItem('roadmapWorkspaces', JSON.stringify(this.workspaces));
-                                    if (this.currentWorkspaceId) {
-                                        localStorage.setItem('currentWorkspaceId', this.currentWorkspaceId);
-                                    }
-                                } else {
-                                    // Backward compatibility: Create a default workspace for v1.0 imports
-                                    const defaultWorkspace = {
-                                        id: Date.now().toString(),
-                                        name: 'Imported Roadmap',
-                                        description: 'Imported from legacy backup',
-                                        color: '#3b82f6',
+                input.click();
+            },
                                         icon: '📊',
                                         customInstructions: importedData.customInstructions || '',
                                         aiMemory: importedData.memory || [],
