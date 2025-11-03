@@ -12243,13 +12243,31 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
 
             exportAllData() {
                 const allData = {
-                    version: '1.0',
+                    version: '2.0', // Updated version for workspace support
                     exportDate: new Date().toISOString(),
+
+                    // Workspace data
+                    workspaces: this.workspaces,
+                    currentWorkspaceId: this.currentWorkspaceId,
+
+                    // Feature data (includes linkedItems in timelineItems)
                     features: this.features,
+
+                    // AI data
                     memory: this.memory,
                     memorySuggestions: this.memorySuggestions,
                     customInstructions: this.customInstructions,
-                    selectedModel: this.selectedModel
+                    selectedModel: this.selectedModel,
+
+                    // Link data
+                    linkSuggestions: this.linkSuggestions,
+                    rejectedLinks: this.rejectedLinks,
+
+                    // AI action log
+                    aiActionLog: this.aiActionLog,
+
+                    // API keys (optional - user can choose to include)
+                    // Note: API keys are stored separately in localStorage for security
                 };
 
                 const dataStr = JSON.stringify(allData, null, 2);
@@ -12257,17 +12275,26 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `roadmap-backup-${new Date().toISOString().split('T')[0]}.json`;
+
+                const workspace = this.getCurrentWorkspace();
+                const workspaceName = workspace ? workspace.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'all';
+                a.download = `roadmap-backup-${workspaceName}-${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
 
                 console.log('✅ Exported all data:', {
+                    workspaces: this.workspaces.length,
                     features: this.features.length,
                     memory: this.memory.length,
-                    suggestions: this.memorySuggestions.length
+                    linkSuggestions: this.linkSuggestions.length,
+                    aiActionLog: this.aiActionLog.length
                 });
 
-                this.showAlert({ title:'Backup exported', message:`${this.features.length} features, ${this.memory.length} memory items, ${this.memorySuggestions.length} suggestions.`, variant:'info' });
+                this.showAlert({
+                    title:'Backup exported',
+                    message:`Exported ${this.workspaces.length} workspace(s), ${this.features.length} features, ${this.memory.length} memory items, ${this.linkSuggestions.length} link suggestions.`,
+                    variant:'success'
+                });
             },
 
             importAllData() {
@@ -12289,15 +12316,67 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
                                 throw new Error('Invalid backup file format');
                             }
 
+                            // Check version for backward compatibility
+                            const isV2 = importedData.version === '2.0';
+                            const workspaceCount = isV2 ? (importedData.workspaces?.length || 0) : 0;
+
                             // Confirm before overwriting
-                            const confirmMsg = `This will restore:<br>- ${importedData.features.length} features<br>- ${importedData.memory?.length || 0} memory items<br>- ${importedData.memorySuggestions?.length || 0} suggestions<br><br>Current data will be REPLACED!`;
+                            const confirmMsg = `This will restore:<br>` +
+                                (isV2 ? `- ${workspaceCount} workspace(s)<br>` : '') +
+                                `- ${importedData.features.length} features<br>` +
+                                `- ${importedData.memory?.length || 0} memory items<br>` +
+                                `- ${importedData.linkSuggestions?.length || 0} link suggestions<br>` +
+                                `- ${importedData.aiActionLog?.length || 0} AI actions<br><br>` +
+                                `Current data will be REPLACED!`;
+
                             // use async confirm via microtask
                             Promise.resolve().then(async () => {
-                                const ok = await this.showConfirm({ title:'Import data from backup?', message: confirmMsg, confirmText:'Import', cancelText:'Cancel', variant:'warning' });
+                                const ok = await this.showConfirm({
+                                    title:'Import data from backup?',
+                                    message: confirmMsg,
+                                    confirmText:'Import',
+                                    cancelText:'Cancel',
+                                    variant:'warning'
+                                });
                                 if (!ok) return;
 
-                                // Import data
+                                // Import workspace data (v2.0)
+                                if (isV2 && importedData.workspaces) {
+                                    this.workspaces = importedData.workspaces;
+                                    this.currentWorkspaceId = importedData.currentWorkspaceId || (this.workspaces[0]?.id || null);
+                                    localStorage.setItem('roadmapWorkspaces', JSON.stringify(this.workspaces));
+                                    if (this.currentWorkspaceId) {
+                                        localStorage.setItem('currentWorkspaceId', this.currentWorkspaceId);
+                                    }
+                                } else {
+                                    // Backward compatibility: Create a default workspace for v1.0 imports
+                                    const defaultWorkspace = {
+                                        id: Date.now().toString(),
+                                        name: 'Imported Roadmap',
+                                        description: 'Imported from legacy backup',
+                                        color: '#3b82f6',
+                                        icon: '📊',
+                                        customInstructions: importedData.customInstructions || '',
+                                        aiMemory: importedData.memory || [],
+                                        createdAt: new Date().toISOString(),
+                                        updatedAt: new Date().toISOString()
+                                    };
+                                    this.workspaces = [defaultWorkspace];
+                                    this.currentWorkspaceId = defaultWorkspace.id;
+
+                                    // Assign workspace_id to all imported features
+                                    importedData.features.forEach(f => {
+                                        f.workspaceId = defaultWorkspace.id;
+                                    });
+
+                                    localStorage.setItem('roadmapWorkspaces', JSON.stringify(this.workspaces));
+                                    localStorage.setItem('currentWorkspaceId', this.currentWorkspaceId);
+                                }
+
+                                // Import features
                                 this.features = importedData.features || [];
+
+                                // Import AI data
                                 this.memory = importedData.memory || [];
                                 this.memorySuggestions = importedData.memorySuggestions || [];
                                 this.customInstructions = importedData.customInstructions || '';
@@ -12305,23 +12384,44 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
                                     this.selectedModel = importedData.selectedModel;
                                 }
 
+                                // Import link data (v2.0)
+                                if (isV2) {
+                                    this.linkSuggestions = importedData.linkSuggestions || [];
+                                    this.rejectedLinks = importedData.rejectedLinks || [];
+                                    this.aiActionLog = importedData.aiActionLog || [];
+                                }
+
                                 // Rebuild tags
                                 this.allTags = new Set();
                                 this.features.forEach(f => {
                                     if (f.tags) f.tags.forEach(t => this.allTags.add(t));
+                                    // Also collect categories from timeline items
+                                    if (f.timelineItems) {
+                                        f.timelineItems.forEach(item => {
+                                            if (item.category) {
+                                                item.category.forEach(c => this.allTags.add(c));
+                                            }
+                                        });
+                                    }
                                 });
 
-                                // Save to localStorage
+                                // Save to localStorage and Supabase
                                 this.saveData();
                                 this.saveMemory();
                                 this.saveMemorySuggestions();
                                 this.saveCustomInstructions(this.customInstructions);
                                 this.saveModel(this.selectedModel);
+                                this.saveLinkSuggestions();
+                                this.saveRejectedLinks();
+                                this.saveAIActionLog();
 
                                 // Update UI
+                                this.renderWorkspaceSelector();
                                 this.renderTable();
                                 this.updateSuggestionNotification();
+                                this.updateLinkNotification();
                                 this.updateCounters();
+                                this.updateActionLogCounter();
 
                                 // Update custom instructions textarea
                                 const textarea = document.getElementById('customInstructionsInput');
@@ -12332,7 +12432,11 @@ Generate 3-4 milestones, 3-5 risks, and 2-4 prerequisites.`;
                                 if (modelSelect) modelSelect.value = this.selectedModel;
 
                                 console.log('✅ Imported all data successfully');
-                                this.showAlert({ title:'Import complete', message:`${this.features.length} features, ${this.memory.length} memory items, ${this.memorySuggestions.length} suggestions.` });
+                                this.showAlert({
+                                    title:'Import complete',
+                                    message:`Restored ${this.workspaces.length} workspace(s), ${this.features.length} features, ${this.memory.length} memory items.`,
+                                    variant:'success'
+                                });
                             });
 
                         } catch (error) {
