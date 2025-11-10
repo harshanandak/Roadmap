@@ -6,7 +6,7 @@ function diagnoseDataState() {
 
     // Check localStorage
     const featuresRaw = localStorage.getItem('roadmapFeatures');
-    const workspacesRaw = localStorage.getItem('workspaces');
+    const workspacesRaw = localStorage.getItem('roadmapWorkspaces');
     const currentWorkspaceId = localStorage.getItem('currentWorkspaceId');
 
     console.log('📦 LocalStorage Status:');
