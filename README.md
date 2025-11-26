@@ -195,7 +195,7 @@ This project uses **Model Context Protocol (MCP)** servers for enhanced AI capab
 **Deferred** (Install Week 4+):
 - **shadcn/ui MCP** - Component installation, multi-registry access
 
-**Configuration**: See [cursor-mcp-config.json](cursor-mcp-config.json)
+**Configuration**: Configure MCP servers in your editor's settings (file not tracked in git)
 
 **Optimization**: Token usage optimized with lazy loading + skill-based abstraction.
 

@@ -462,5 +462,4 @@ To reduce token usage:
 ---
 
 **See Also**:
-- [MCP Configuration](../../cursor-mcp-config.json)
 - [Main Implementation Plan](../implementation/README.md)
