@@ -26,7 +26,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 interface EditWorkItemDialogProps {
   workItemId: string
   workspaceId: string
-  phase: WorkspacePhase
+  phase?: WorkspacePhase  // Optional - defaults to 'complete' (all fields visible)
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
@@ -65,7 +65,7 @@ interface EditWorkItemDialogProps {
 export function EditWorkItemDialog({
   workItemId,
   workspaceId,
-  phase,
+  phase = 'complete',  // Default to 'complete' - all fields visible, none locked
   open,
   onOpenChange,
   onSuccess,

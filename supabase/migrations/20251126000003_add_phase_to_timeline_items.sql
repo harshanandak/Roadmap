@@ -22,10 +22,18 @@ END;
 CREATE INDEX IF NOT EXISTS idx_timeline_items_phase
   ON timeline_items(phase);
 
--- Step 4: Now add the check constraint after data is clean
-ALTER TABLE timeline_items
-  ADD CONSTRAINT timeline_items_phase_check
-  CHECK (phase IN ('research', 'planning', 'execution', 'review', 'complete'));
+-- Step 4: Now add the check constraint after data is clean (if not exists)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'timeline_items_phase_check'
+  ) THEN
+    ALTER TABLE timeline_items
+      ADD CONSTRAINT timeline_items_phase_check
+      CHECK (phase IN ('research', 'planning', 'execution', 'review', 'complete'));
+  END IF;
+END $$;
 
 -- Step 5: Add comment for documentation
 COMMENT ON COLUMN timeline_items.phase IS 'Workflow phase: research, planning, execution, review, complete. Defaults to planning.';

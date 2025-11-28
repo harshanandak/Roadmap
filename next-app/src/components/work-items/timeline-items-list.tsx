@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/collapsible'
 import { useRouter } from 'next/navigation'
 import { Trash2, Check, Clock, Target, ChevronDown, ChevronRight, ListTodo } from 'lucide-react'
-import { getPhaseLabel, getPhaseBgColor } from '@/lib/constants/work-item-types'
+import { getLifecycleStatusLabel, getLifecycleStatusBgColor } from '@/lib/constants/work-item-types'
 import { TaskList } from '@/components/product-tasks/task-list'
 
 interface TimelineItem {
@@ -40,12 +40,12 @@ interface TimelineItem {
 
 interface TimelineItemsListProps {
   items: TimelineItem[]
-  featureId: string
+  workItemId: string
   workspaceId?: string
   teamId?: string
 }
 
-export function TimelineItemsList({ items, featureId, workspaceId, teamId }: TimelineItemsListProps) {
+export function TimelineItemsList({ items, workItemId, workspaceId, teamId }: TimelineItemsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
@@ -167,9 +167,9 @@ export function TimelineItemsList({ items, featureId, workspaceId, teamId }: Tim
                     </Badge>
 
                     {item.phase && (
-                      <Badge variant="outline" className={getPhaseBgColor(item.phase)}>
+                      <Badge variant="outline" className={getLifecycleStatusBgColor(item.phase)} title="Status">
                         <Target className="h-3 w-3 mr-1" />
-                        {getPhaseLabel(item.phase)}
+                        {getLifecycleStatusLabel(item.phase)}
                       </Badge>
                     )}
 

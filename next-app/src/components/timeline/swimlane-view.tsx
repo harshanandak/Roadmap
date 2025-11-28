@@ -56,7 +56,7 @@ export function SwimlaneView({
 
   // Group work items into swimlanes
   const swimlanes = useMemo<Swimlane[]>(() => {
-    const itemsWithDates = workItems.filter(item => item.start_date && item.end_date)
+    const itemsWithDates = workItems.filter(item => item.planned_start_date && item.planned_end_date)
     const groups = new Map<string, TimelineWorkItem[]>()
 
     itemsWithDates.forEach(item => {

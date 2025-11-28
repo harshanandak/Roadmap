@@ -1,10 +1,10 @@
-import type { WorkItem } from '@/lib/features/types'
-import type { FeatureConnection } from '@/lib/types/dependencies'
+import type { WorkItem } from '@/lib/work-items/types'
+import type { WorkItemConnection } from '@/lib/types/dependencies'
 
 export interface Cycle {
   path: string[] // Ordered list of work item IDs in the cycle
   workItems: WorkItem[] // Full work item objects
-  connections: FeatureConnection[] // Connections forming the cycle
+  connections: WorkItemConnection[] // Connections forming the cycle
   severity: 'high' | 'medium' | 'low'
   suggestedFixes: CycleFix[]
 }
@@ -31,10 +31,10 @@ export interface CycleDetectionResult {
  */
 export function detectCycles(
   workItems: WorkItem[],
-  connections: FeatureConnection[]
+  connections: WorkItemConnection[]
 ): CycleDetectionResult {
   // Build adjacency list (only for dependency and blocks types)
-  const graph = new Map<string, { targetId: string; connection: FeatureConnection }[]>()
+  const graph = new Map<string, { targetId: string; connection: WorkItemConnection }[]>()
   const workItemMap = new Map(workItems.map((item) => [item.id, item]))
 
   // Initialize graph
@@ -47,9 +47,9 @@ export function detectCycles(
     .filter((conn) => conn.status === 'active' && ['dependency', 'blocks'].includes(conn.connection_type))
     .forEach((conn) => {
       // Source depends on target (target -> source edge)
-      const edges = graph.get(conn.target_feature_id)
+      const edges = graph.get(conn.target_work_item_id)
       if (edges) {
-        edges.push({ targetId: conn.source_feature_id, connection: conn })
+        edges.push({ targetId: conn.source_work_item_id, connection: conn })
       }
     })
 
@@ -131,9 +131,9 @@ export function detectCycles(
  */
 function getCycleConnections(
   cyclePath: string[],
-  allConnections: FeatureConnection[]
-): FeatureConnection[] {
-  const cycleConnections: FeatureConnection[] = []
+  allConnections: WorkItemConnection[]
+): WorkItemConnection[] {
+  const cycleConnections: WorkItemConnection[] = []
 
   for (let i = 0; i < cyclePath.length - 1; i++) {
     const source = cyclePath[i + 1] // Next node is the source (depends on current)
@@ -141,8 +141,8 @@ function getCycleConnections(
 
     const connection = allConnections.find(
       (conn) =>
-        conn.source_feature_id === source &&
-        conn.target_feature_id === target &&
+        conn.source_work_item_id === source &&
+        conn.target_work_item_id === target &&
         conn.status === 'active'
     )
 
@@ -159,7 +159,7 @@ function getCycleConnections(
  */
 function calculateCycleSeverity(
   workItems: WorkItem[],
-  connections: FeatureConnection[]
+  connections: WorkItemConnection[]
 ): 'high' | 'medium' | 'low' {
   // High severity if:
   // - Cycle includes critical/high priority items
@@ -187,7 +187,7 @@ function calculateCycleSeverity(
  */
 function generateCycleFixes(
   cyclePath: string[],
-  connections: FeatureConnection[],
+  connections: WorkItemConnection[],
   workItemMap: Map<string, WorkItem>
 ): CycleFix[] {
   const fixes: CycleFix[] = []
@@ -198,14 +198,14 @@ function generateCycleFixes(
       conn.strength < min.strength ? conn : min
     )
 
-    const sourceItem = workItemMap.get(weakestConnection.source_feature_id)
-    const targetItem = workItemMap.get(weakestConnection.target_feature_id)
+    const sourceItem = workItemMap.get(weakestConnection.source_work_item_id)
+    const targetItem = workItemMap.get(weakestConnection.target_work_item_id)
 
     fixes.push({
       action: 'remove_connection',
       connectionId: weakestConnection.id,
-      sourceId: weakestConnection.source_feature_id,
-      targetId: weakestConnection.target_feature_id,
+      sourceId: weakestConnection.source_work_item_id,
+      targetId: weakestConnection.target_work_item_id,
       reason: `Remove weakest dependency (${Math.round(weakestConnection.strength * 100)}% strength)`,
       impact: `${sourceItem?.name} will no longer depend on ${targetItem?.name}`,
     })
@@ -214,14 +214,14 @@ function generateCycleFixes(
   // Strategy 2: Remove AI-discovered connections (user-created are more intentional)
   const aiConnection = connections.find((conn) => conn.discovered_by === 'ai')
   if (aiConnection) {
-    const sourceItem = workItemMap.get(aiConnection.source_feature_id)
-    const targetItem = workItemMap.get(aiConnection.target_feature_id)
+    const sourceItem = workItemMap.get(aiConnection.source_work_item_id)
+    const targetItem = workItemMap.get(aiConnection.target_work_item_id)
 
     fixes.push({
       action: 'remove_connection',
       connectionId: aiConnection.id,
-      sourceId: aiConnection.source_feature_id,
-      targetId: aiConnection.target_feature_id,
+      sourceId: aiConnection.source_work_item_id,
+      targetId: aiConnection.target_work_item_id,
       reason: 'Remove AI-suggested dependency (may be incorrect)',
       impact: `${sourceItem?.name} will no longer depend on ${targetItem?.name}`,
     })
@@ -230,14 +230,14 @@ function generateCycleFixes(
   // Strategy 3: Change connection type to non-blocking (relates_to)
   const blockingConnection = connections.find((conn) => conn.connection_type === 'blocks')
   if (blockingConnection) {
-    const sourceItem = workItemMap.get(blockingConnection.source_feature_id)
-    const targetItem = workItemMap.get(blockingConnection.target_feature_id)
+    const sourceItem = workItemMap.get(blockingConnection.source_work_item_id)
+    const targetItem = workItemMap.get(blockingConnection.target_work_item_id)
 
     fixes.push({
       action: 'change_type',
       connectionId: blockingConnection.id,
-      sourceId: blockingConnection.source_feature_id,
-      targetId: blockingConnection.target_feature_id,
+      sourceId: blockingConnection.source_work_item_id,
+      targetId: blockingConnection.target_work_item_id,
       reason: 'Change "blocks" to "relates_to" (informational only)',
       impact: `${sourceItem?.name} will relate to ${targetItem?.name} without blocking`,
     })
@@ -249,14 +249,14 @@ function generateCycleFixes(
       new Date(conn.created_at) > new Date(max.created_at) ? conn : max
     )
 
-    const sourceItem = workItemMap.get(newestConnection.source_feature_id)
-    const targetItem = workItemMap.get(newestConnection.target_feature_id)
+    const sourceItem = workItemMap.get(newestConnection.source_work_item_id)
+    const targetItem = workItemMap.get(newestConnection.target_work_item_id)
 
     fixes.push({
       action: 'reverse_connection',
       connectionId: newestConnection.id,
-      sourceId: newestConnection.source_feature_id,
-      targetId: newestConnection.target_feature_id,
+      sourceId: newestConnection.source_work_item_id,
+      targetId: newestConnection.target_work_item_id,
       reason: 'Reverse most recent dependency (may have been added incorrectly)',
       impact: `${targetItem?.name} will depend on ${sourceItem?.name} instead`,
     })
@@ -306,7 +306,7 @@ function calculateHealthScore(cycleCount: number, totalWorkItems: number): numbe
 export function wouldCreateCycle(
   sourceId: string,
   targetId: string,
-  existingConnections: FeatureConnection[],
+  existingConnections: WorkItemConnection[],
   workItems: WorkItem[]
 ): boolean {
   // Build graph with existing connections
@@ -316,8 +316,8 @@ export function wouldCreateCycle(
   existingConnections
     .filter((conn) => conn.status === 'active' && ['dependency', 'blocks'].includes(conn.connection_type))
     .forEach((conn) => {
-      const edges = graph.get(conn.target_feature_id)
-      if (edges) edges.push(conn.source_feature_id)
+      const edges = graph.get(conn.target_work_item_id)
+      if (edges) edges.push(conn.source_work_item_id)
     })
 
   // Add proposed connection

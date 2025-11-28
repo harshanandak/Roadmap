@@ -24,20 +24,20 @@ export function DashboardView({
   onboardingState,
 }: DashboardViewProps) {
   // Calculate stats
-  const totalFeatures = workItems?.length || 0;
-  const completedFeatures = workItems?.filter((item) => item.status === 'completed').length || 0;
-  const inProgressFeatures = workItems?.filter((item) => item.status === 'in_progress').length || 0;
-  const completionPercentage = totalFeatures > 0
-    ? Math.round((completedFeatures / totalFeatures) * 100)
+  const totalWorkItems = workItems?.length || 0;
+  const completedWorkItems = workItems?.filter((item) => item.status === 'completed').length || 0;
+  const inProgressWorkItems = workItems?.filter((item) => item.status === 'in_progress').length || 0;
+  const completionPercentage = totalWorkItems > 0
+    ? Math.round((completedWorkItems / totalWorkItems) * 100)
     : 0;
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
       <WorkspaceStatsGrid
-        totalFeatures={totalFeatures}
-        completedFeatures={completedFeatures}
-        inProgressFeatures={inProgressFeatures}
+        totalWorkItems={totalWorkItems}
+        completedWorkItems={completedWorkItems}
+        inProgressWorkItems={inProgressWorkItems}
         completionPercentage={completionPercentage}
         teamSize={teamSize}
       />
@@ -45,7 +45,7 @@ export function DashboardView({
       {/* Multi-Phase Progress Bar */}
       <MultiPhaseProgressBar
         distribution={phaseDistribution}
-        totalItems={totalFeatures}
+        totalItems={totalWorkItems}
       />
 
       {/* Description */}

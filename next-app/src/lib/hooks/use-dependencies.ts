@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
-  FeatureConnection,
+  WorkItemConnection,
   CreateConnectionRequest,
   UpdateConnectionRequest,
   ListConnectionsResponse,
@@ -44,7 +44,7 @@ export function useDependency(id: string) {
     queryFn: async () => {
       const response = await fetch(`/api/dependencies/${id}`)
       if (!response.ok) throw new Error('Failed to fetch dependency')
-      const data: { connection: FeatureConnection } = await response.json()
+      const data: { connection: WorkItemConnection } = await response.json()
       return data.connection
     },
     enabled: !!id,
@@ -150,7 +150,7 @@ export function useDeleteDependency() {
       // Optimistically update to remove the dependency
       queryClient.setQueryData(
         dependencyKeys.list(variables.workspace_id),
-        (old: FeatureConnection[] | undefined) => {
+        (old: WorkItemConnection[] | undefined) => {
           if (!old) return old
           return old.filter((conn) => conn.id !== variables.id)
         }

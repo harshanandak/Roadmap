@@ -32,7 +32,7 @@ export async function GET(
         assigned_user:users!product_tasks_assigned_to_fkey(id, email, name, avatar_url),
         created_by_user:users!product_tasks_created_by_fkey(id, email, name),
         work_item:work_items(id, name, type, status),
-        timeline_item:timeline_items(id, name, timeframe, phase)
+        timeline_item:timeline_items(id, timeline, phase, status)
       `)
       .eq('id', id)
       .single()
@@ -162,7 +162,7 @@ export async function PATCH(
         assigned_user:users!product_tasks_assigned_to_fkey(id, email, name, avatar_url),
         created_by_user:users!product_tasks_created_by_fkey(id, email, name),
         work_item:work_items(id, name, type, status),
-        timeline_item:timeline_items(id, name, timeframe, phase)
+        timeline_item:timeline_items(id, timeline, phase, status)
       `)
       .single()
 

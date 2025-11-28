@@ -47,9 +47,9 @@ test.describe('Feature Management', () => {
 
   test.skip('should add timeline items to feature', async ({ page }) => {
     const workspaceId = 'test_workspace_id';
-    const featureId = 'test_feature_id';
+    const workItemId = 'test_feature_id';
 
-    await page.goto(`/workspaces/${workspaceId}/features/${featureId}`);
+    await page.goto(`/workspaces/${workspaceId}/features/${workItemId}`);
 
     // Click add timeline item button
     await page.getByRole('button', { name: /add.*timeline/i }).click();
@@ -69,9 +69,9 @@ test.describe('Feature Management', () => {
 
   test.skip('should edit feature details', async ({ page }) => {
     const workspaceId = 'test_workspace_id';
-    const featureId = 'test_feature_id';
+    const workItemId = 'test_feature_id';
 
-    await page.goto(`/workspaces/${workspaceId}/features/${featureId}`);
+    await page.goto(`/workspaces/${workspaceId}/features/${workItemId}`);
 
     // Click edit button
     await page.getByRole('button', { name: /edit/i }).first().click();
@@ -124,9 +124,9 @@ test.describe('Feature Management', () => {
 
   test.skip('should delete feature with confirmation', async ({ page }) => {
     const workspaceId = 'test_workspace_id';
-    const featureId = 'test_feature_id';
+    const workItemId = 'test_feature_id';
 
-    await page.goto(`/workspaces/${workspaceId}/features/${featureId}`);
+    await page.goto(`/workspaces/${workspaceId}/features/${workItemId}`);
 
     // Click delete button
     await page.getByRole('button', { name: /delete/i }).click();

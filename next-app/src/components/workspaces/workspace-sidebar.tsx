@@ -1,10 +1,6 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import {
   BarChart3,
@@ -36,7 +32,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuBadge,
-  useSidebar,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
@@ -87,7 +83,6 @@ export function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state } = useSidebar();
   const [expandedSections, setExpandedSections] = useState<string[]>(['work-items']);
 
   const activeView = currentView || searchParams?.get('view') || 'dashboard';
@@ -130,9 +125,9 @@ export function WorkspaceSidebar({
           enabled: enabledModules.includes('mind_map'),
         },
         {
-          id: 'features',
+          id: 'work-items',
           name: 'Work Board',
-          view: 'features',
+          view: 'work-items',
           icon: FileText,
           enabled: enabledModules.includes('features'),
         },
@@ -354,31 +349,11 @@ export function WorkspaceSidebar({
         })}
       </SidebarContent>
 
-      {/* Sidebar Settings Footer */}
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Popover>
-              <PopoverTrigger asChild>
-                <SidebarMenuButton>
-                  <Settings className="h-4 w-4" />
-                  <span>Sidebar Settings</span>
-                </SidebarMenuButton>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="start" className="w-56">
-                <div className="space-y-3">
-                  <h4 className="font-medium text-sm">Sidebar Display</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Current state: <span className="font-medium capitalize">{state}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Use Ctrl+B (Windows) or Cmd+B (Mac) to toggle the sidebar.
-                  </p>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      {/* Sidebar Footer with Toggle */}
+      <SidebarFooter className="p-2">
+        <div className="flex justify-end group-data-[collapsible=icon]:justify-center">
+          <SidebarTrigger className="h-8 w-8" />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

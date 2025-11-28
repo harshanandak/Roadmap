@@ -25,22 +25,22 @@ import {
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import {
-  TIMELINE_ITEM_STATUSES,
-  STATUS_METADATA,
-  TimelineItemStatus,
-  TIMELINE_ITEM_PHASES,
-  PHASE_METADATA,
-  TimelineItemPhase,
+  PROGRESS_STATES,
+  PROGRESS_METADATA,
+  TimelineProgress,
+  LIFECYCLE_STATUSES,
+  LIFECYCLE_STATUS_METADATA,
+  LifecycleStatus,
 } from '@/lib/constants/work-item-types'
 
 interface CreateTimelineItemDialogProps {
-  featureId: string
+  workItemId: string
   timeline: 'MVP' | 'SHORT' | 'LONG'
   orderIndex: number
 }
 
 export function CreateTimelineItemDialog({
-  featureId,
+  workItemId,
   timeline,
   orderIndex,
 }: CreateTimelineItemDialogProps) {
@@ -50,8 +50,8 @@ export function CreateTimelineItemDialog({
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<string>('MEDIUM')
   const [estimatedHours, setEstimatedHours] = useState('')
-  const [status, setStatus] = useState<TimelineItemStatus>(TIMELINE_ITEM_STATUSES.NOT_STARTED)
-  const [phase, setPhase] = useState<TimelineItemPhase>(TIMELINE_ITEM_PHASES.PLANNING)
+  const [progress, setProgress] = useState<TimelineProgress>(PROGRESS_STATES.NOT_STARTED)
+  const [lifecycleStatus, setLifecycleStatus] = useState<LifecycleStatus>(LIFECYCLE_STATUSES.PLANNING)
 
   const router = useRouter()
   const supabase = createClient()
@@ -65,20 +65,34 @@ export function CreateTimelineItemDialog({
         throw new Error('Title is required')
       }
 
+      // Check if a timeline item already exists for this work item + timeline type
+      const { data: existingItem } = await supabase
+        .from('timeline_items')
+        .select('id, title')
+        .eq('work_item_id', workItemId)
+        .eq('timeline', timeline)
+        .maybeSingle()
+
+      if (existingItem) {
+        throw new Error(
+          `A ${timeline} timeline item already exists for this work item: "${existingItem.title}". Each work item can only have one item per timeline type (MVP, SHORT, LONG).`
+        )
+      }
+
       const itemId = `timeline_item_${Date.now()}`
 
-      // Create timeline item
+      // Create timeline item - use work_item_id column (NOT feature_id)
+      // Note: order_index column doesn't exist in DB, so we don't include it
       const { error } = await supabase.from('timeline_items').insert({
         id: itemId,
-        feature_id: featureId,
+        work_item_id: workItemId,
         title: title.trim(),
         description: description.trim() || null,
         timeline,
         difficulty,
-        order_index: orderIndex,
         estimated_hours: estimatedHours ? parseInt(estimatedHours) : null,
-        status,
-        phase,
+        status: progress,  // progress maps to status column in DB
+        phase: lifecycleStatus,  // lifecycleStatus maps to phase column in DB
       })
 
       if (error) throw error
@@ -88,15 +102,20 @@ export function CreateTimelineItemDialog({
       setDescription('')
       setDifficulty('MEDIUM')
       setEstimatedHours('')
-      setStatus(TIMELINE_ITEM_STATUSES.NOT_STARTED)
-      setPhase(TIMELINE_ITEM_PHASES.PLANNING)
+      setProgress(PROGRESS_STATES.NOT_STARTED)
+      setLifecycleStatus(LIFECYCLE_STATUSES.PLANNING)
       setOpen(false)
 
       // Refresh the page
       router.refresh()
     } catch (error: any) {
       console.error('Error creating timeline item:', error)
-      alert(error.message || 'Failed to create timeline item')
+      // Handle unique constraint violation from database
+      if (error.code === '23505' || error.message?.includes('unique_work_item_timeline')) {
+        alert(`A ${timeline} timeline item already exists for this work item. Each work item can only have one item per timeline type (MVP, SHORT, LONG).`)
+      } else {
+        alert(error.message || 'Failed to create timeline item')
+      }
     } finally {
       setLoading(false)
     }
@@ -180,15 +199,15 @@ export function CreateTimelineItemDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="status">Initial Status</Label>
-                <Select value={status} onValueChange={(value) => setStatus(value as TimelineItemStatus)}>
-                  <SelectTrigger id="status">
+                <Label htmlFor="progress">Initial Progress</Label>
+                <Select value={progress} onValueChange={(value) => setProgress(value as TimelineProgress)}>
+                  <SelectTrigger id="progress">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(TIMELINE_ITEM_STATUSES).map((statusValue) => (
-                      <SelectItem key={statusValue} value={statusValue}>
-                        {STATUS_METADATA[statusValue].label}
+                    {Object.values(PROGRESS_STATES).map((progressValue) => (
+                      <SelectItem key={progressValue} value={progressValue}>
+                        {PROGRESS_METADATA[progressValue].label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -196,15 +215,15 @@ export function CreateTimelineItemDialog({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="phase">Lifecycle Phase</Label>
-                <Select value={phase} onValueChange={(value) => setPhase(value as TimelineItemPhase)}>
-                  <SelectTrigger id="phase">
+                <Label htmlFor="lifecycleStatus">Status</Label>
+                <Select value={lifecycleStatus} onValueChange={(value) => setLifecycleStatus(value as LifecycleStatus)}>
+                  <SelectTrigger id="lifecycleStatus">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(TIMELINE_ITEM_PHASES).map((phaseValue) => (
-                      <SelectItem key={phaseValue} value={phaseValue}>
-                        {PHASE_METADATA[phaseValue].label}
+                    {Object.values(LIFECYCLE_STATUSES).map((statusValue) => (
+                      <SelectItem key={statusValue} value={statusValue}>
+                        {LIFECYCLE_STATUS_METADATA[statusValue].label}
                       </SelectItem>
                     ))}
                   </SelectContent>

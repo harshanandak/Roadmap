@@ -471,7 +471,7 @@ test.describe('Features - Filtering and Search', () => {
 test.describe('Features - Timeline Breakdown', () => {
   let teamId: string;
   let workspaceId: string;
-  let featureId: string;
+  let workItemId: string;
 
   test.beforeAll(async () => {
     try {
@@ -496,7 +496,7 @@ test.describe('Features - Timeline Breakdown', () => {
         teamId,
         workspaceId,
       });
-      featureId = feature.id;
+      workItemId = feature.id;
     } catch (error) {
       console.error('Setup failed:', error);
       throw error;
@@ -512,7 +512,7 @@ test.describe('Features - Timeline Breakdown', () => {
   });
 
   test('should display timeline breakdown for feature', async ({ page }) => {
-    await page.goto(TEST_PATHS.feature(workspaceId, featureId));
+    await page.goto(TEST_PATHS.feature(workspaceId, workItemId));
 
     // Wait for page to load
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
@@ -532,7 +532,7 @@ test.describe('Features - Timeline Breakdown', () => {
   });
 
   test('should allow adding timeline items', async ({ page }) => {
-    await page.goto(TEST_PATHS.feature(workspaceId, featureId));
+    await page.goto(TEST_PATHS.feature(workspaceId, workItemId));
 
     // Find add timeline button
     const addButton = page.locator('button:has-text("Add Timeline"), button:has-text("Add Item")').first();

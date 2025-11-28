@@ -25,8 +25,8 @@ export interface TimelineWorkItem {
   timeline_phase: 'MVP' | 'SHORT' | 'LONG'
   status: string
   priority?: string
-  start_date?: string
-  end_date?: string
+  planned_start_date?: string
+  planned_end_date?: string
   duration_days?: number
   dependencies: Array<{ targetId: string; type: string }>
   assignee?: string
@@ -155,7 +155,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
 
   // Calculate date range from work items
   const dateRange = useMemo(() => {
-    const itemsWithDates = filteredWorkItems.filter(item => item.start_date && item.end_date)
+    const itemsWithDates = filteredWorkItems.filter(item => item.planned_start_date && item.planned_end_date)
 
     if (itemsWithDates.length === 0) {
       // Default to current quarter
@@ -166,8 +166,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
       }
     }
 
-    const startDates = itemsWithDates.map(item => new Date(item.start_date!))
-    const endDates = itemsWithDates.map(item => new Date(item.end_date!))
+    const startDates = itemsWithDates.map(item => new Date(item.planned_start_date!))
+    const endDates = itemsWithDates.map(item => new Date(item.planned_end_date!))
 
     const minDate = new Date(Math.min(...startDates.map(d => d.getTime())))
     const maxDate = new Date(Math.max(...endDates.map(d => d.getTime())))
@@ -221,10 +221,10 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
 
   // Calculate position and width for a work item bar
   const getBarStyle = (item: TimelineWorkItem) => {
-    if (!item.start_date || !item.end_date) return null
+    if (!item.planned_start_date || !item.planned_end_date) return null
 
-    const start = new Date(item.start_date)
-    const end = new Date(item.end_date)
+    const start = new Date(item.planned_start_date)
+    const end = new Date(item.planned_end_date)
 
     // Find starting position
     let leftPosition = 0
@@ -303,7 +303,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
     const itemId = active.id as string
     const item = workItems.find(i => i.id === itemId)
 
-    if (!item || !item.start_date || !item.end_date) return
+    if (!item || !item.planned_start_date || !item.planned_end_date) return
 
     // Calculate date shift
     const pixelsPerDay = getPixelsPerDay()
@@ -312,8 +312,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
     if (daysDelta === 0) return
 
     // Calculate new dates
-    const oldStartDate = new Date(item.start_date)
-    const oldEndDate = new Date(item.end_date)
+    const oldStartDate = new Date(item.planned_start_date)
+    const oldEndDate = new Date(item.planned_end_date)
     const newStartDate = addDays(oldStartDate, daysDelta)
     const newEndDate = addDays(oldEndDate, daysDelta)
 
@@ -323,8 +323,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
         i.id === itemId
           ? {
               ...i,
-              start_date: format(newStartDate, 'yyyy-MM-dd'),
-              end_date: format(newEndDate, 'yyyy-MM-dd'),
+              planned_start_date: format(newStartDate, 'yyyy-MM-dd'),
+              planned_end_date: format(newEndDate, 'yyyy-MM-dd'),
             }
           : i
       )
@@ -336,8 +336,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          start_date: format(newStartDate, 'yyyy-MM-dd'),
-          end_date: format(newEndDate, 'yyyy-MM-dd'),
+          planned_start_date: format(newStartDate, 'yyyy-MM-dd'),
+          planned_end_date: format(newEndDate, 'yyyy-MM-dd'),
         }),
       })
 
@@ -363,8 +363,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
           i.id === itemId
             ? {
                 ...i,
-                start_date: item.start_date,
-                end_date: item.end_date,
+                planned_start_date: item.planned_start_date,
+                planned_end_date: item.planned_end_date,
               }
             : i
         )
@@ -389,14 +389,14 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
     if (!item) return
 
     // If deltaPixels provided, it's a horizontal drag (date reschedule)
-    if (deltaPixels && deltaPixels !== 0 && item.start_date && item.end_date) {
+    if (deltaPixels && deltaPixels !== 0 && item.planned_start_date && item.planned_end_date) {
       const pixelsPerDay = getPixelsPerDay()
       const daysDelta = Math.round(deltaPixels / pixelsPerDay)
 
       if (daysDelta === 0) return
 
-      const oldStartDate = new Date(item.start_date)
-      const oldEndDate = new Date(item.end_date)
+      const oldStartDate = new Date(item.planned_start_date)
+      const oldEndDate = new Date(item.planned_end_date)
       const newStartDate = addDays(oldStartDate, daysDelta)
       const newEndDate = addDays(oldEndDate, daysDelta)
 
@@ -406,8 +406,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
           i.id === itemId
             ? {
                 ...i,
-                start_date: format(newStartDate, 'yyyy-MM-dd'),
-                end_date: format(newEndDate, 'yyyy-MM-dd'),
+                planned_start_date: format(newStartDate, 'yyyy-MM-dd'),
+                planned_end_date: format(newEndDate, 'yyyy-MM-dd'),
               }
             : i
         )
@@ -418,8 +418,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            start_date: format(newStartDate, 'yyyy-MM-dd'),
-            end_date: format(newEndDate, 'yyyy-MM-dd'),
+            planned_start_date: format(newStartDate, 'yyyy-MM-dd'),
+            planned_end_date: format(newEndDate, 'yyyy-MM-dd'),
           }),
         })
 
@@ -439,7 +439,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
         setWorkItems(prev =>
           prev.map(i =>
             i.id === itemId
-              ? { ...i, start_date: item.start_date, end_date: item.end_date }
+              ? { ...i, planned_start_date: item.planned_start_date, planned_end_date: item.planned_end_date }
               : i
           )
         )
@@ -505,8 +505,8 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
     }
   }
 
-  const itemsWithDates = filteredWorkItems.filter(item => item.start_date && item.end_date)
-  const itemsWithoutDates = filteredWorkItems.filter(item => !item.start_date || !item.end_date)
+  const itemsWithDates = filteredWorkItems.filter(item => item.planned_start_date && item.planned_end_date)
+  const itemsWithoutDates = filteredWorkItems.filter(item => !item.planned_start_date || !item.planned_end_date)
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>

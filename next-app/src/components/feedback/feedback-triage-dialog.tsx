@@ -54,6 +54,7 @@ export function FeedbackTriageDialog({
   if (!feedback) return null
 
   async function handleTriage() {
+    if (!feedback) return
     setIsSubmitting(true)
 
     try {

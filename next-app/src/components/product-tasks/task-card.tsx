@@ -44,6 +44,7 @@ interface TaskCardProps {
   onEdit?: (task: ProductTaskWithRelations) => void
   onDelete?: (taskId: string) => void
   onStatusChange?: (taskId: string, newStatus: TaskStatus) => void
+  onWorkItemClick?: (workItemId: string) => void
 }
 
 const priorityIcons: Record<TaskPriority, React.ComponentType<{ className?: string }>> = {
@@ -59,7 +60,7 @@ const statusIcons: Record<TaskStatus, React.ComponentType<{ className?: string }
   done: CheckCircle,
 }
 
-export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onDelete, onStatusChange, onWorkItemClick }: TaskCardProps) {
   const { toast } = useToast()
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -243,7 +244,20 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
           </div>
 
           {task.work_item && (
-            <Badge variant="secondary" className="text-xs gap-1">
+            <Badge
+              variant="secondary"
+              className={cn(
+                'text-xs gap-1',
+                onWorkItemClick && 'cursor-pointer hover:bg-secondary/80 transition-colors'
+              )}
+              onClick={(e) => {
+                if (onWorkItemClick && task.work_item) {
+                  e.stopPropagation()
+                  onWorkItemClick(task.work_item.id)
+                }
+              }}
+              title={onWorkItemClick ? `Go to work item: ${task.work_item.name}` : undefined}
+            >
               <Link2 className="h-3 w-3" />
               {task.work_item.name}
             </Badge>

@@ -52,13 +52,14 @@ export async function GET(req: NextRequest) {
     })
 
     // Build query with timeline_item relation
+    // Note: timeline_items doesn't have 'title' or 'usp' columns - use only existing columns
     let query = supabase
       .from('product_tasks')
       .select(`
         *,
         assigned_user:users!product_tasks_assigned_to_fkey(id, email, name, avatar_url),
         created_by_user:users!product_tasks_created_by_fkey(id, email, name),
-        timeline_item:timeline_items(id, name, timeframe, phase)
+        timeline_item:timeline_items(id, timeline, phase, status)
       `)
       .eq('workspace_id', workspaceId)
       .eq('team_id', teamId)
@@ -213,7 +214,7 @@ export async function POST(req: NextRequest) {
         *,
         assigned_user:users!product_tasks_assigned_to_fkey(id, email, name, avatar_url),
         created_by_user:users!product_tasks_created_by_fkey(id, email, name),
-        timeline_item:timeline_items(id, name, timeframe, phase)
+        timeline_item:timeline_items(id, timeline, phase, status)
       `)
       .single()
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { WorkItemsFilter, FilterState, ViewMode } from './work-items-filter'
-import { FeaturesTableView } from './features-table-view'
+import { WorkItemsTableView } from './work-items-table-view'
 import { ColumnVisibilityMenu, ColumnVisibility } from './column-visibility-menu'
 import { useRouter } from 'next/navigation'
 import {
@@ -41,21 +41,32 @@ interface TimelineItem {
   status: string | null
 }
 
-interface FeaturesViewWrapperProps {
+interface WorkItemsViewWrapperProps {
   initialWorkItems: WorkItem[]
   timelineItems: TimelineItem[]
   workspaceId: string
   currentUserId: string
   selectedPhase: WorkspacePhase | null
+  // External control props (used when embedded in Work Board)
+  showFilters?: boolean // Show internal filter bar (default true)
+  showCount?: boolean // Show count and column visibility row (default true)
+  externalSearch?: string
+  externalStatusFilter?: string
+  externalPriorityFilter?: string
 }
 
-export function FeaturesViewWrapper({
+export function WorkItemsViewWrapper({
   initialWorkItems,
   timelineItems,
   workspaceId,
   currentUserId,
   selectedPhase,
-}: FeaturesViewWrapperProps) {
+  showFilters = true,
+  showCount = true,
+  externalSearch,
+  externalStatusFilter,
+  externalPriorityFilter,
+}: WorkItemsViewWrapperProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: 'all',
@@ -79,6 +90,11 @@ export function FeaturesViewWrapper({
   const router = useRouter()
   const supabase = createClient()
 
+  // Use external filters when provided, otherwise use internal state
+  const effectiveSearch = externalSearch !== undefined ? externalSearch : filters.search
+  const effectiveStatus = externalStatusFilter !== undefined ? externalStatusFilter : filters.status
+  const effectivePriority = externalPriorityFilter !== undefined ? externalPriorityFilter : filters.priority
+
   // Apply filters
   const filteredWorkItems = initialWorkItems.filter((item) => {
     // Phase filter (null = show all phases)
@@ -88,8 +104,8 @@ export function FeaturesViewWrapper({
     }
 
     // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
+    if (effectiveSearch) {
+      const searchLower = effectiveSearch.toLowerCase()
       const matchesName = item.name.toLowerCase().includes(searchLower)
       const matchesPurpose = item.purpose?.toLowerCase().includes(searchLower)
       const matchesTags = item.tags?.some(tag => tag.toLowerCase().includes(searchLower))
@@ -98,10 +114,10 @@ export function FeaturesViewWrapper({
     }
 
     // Status filter
-    if (filters.status !== 'all' && item.status !== filters.status) return false
+    if (effectiveStatus !== 'all' && effectiveStatus && item.status !== effectiveStatus) return false
 
     // Priority filter
-    if (filters.priority !== 'all' && item.priority !== filters.priority) return false
+    if (effectivePriority !== 'all' && effectivePriority && item.priority !== effectivePriority) return false
 
     return true
   })
@@ -132,23 +148,27 @@ export function FeaturesViewWrapper({
     <>
       <div className="space-y-6">
         {/* Filter Bar */}
-        <WorkItemsFilter
-          onFilterChange={setFilters}
-          onViewModeChange={setViewMode}
-          viewMode={viewMode}
-        />
+        {showFilters && (
+          <WorkItemsFilter
+            onFilterChange={setFilters}
+            onViewModeChange={setViewMode}
+            viewMode={viewMode}
+          />
+        )}
 
         {/* Work Items Count and Column Visibility */}
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {filteredWorkItems.length} of {initialWorkItems.length} work item
-            {filteredWorkItems.length !== 1 ? 's' : ''}
-          </p>
-          <ColumnVisibilityMenu onVisibilityChange={setColumnVisibility} />
-        </div>
+        {showCount && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredWorkItems.length} of {initialWorkItems.length} work item
+              {filteredWorkItems.length !== 1 ? 's' : ''}
+            </p>
+            <ColumnVisibilityMenu onVisibilityChange={setColumnVisibility} />
+          </div>
+        )}
 
         {/* Table View */}
-        <FeaturesTableView
+        <WorkItemsTableView
           workItems={filteredWorkItems}
           timelineItems={timelineItems}
           workspaceId={workspaceId}

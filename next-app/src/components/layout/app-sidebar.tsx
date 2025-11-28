@@ -47,8 +47,75 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
   SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { CreateWorkspaceDialog } from '@/components/workspaces/create-workspace-dialog'
+
+// Separate component for footer so it can use useSidebar hook
+function SidebarUserFooter({
+  userName,
+  userEmail,
+  getUserInitials,
+}: {
+  userName?: string
+  userEmail?: string
+  getUserInitials: () => string
+}) {
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
+
+  return (
+    <SidebarFooter className="p-2">
+      {/* Layout: Expanded = row (avatar left, toggle right), Collapsed = column (toggle top, avatar bottom) */}
+      <div className={cn(
+        'flex items-center',
+        isCollapsed ? 'flex-col gap-2' : 'flex-row justify-between'
+      )}>
+        {/* Toggle Button - first when collapsed (appears on top) */}
+        {isCollapsed && <SidebarTrigger className="h-8 w-8" />}
+
+        {/* User Avatar with Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" title={userName || userEmail || 'User profile'}>
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start" className="w-56">
+            <DropdownMenuLabel>
+              <div className="flex flex-col">
+                <span className="font-medium">{userName || 'User'}</span>
+                <span className="text-xs text-muted-foreground">{userEmail}</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile">Profile</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/team/settings">Settings</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/team/billing">Billing</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/api/auth/signout" className="text-red-500 w-full">Log out</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Toggle Button - last when expanded (appears on right) */}
+        {!isCollapsed && <SidebarTrigger className="h-8 w-8" />}
+      </div>
+    </SidebarFooter>
+  )
+}
 
 interface Workspace {
   id: string
@@ -89,7 +156,7 @@ export function AppSidebar({ workspaceId: defaultWorkspaceId, workspaceName: def
     { icon: LayoutDashboard, label: 'Dashboard', href: `/workspaces/${workspaceId}?view=dashboard` },
     { icon: Boxes, label: 'Canvas', href: `/workspaces/${workspaceId}?view=canvas` },
     { icon: Network, label: 'Mind Maps', href: `/workspaces/${workspaceId}/mind-maps` },
-    { icon: List, label: 'Work Board', href: `/workspaces/${workspaceId}?view=features` },
+    { icon: List, label: 'Work Board', href: `/workspaces/${workspaceId}?view=work-items` },
     { icon: Calendar, label: 'Timeline', href: `/workspaces/${workspaceId}?view=timeline` },
     { icon: BarChart3, label: 'Analytics', href: `/workspaces/${workspaceId}?view=analytics` },
     { icon: Users, label: 'Project Team', href: `/workspaces/${workspaceId}?view=team-analytics` }
@@ -256,6 +323,13 @@ export function AppSidebar({ workspaceId: defaultWorkspaceId, workspaceName: def
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Footer with User Avatar and Toggle Button */}
+      <SidebarUserFooter
+        userName={userName}
+        userEmail={userEmail}
+        getUserInitials={getUserInitials}
+      />
 
       <SidebarRail />
 

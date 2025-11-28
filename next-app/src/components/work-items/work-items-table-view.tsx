@@ -30,7 +30,7 @@ import {
   getPriorityConfig,
   getDifficultyConfig,
   TIMELINE_PHASE_CONFIG,
-} from '@/lib/features/table-config'
+} from '@/lib/work-items/table-config'
 import { EditWorkItemDialog } from '@/components/work-items/edit-work-item-dialog'
 import { WorkspacePhase } from '@/lib/constants/workspace-phases'
 
@@ -62,17 +62,17 @@ interface TimelineItem {
   implementation_estimated_duration?: string | null
 }
 
-interface FeaturesTableViewProps {
+interface WorkItemsTableViewProps {
   workItems: WorkItem[]
   timelineItems: TimelineItem[]
   workspaceId: string
-  workspacePhase: WorkspacePhase
+  workspacePhase?: WorkspacePhase  // Now optional - will be removed in F.5
   onDelete: (id: string) => void
   viewMode: ViewMode
   columnVisibility: ColumnVisibility
 }
 
-export function FeaturesTableView({
+export function WorkItemsTableView({
   workItems,
   timelineItems,
   workspaceId,
@@ -80,7 +80,7 @@ export function FeaturesTableView({
   onDelete,
   viewMode,
   columnVisibility,
-}: FeaturesTableViewProps) {
+}: WorkItemsTableViewProps) {
   const router = useRouter()
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -586,7 +586,7 @@ export function FeaturesTableView({
       <Table>
         <TableHeader>
           <TableRow className="h-9 bg-muted/40 hover:bg-muted/40 border-b">
-            <TableHead className="font-semibold text-xs px-3 py-2">Task</TableHead>
+            <TableHead className="font-semibold text-xs px-3 py-2">Work Item</TableHead>
             {columnVisibility.type && <TableHead className="font-semibold text-xs px-3 py-2">Type</TableHead>}
             {columnVisibility.timeline && (
               <TableHead className="font-semibold text-xs px-3 py-2">
@@ -644,7 +644,7 @@ export function FeaturesTableView({
         <EditWorkItemDialog
           workItemId={selectedWorkItem}
           workspaceId={workspaceId}
-          phase={workspacePhase}
+          phase={workspacePhase || 'execution'}  // Default to execution (all fields visible)
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           onSuccess={() => {

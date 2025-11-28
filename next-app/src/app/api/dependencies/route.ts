@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
     // Get all feature connections for this workspace
     const { data: connections, error } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('*')
       .eq('workspace_id', workspaceId)
       .eq('status', 'active')
@@ -78,15 +78,15 @@ export async function POST(request: Request) {
     const body = await request.json()
     const {
       workspace_id,
-      source_feature_id,
-      target_feature_id,
+      source_work_item_id,
+      target_work_item_id,
       connection_type,
       reason,
       strength = 1.0,
     } = body
 
     // Validation
-    if (!workspace_id || !source_feature_id || !target_feature_id || !connection_type) {
+    if (!workspace_id || !source_work_item_id || !target_work_item_id || !connection_type) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     }
 
     // Prevent self-connections
-    if (source_feature_id === target_feature_id) {
+    if (source_work_item_id === target_work_item_id) {
       return NextResponse.json(
         { error: 'Cannot create dependency to itself' },
         { status: 400 }
@@ -158,14 +158,14 @@ export async function POST(request: Request) {
     const { data: sourceWorkItem } = await supabase
       .from('work_items')
       .select('id')
-      .eq('id', source_feature_id)
+      .eq('id', source_work_item_id)
       .eq('workspace_id', workspace_id)
       .single()
 
     const { data: targetWorkItem } = await supabase
       .from('work_items')
       .select('id')
-      .eq('id', target_feature_id)
+      .eq('id', target_work_item_id)
       .eq('workspace_id', workspace_id)
       .single()
 
@@ -178,11 +178,11 @@ export async function POST(request: Request) {
 
     // Check for duplicate connection
     const { data: existingConnection } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('id')
       .eq('workspace_id', workspace_id)
-      .eq('source_feature_id', source_feature_id)
-      .eq('target_feature_id', target_feature_id)
+      .eq('source_work_item_id', source_work_item_id)
+      .eq('target_work_item_id', target_work_item_id)
       .eq('connection_type', connection_type)
       .eq('status', 'active')
       .single()
@@ -201,13 +201,13 @@ export async function POST(request: Request) {
     // Create connection
     const connectionId = Date.now().toString()
     const { data: connection, error } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .insert({
         id: connectionId,
         user_id: user.id,
         workspace_id,
-        source_feature_id,
-        target_feature_id,
+        source_work_item_id,
+        target_work_item_id,
         connection_type,
         strength,
         is_bidirectional,

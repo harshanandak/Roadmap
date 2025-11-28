@@ -16,17 +16,17 @@ import {
 } from 'lucide-react'
 
 interface WorkspaceStatsGridProps {
-  totalFeatures: number
-  completedFeatures: number
-  inProgressFeatures: number
+  totalWorkItems: number
+  completedWorkItems: number
+  inProgressWorkItems: number
   completionPercentage: number
   teamSize: number
 }
 
 export function WorkspaceStatsGrid({
-  totalFeatures,
-  completedFeatures,
-  inProgressFeatures,
+  totalWorkItems,
+  completedWorkItems,
+  inProgressWorkItems,
   completionPercentage,
   teamSize,
 }: WorkspaceStatsGridProps) {
@@ -50,13 +50,13 @@ export function WorkspaceStatsGrid({
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{totalFeatures}</div>
+          <div className="text-3xl font-bold">{totalWorkItems}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            {totalFeatures === 0
+            {totalWorkItems === 0
               ? 'No features yet'
-              : totalFeatures === 1
+              : totalWorkItems === 1
               ? '1 feature created'
-              : `${totalFeatures} features created`}
+              : `${totalWorkItems} work items created`}
           </p>
         </CardContent>
       </Card>
@@ -86,7 +86,7 @@ export function WorkspaceStatsGrid({
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {completedFeatures} of {totalFeatures} completed
+            {completedWorkItems} of {totalWorkItems} completed
           </p>
         </CardContent>
       </Card>
@@ -98,15 +98,15 @@ export function WorkspaceStatsGrid({
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-blue-600">{inProgressFeatures}</div>
+          <div className="text-3xl font-bold text-blue-600">{inProgressWorkItems}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            {inProgressFeatures === 0
+            {inProgressWorkItems === 0
               ? 'No active work'
-              : inProgressFeatures === 1
+              : inProgressWorkItems === 1
               ? '1 feature in progress'
-              : `${inProgressFeatures} features active`}
+              : `${inProgressWorkItems} work items active`}
           </p>
-          {inProgressFeatures > 0 && (
+          {inProgressWorkItems > 0 && (
             <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
               <CheckCircle2 className="h-3 w-3" />
               <span>Active development</span>

@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     // Get all active connections for this workspace
     const { data: connections, error: connectionsError } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('*')
       .eq('workspace_id', workspace_id)
       .eq('status', 'active')

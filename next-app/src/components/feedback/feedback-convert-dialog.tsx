@@ -77,6 +77,7 @@ export function FeedbackConvertDialog({
   if (!feedback) return null
 
   async function handleConvert() {
+    if (!feedback) return
     // Validate required fields
     if (!workItemName.trim()) {
       toast({

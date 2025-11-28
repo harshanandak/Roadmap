@@ -25,6 +25,9 @@ This implementation plan has been split into multiple files for better token eff
 - **[Week 7: AI Integration & Analytics](week-7-ai-analytics.md)** - AI chat, agentic mode, custom dashboards
 - **[Week 8: Billing, Testing & Launch](week-8-billing-testing.md)** - Stripe, E2E tests, documentation, production deployment
 
+### 🎨 Feature Implementation Guides
+- **[Work Board 3.0](work-board-3.0.md)** - Unified command center with Tasks/Work Items tabs, Table/Board/Timeline views
+
 ---
 
 ## 🎯 OVERVIEW

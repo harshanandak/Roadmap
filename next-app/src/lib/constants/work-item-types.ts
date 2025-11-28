@@ -56,8 +56,12 @@ export const ITEM_TYPE_METADATA: Record<WorkItemType, {
   },
 }
 
-// Timeline item statuses (8 states)
-export const TIMELINE_ITEM_STATUSES = {
+// ============================================================================
+// PROGRESS TRACKING (8 states) - Execution Progress
+// Formerly called "status" - renamed to "Progress" for clarity
+// Used for: tracking execution state (not_started → in_progress → completed)
+// ============================================================================
+export const PROGRESS_STATES = {
   NOT_STARTED: 'not_started',
   PLANNING: 'planning',
   IN_PROGRESS: 'in_progress',
@@ -68,10 +72,19 @@ export const TIMELINE_ITEM_STATUSES = {
   CANCELLED: 'cancelled',
 } as const
 
-export type TimelineItemStatus = typeof TIMELINE_ITEM_STATUSES[keyof typeof TIMELINE_ITEM_STATUSES]
+export type TimelineProgress = typeof PROGRESS_STATES[keyof typeof PROGRESS_STATES]
 
-// Timeline item phases (lifecycle phases)
-export const TIMELINE_ITEM_PHASES = {
+// Legacy alias for backwards compatibility
+export const TIMELINE_ITEM_STATUSES = PROGRESS_STATES
+export type TimelineItemStatus = TimelineProgress
+
+// ============================================================================
+// LIFECYCLE STATUS (5 states) - Development Lifecycle Phase
+// Formerly called "phase" - renamed to "Status" in UI
+// Used for: tracking where in the development lifecycle (research → complete)
+// This is the NEW "Status" that appears on each MVP/SHORT/LONG timeline item
+// ============================================================================
+export const LIFECYCLE_STATUSES = {
   RESEARCH: 'research',
   PLANNING: 'planning',
   EXECUTION: 'execution',
@@ -79,10 +92,14 @@ export const TIMELINE_ITEM_PHASES = {
   COMPLETE: 'complete',
 } as const
 
-export type TimelineItemPhase = typeof TIMELINE_ITEM_PHASES[keyof typeof TIMELINE_ITEM_PHASES]
+export type LifecycleStatus = typeof LIFECYCLE_STATUSES[keyof typeof LIFECYCLE_STATUSES]
 
-// Phase metadata for timeline items
-export const PHASE_METADATA: Record<TimelineItemPhase, {
+// Legacy aliases for backwards compatibility
+export const TIMELINE_ITEM_PHASES = LIFECYCLE_STATUSES
+export type TimelineItemPhase = LifecycleStatus
+
+// Lifecycle Status metadata (shown as "Status" in UI)
+export const LIFECYCLE_STATUS_METADATA: Record<LifecycleStatus, {
   label: string
   color: string
   bgColor: string
@@ -120,29 +137,41 @@ export const PHASE_METADATA: Record<TimelineItemPhase, {
   },
 }
 
+// Legacy alias for backwards compatibility
+export const PHASE_METADATA = LIFECYCLE_STATUS_METADATA
+
 /**
- * Get phase label
+ * Get lifecycle status label (shown as "Status" in UI)
  */
-export function getPhaseLabel(phase: TimelineItemPhase | string): string {
-  return PHASE_METADATA[phase as TimelineItemPhase]?.label || phase
+export function getLifecycleStatusLabel(status: LifecycleStatus | string): string {
+  return LIFECYCLE_STATUS_METADATA[status as LifecycleStatus]?.label || status
 }
 
 /**
- * Get phase color class
+ * Get lifecycle status color class
  */
-export function getPhaseColor(phase: TimelineItemPhase | string): string {
-  return PHASE_METADATA[phase as TimelineItemPhase]?.color || 'text-gray-700'
+export function getLifecycleStatusColor(status: LifecycleStatus | string): string {
+  return LIFECYCLE_STATUS_METADATA[status as LifecycleStatus]?.color || 'text-gray-700'
 }
 
 /**
- * Get phase background color class
+ * Get lifecycle status background color class
  */
-export function getPhaseBgColor(phase: TimelineItemPhase | string): string {
-  return PHASE_METADATA[phase as TimelineItemPhase]?.bgColor || 'bg-gray-100 border-gray-300'
+export function getLifecycleStatusBgColor(status: LifecycleStatus | string): string {
+  return LIFECYCLE_STATUS_METADATA[status as LifecycleStatus]?.bgColor || 'bg-gray-100 border-gray-300'
 }
 
-// Status metadata
-export const STATUS_METADATA: Record<TimelineItemStatus, {
+// Legacy function aliases for backwards compatibility
+export const getPhaseLabel = getLifecycleStatusLabel
+export const getPhaseColor = getLifecycleStatusColor
+export const getPhaseBgColor = getLifecycleStatusBgColor
+
+// ============================================================================
+// PROGRESS METADATA (8-state execution tracking)
+// Formerly called "STATUS_METADATA" - renamed to PROGRESS_METADATA
+// Used in UI as "Progress" indicator
+// ============================================================================
+export const PROGRESS_METADATA: Record<TimelineProgress, {
   label: string
   color: string
   description: string
@@ -188,6 +217,9 @@ export const STATUS_METADATA: Record<TimelineItemStatus, {
     description: 'Work was stopped and won\'t continue',
   },
 }
+
+// Legacy alias for backwards compatibility
+export const STATUS_METADATA = PROGRESS_METADATA
 
 // Feedback source types (3 types)
 export const FEEDBACK_SOURCES = {
@@ -258,18 +290,22 @@ export function getItemColor(type: WorkItemType | string): string {
 }
 
 /**
- * Get status label
+ * Get progress label (8-state execution progress)
  */
-export function getStatusLabel(status: TimelineItemStatus | string): string {
-  return STATUS_METADATA[status as TimelineItemStatus]?.label || status
+export function getProgressLabel(progress: TimelineProgress | string): string {
+  return PROGRESS_METADATA[progress as TimelineProgress]?.label || progress
 }
 
 /**
- * Get status color
+ * Get progress color (8-state execution progress)
  */
-export function getStatusColor(status: TimelineItemStatus | string): string {
-  return STATUS_METADATA[status as TimelineItemStatus]?.color || 'gray'
+export function getProgressColor(progress: TimelineProgress | string): string {
+  return PROGRESS_METADATA[progress as TimelineProgress]?.color || 'gray'
 }
+
+// Legacy aliases for backwards compatibility
+export const getStatusLabel = getProgressLabel
+export const getStatusColor = getProgressColor
 
 /**
  * Check if field should be visible/editable based on phase

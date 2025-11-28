@@ -4,13 +4,13 @@
  */
 
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from '@xyflow/react'
-import type { WorkItem, WorkItemStatus, WorkItemPriority } from '../features/types'
+import type { WorkItem, WorkItemStatus, WorkItemPriority } from '../work-items/types'
 
 // ========== CONNECTION TYPES ==========
 
 /**
- * Feature-level connection types
- * From feature_connections table schema
+ * Work item-level connection types
+ * From work_item_connections table schema
  */
 export type ConnectionType =
   | 'dependency'    // Source depends on target
@@ -101,15 +101,15 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionType, ConnectionTypeConfi
 // ========== DATABASE TYPES ==========
 
 /**
- * Feature Connection - Database record
- * From feature_connections table
+ * Work Item Connection - Database record
+ * From work_item_connections table
  */
-export interface FeatureConnection {
+export interface WorkItemConnection {
   id: string
   user_id: string
   workspace_id: string
-  source_feature_id: string
-  target_feature_id: string
+  source_work_item_id: string
+  target_work_item_id: string
   connection_type: ConnectionType
   strength: number // 0.0 to 1.0
   is_bidirectional: boolean
@@ -125,10 +125,10 @@ export interface FeatureConnection {
 }
 
 /**
- * Feature Connection with populated work items
+ * Work Item Connection with populated work items
  * Used for graph visualization
  */
-export interface PopulatedFeatureConnection extends FeatureConnection {
+export interface PopulatedWorkItemConnection extends WorkItemConnection {
   sourceWorkItem: WorkItem
   targetWorkItem: WorkItem
 }
@@ -150,7 +150,7 @@ export interface WorkItemNodeData extends Record<string, unknown> {
  * Dependency Edge Data for ReactFlow
  */
 export interface DependencyEdgeData extends Record<string, unknown> {
-  connection?: FeatureConnection
+  connection?: WorkItemConnection
   isOnCriticalPath?: boolean
   label?: string
 }
@@ -164,8 +164,8 @@ export type DependencyGraphEdge = ReactFlowEdge<DependencyEdgeData>
  * Create connection request
  */
 export interface CreateConnectionRequest {
-  source_feature_id: string
-  target_feature_id: string
+  source_work_item_id: string
+  target_work_item_id: string
   connection_type: ConnectionType
   reason?: string
   strength?: number // 0.0 to 1.0, defaults to 1.0
@@ -185,7 +185,7 @@ export interface UpdateConnectionRequest {
  * API response for list connections
  */
 export interface ListConnectionsResponse {
-  connections: FeatureConnection[]
+  connections: WorkItemConnection[]
   totalCount: number
 }
 
@@ -277,8 +277,8 @@ export interface DependencyHealthCheck {
  */
 export interface DependencySuggestion {
   id: string
-  source_feature_id: string
-  target_feature_id: string
+  source_work_item_id: string
+  target_work_item_id: string
   connection_type: ConnectionType
   confidence: number // 0.0 to 1.0
   reason: string
@@ -377,7 +377,7 @@ export interface ExportDependencyGraphOptions {
 export interface ExportDependencyGraphData {
   workspace_id: string
   exported_at: string
-  connections: FeatureConnection[]
+  connections: WorkItemConnection[]
   work_items: WorkItem[]
   critical_path: string[]
   health_score: number

@@ -1,7 +1,7 @@
 'use client';
 
 import { DashboardView } from './dashboard-view';
-import { FeaturesView } from './features-view';
+import { WorkItemsView } from './work-items-view';
 import { TimelineView } from './timeline-view';
 import { MindMapView } from './mind-map-view';
 import { DependenciesView } from './dependencies-view';
@@ -23,6 +23,8 @@ interface WorkspaceContentProps {
   phaseDistribution: any;
   onboardingState: any;
   currentUserId: string;
+  userEmail?: string;
+  userName?: string;
 }
 
 export function WorkspaceContent({
@@ -38,6 +40,8 @@ export function WorkspaceContent({
   phaseDistribution,
   onboardingState,
   currentUserId,
+  userEmail,
+  userName,
 }: WorkspaceContentProps) {
   // Render content based on view parameter
   const renderView = () => {
@@ -55,9 +59,9 @@ export function WorkspaceContent({
           />
         );
 
-      case 'features':
+      case 'work-items':
         return (
-          <FeaturesView
+          <WorkItemsView
             workspace={workspace}
             team={team}
             workItems={workItems}
@@ -65,6 +69,8 @@ export function WorkspaceContent({
             linkedItems={linkedItems}
             tags={tags}
             currentUserId={currentUserId}
+            userEmail={userEmail}
+            userName={userName}
           />
         );
 

@@ -1,5 +1,5 @@
-import type { WorkItem } from '@/lib/features/types'
-import type { FeatureConnection } from '@/lib/types/dependencies'
+import type { WorkItem } from '@/lib/work-items/types'
+import type { WorkItemConnection } from '@/lib/types/dependencies'
 
 export interface CriticalPathNode {
   workItemId: string
@@ -28,7 +28,7 @@ export interface CriticalPathResult {
  */
 export function calculateCriticalPath(
   workItems: WorkItem[],
-  connections: FeatureConnection[]
+  connections: WorkItemConnection[]
 ): CriticalPathResult {
   // Build adjacency lists
   const graph = new Map<string, string[]>() // workItemId -> [dependent workItemIds]
@@ -49,10 +49,10 @@ export function calculateCriticalPath(
     .filter((conn) => conn.status === 'active' && ['dependency', 'blocks'].includes(conn.connection_type))
     .forEach((conn) => {
       // Source depends on target (target must finish before source starts)
-      graph.get(conn.target_feature_id)?.push(conn.source_feature_id)
-      reverseGraph.get(conn.source_feature_id)?.push(conn.target_feature_id)
-      inDegree.set(conn.source_feature_id, (inDegree.get(conn.source_feature_id) || 0) + 1)
-      outDegree.set(conn.target_feature_id, (outDegree.get(conn.target_feature_id) || 0) + 1)
+      graph.get(conn.target_work_item_id)?.push(conn.source_work_item_id)
+      reverseGraph.get(conn.source_work_item_id)?.push(conn.target_work_item_id)
+      inDegree.set(conn.source_work_item_id, (inDegree.get(conn.source_work_item_id) || 0) + 1)
+      outDegree.set(conn.target_work_item_id, (outDegree.get(conn.target_work_item_id) || 0) + 1)
     })
 
   // Detect cycles using DFS

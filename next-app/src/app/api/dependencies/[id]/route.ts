@@ -22,7 +22,7 @@ export async function GET(
 
     // Get connection
     const { data: connection, error } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('*')
       .eq('id', id)
       .single()
@@ -86,7 +86,7 @@ export async function PATCH(
 
     // Get existing connection
     const { data: existingConnection, error: fetchError } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('*, workspaces(team_id)')
       .eq('id', id)
       .single()
@@ -160,7 +160,7 @@ export async function PATCH(
 
     // Update connection
     const { data: connection, error } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .update(updates)
       .eq('id', id)
       .select()
@@ -198,7 +198,7 @@ export async function DELETE(
 
     // Get connection to verify access
     const { data: connection, error: fetchError } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .select('workspace_id')
       .eq('id', id)
       .single()
@@ -234,7 +234,7 @@ export async function DELETE(
 
     // Delete connection
     const { error } = await supabase
-      .from('feature_connections')
+      .from('work_item_connections')
       .delete()
       .eq('id', id)
 

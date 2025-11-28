@@ -6,32 +6,31 @@ import { Pencil } from 'lucide-react'
 import { EditWorkItemDialog } from '@/components/work-items/edit-work-item-dialog'
 import { WorkspacePhase } from '@/lib/constants/work-item-types'
 
-interface FeatureEditButtonProps {
-  featureId: string
+interface WorkItemEditButtonProps {
+  workItemId: string
   workspaceId: string
-  phase: WorkspacePhase
+  phase?: WorkspacePhase  // Optional - defaults to 'complete' (all fields visible)
 }
 
 /**
  * Feature Edit Button
  *
  * Client component that handles the edit functionality for features.
- * Opens the EditWorkItemDialog with proper phase context.
+ * Opens the EditWorkItemDialog with all fields visible by default.
  *
  * @example
  * ```tsx
- * <FeatureEditButton
- *   featureId="feature_123"
+ * <WorkItemEditButton
+ *   workItemId="feature_123"
  *   workspaceId="workspace_456"
- *   phase="planning"
  * />
  * ```
  */
-export function FeatureEditButton({
-  featureId,
+export function WorkItemEditButton({
+  workItemId,
   workspaceId,
-  phase,
-}: FeatureEditButtonProps) {
+  phase = 'complete',  // Default to 'complete' - all fields visible
+}: WorkItemEditButtonProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   return (
@@ -42,7 +41,7 @@ export function FeatureEditButton({
       </Button>
 
       <EditWorkItemDialog
-        workItemId={featureId}
+        workItemId={workItemId}
         workspaceId={workspaceId}
         phase={phase}
         open={editDialogOpen}

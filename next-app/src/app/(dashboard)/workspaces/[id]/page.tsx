@@ -81,12 +81,14 @@ export default async function WorkspacePage({
       .eq('team_id', workspace.team_id)
       .order('updated_at', { ascending: false }),
 
-    // Timeline items
+    // Timeline items - fetch via work_items relationship using the foreign key
+    // The FK constraint is named 'timeline_items_feature_id_fkey' (legacy name)
+    // but the column is 'work_item_id' referencing 'work_items.id'
     supabase
       .from('timeline_items')
-      .select('*')
-      .eq('workspace_id', id)
-      .order('order_index', { ascending: true }),
+      .select('*, work_items!inner(workspace_id)')
+      .eq('work_items.workspace_id', id)
+      .order('created_at', { ascending: true }),
 
     // Linked items (dependencies)
     supabase
@@ -158,6 +160,8 @@ export default async function WorkspacePage({
       phaseDistribution={phaseDistribution}
       onboardingState={onboardingState}
       currentUserId={user.id}
+      userEmail={user.email}
+      userName={userProfile?.name || user.user_metadata?.full_name}
     />
   )
 }

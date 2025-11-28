@@ -296,7 +296,7 @@ export type Database = {
           },
         ]
       }
-      feature_connections: {
+      work_item_connections: {
         Row: {
           confidence: number | null
           connection_type: string
@@ -308,10 +308,10 @@ export type Database = {
           is_bidirectional: boolean | null
           last_reviewed_at: string | null
           reason: string | null
-          source_feature_id: string
+          source_work_item_id: string
           status: string | null
           strength: number | null
-          target_feature_id: string
+          target_work_item_id: string
           updated_at: string | null
           user_confirmed: boolean | null
           user_id: string
@@ -329,10 +329,10 @@ export type Database = {
           is_bidirectional?: boolean | null
           last_reviewed_at?: string | null
           reason?: string | null
-          source_feature_id: string
+          source_work_item_id: string
           status?: string | null
           strength?: number | null
-          target_feature_id: string
+          target_work_item_id: string
           updated_at?: string | null
           user_confirmed?: boolean | null
           user_id?: string
@@ -350,10 +350,10 @@ export type Database = {
           is_bidirectional?: boolean | null
           last_reviewed_at?: string | null
           reason?: string | null
-          source_feature_id?: string
+          source_work_item_id?: string
           status?: string | null
           strength?: number | null
-          target_feature_id?: string
+          target_work_item_id?: string
           updated_at?: string | null
           user_confirmed?: boolean | null
           user_id?: string
@@ -1944,6 +1944,7 @@ export type Database = {
           completed_steps: number | null
           contributors: string[] | null
           conversion_chain: Json | null
+          duration_days: number | null
           conversion_reason: string | null
           converted_at: string | null
           converted_by: string | null
@@ -2017,6 +2018,7 @@ export type Database = {
           created_by?: string | null
           customer_impact?: string | null
           definition_of_done?: string[] | null
+          duration_days?: number | null
           effort_confidence?: string | null
           estimated_hours?: number | null
           flow_id?: string | null
@@ -2072,6 +2074,7 @@ export type Database = {
           completed_steps?: number | null
           contributors?: string[] | null
           conversion_chain?: Json | null
+          duration_days?: number | null
           conversion_reason?: string | null
           converted_at?: string | null
           converted_by?: string | null
@@ -2315,7 +2318,7 @@ export type Database = {
         Args: { work_item_id_param: string }
         Returns: Json
       }
-      get_feature_connections: {
+      get_work_item_connections: {
         Args: { feature_id_param: string }
         Returns: {
           confidence: number

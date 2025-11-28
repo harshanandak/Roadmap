@@ -22,7 +22,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useCreateDependency } from '@/lib/hooks/use-dependencies'
 import { useToast } from '@/hooks/use-toast'
-import type { WorkItem } from '@/lib/features/types'
+import type { WorkItem } from '@/lib/work-items/types'
 import type { ConnectionType } from '@/lib/types/dependencies'
 import { CONNECTION_TYPE_CONFIGS } from '@/lib/types/dependencies'
 import { Plus, Loader2 } from 'lucide-react'
@@ -40,8 +40,8 @@ export function CreateDependencyDialog({
   trigger,
 }: CreateDependencyDialogProps) {
   const [open, setOpen] = useState(false)
-  const [sourceFeatureId, setSourceFeatureId] = useState<string>('')
-  const [targetFeatureId, setTargetFeatureId] = useState<string>('')
+  const [sourceWorkItemId, setSourceWorkItemId] = useState<string>('')
+  const [targetWorkItemId, setTargetWorkItemId] = useState<string>('')
   const [connectionType, setConnectionType] = useState<ConnectionType>('dependency')
   const [reason, setReason] = useState('')
 
@@ -51,7 +51,7 @@ export function CreateDependencyDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!sourceFeatureId || !targetFeatureId) {
+    if (!sourceWorkItemId || !targetWorkItemId) {
       toast({
         title: 'Validation Error',
         description: 'Please select both source and target work items',
@@ -60,7 +60,7 @@ export function CreateDependencyDialog({
       return
     }
 
-    if (sourceFeatureId === targetFeatureId) {
+    if (sourceWorkItemId === targetWorkItemId) {
       toast({
         title: 'Validation Error',
         description: 'Cannot create dependency to itself',
@@ -72,8 +72,8 @@ export function CreateDependencyDialog({
     try {
       await createDependency.mutateAsync({
         workspace_id: workspaceId,
-        source_feature_id: sourceFeatureId,
-        target_feature_id: targetFeatureId,
+        source_work_item_id: sourceWorkItemId,
+        target_work_item_id: targetWorkItemId,
         connection_type: connectionType,
         reason: reason || undefined,
       })
@@ -84,8 +84,8 @@ export function CreateDependencyDialog({
       })
 
       // Reset form
-      setSourceFeatureId('')
-      setTargetFeatureId('')
+      setSourceWorkItemId('')
+      setTargetWorkItemId('')
       setConnectionType('dependency')
       setReason('')
       setOpen(false)
@@ -98,8 +98,8 @@ export function CreateDependencyDialog({
     }
   }
 
-  const sourceWorkItem = workItems.find((item) => item.id === sourceFeatureId)
-  const targetWorkItem = workItems.find((item) => item.id === targetFeatureId)
+  const sourceWorkItem = workItems.find((item) => item.id === sourceWorkItemId)
+  const targetWorkItem = workItems.find((item) => item.id === targetWorkItemId)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -124,7 +124,7 @@ export function CreateDependencyDialog({
             {/* Source Work Item */}
             <div className="grid gap-2">
               <Label htmlFor="source">Source Work Item</Label>
-              <Select value={sourceFeatureId} onValueChange={setSourceFeatureId}>
+              <Select value={sourceWorkItemId} onValueChange={setSourceWorkItemId}>
                 <SelectTrigger id="source">
                   <SelectValue placeholder="Select source work item" />
                 </SelectTrigger>
@@ -133,7 +133,7 @@ export function CreateDependencyDialog({
                     <SelectItem
                       key={item.id}
                       value={item.id}
-                      disabled={item.id === targetFeatureId}
+                      disabled={item.id === targetWorkItemId}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{item.name}</span>
@@ -178,7 +178,7 @@ export function CreateDependencyDialog({
             {/* Target Work Item */}
             <div className="grid gap-2">
               <Label htmlFor="target">Target Work Item</Label>
-              <Select value={targetFeatureId} onValueChange={setTargetFeatureId}>
+              <Select value={targetWorkItemId} onValueChange={setTargetWorkItemId}>
                 <SelectTrigger id="target">
                   <SelectValue placeholder="Select target work item" />
                 </SelectTrigger>
@@ -187,7 +187,7 @@ export function CreateDependencyDialog({
                     <SelectItem
                       key={item.id}
                       value={item.id}
-                      disabled={item.id === sourceFeatureId}
+                      disabled={item.id === sourceWorkItemId}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{item.name}</span>

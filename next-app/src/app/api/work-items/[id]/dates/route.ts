@@ -20,18 +20,18 @@ export async function PATCH(
 
     // Parse request body
     const body = await request.json()
-    const { start_date, end_date } = body
+    const { planned_start_date, planned_end_date } = body
 
-    if (!start_date || !end_date) {
+    if (!planned_start_date || !planned_end_date) {
       return NextResponse.json(
-        { error: 'start_date and end_date are required' },
+        { error: 'planned_start_date and planned_end_date are required' },
         { status: 400 }
       )
     }
 
     // Validate dates
-    const startDate = new Date(start_date)
-    const endDate = new Date(end_date)
+    const startDate = new Date(planned_start_date)
+    const endDate = new Date(planned_end_date)
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function PATCH(
 
     if (endDate < startDate) {
       return NextResponse.json(
-        { error: 'end_date must be after start_date' },
+        { error: 'planned_end_date must be after planned_start_date' },
         { status: 400 }
       )
     }
@@ -74,8 +74,8 @@ export async function PATCH(
     const { data: updatedItem, error: updateError } = await supabase
       .from('work_items')
       .update({
-        start_date,
-        end_date,
+        planned_start_date,
+        planned_end_date,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

@@ -31,17 +31,17 @@ interface Feature {
   created_by: string
 }
 
-interface FeaturesListProps {
+interface WorkItemsListProps {
   features: Feature[]
   workspaceId: string
   currentUserId: string
 }
 
-export function FeaturesList({
+export function WorkItemsList({
   features,
   workspaceId,
   currentUserId,
-}: FeaturesListProps) {
+}: WorkItemsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -129,7 +129,7 @@ export function FeaturesList({
                   variant="ghost"
                   size="icon"
                   onClick={() => setDeletingId(feature.id)}
-                  title="Delete feature"
+                  title="Delete work item"
                 >
                   <Trash2 className="h-4 w-4 text-red-600" />
                 </Button>
@@ -170,7 +170,7 @@ export function FeaturesList({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Feature</AlertDialogTitle>
+            <AlertDialogTitle>Delete Work Item</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this feature? This will also
               delete all associated timeline items and dependencies. This action
@@ -184,7 +184,7 @@ export function FeaturesList({
               disabled={loading}
               className="bg-red-600 hover:bg-red-700"
             >
-              {loading ? 'Deleting...' : 'Delete Feature'}
+              {loading ? 'Deleting...' : 'Delete Work Item'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

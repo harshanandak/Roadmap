@@ -50,9 +50,9 @@ import {
   X,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import type { WorkItem } from '@/lib/features/types'
+import type { WorkItem } from '@/lib/work-items/types'
 import type {
-  FeatureConnection,
+  WorkItemConnection,
   DependencyGraphNode,
   DependencyGraphEdge,
 } from '@/lib/types/dependencies'
@@ -69,7 +69,7 @@ interface DependencyGraphProps {
   workspaceId: string
   teamId: string
   initialWorkItems: WorkItem[]
-  initialConnections: FeatureConnection[]
+  initialConnections: WorkItemConnection[]
 }
 
 // Define custom node types
@@ -150,8 +150,8 @@ function DependencyGraphInner({
   const initialEdges: DependencyGraphEdge[] = useMemo(() => {
     return connections.map((connection) => ({
       id: connection.id,
-      source: connection.source_feature_id,
-      target: connection.target_feature_id,
+      source: connection.source_work_item_id,
+      target: connection.target_work_item_id,
       type: 'dependency',
       animated: false,
       data: {
@@ -259,8 +259,8 @@ function DependencyGraphInner({
         suggestions.map((suggestion) =>
           createDependency.mutateAsync({
             workspace_id: workspaceId,
-            source_feature_id: suggestion.sourceId,
-            target_feature_id: suggestion.targetId,
+            source_work_item_id: suggestion.sourceId,
+            target_work_item_id: suggestion.targetId,
             connection_type: suggestion.connectionType,
             strength: suggestion.strength,
             reason: suggestion.reason,

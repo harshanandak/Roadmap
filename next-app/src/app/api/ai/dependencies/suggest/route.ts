@@ -96,14 +96,14 @@ export async function POST(request: Request) {
 
     // Get existing connections to avoid duplicates
     const { data: existingConnections } = await supabase
-      .from('feature_connections')
-      .select('source_feature_id, target_feature_id, connection_type')
+      .from('work_item_connections')
+      .select('source_work_item_id, target_work_item_id, connection_type')
       .eq('workspace_id', workspace_id)
       .eq('status', 'active')
 
     const existingConnectionsSet = new Set(
       existingConnections?.map(
-        (conn) => `${conn.source_feature_id}->${conn.target_feature_id}-${conn.connection_type}`
+        (conn) => `${conn.source_work_item_id}->${conn.target_work_item_id}-${conn.connection_type}`
       ) || []
     )
 
