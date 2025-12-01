@@ -15,6 +15,7 @@ import { ArrowLeft, ChevronRight, PanelRightOpen, PanelRightClose } from 'lucide
 import { cn } from '@/lib/utils'
 import { PHASE_CONFIG, type WorkspacePhase } from '@/lib/constants/workspace-phases'
 import { useWorkItemDetailContext } from './shared/detail-context'
+import { DepartmentBadge } from '@/components/departments/department-badge'
 
 interface WorkItemDetailHeaderProps {
   className?: string
@@ -92,7 +93,7 @@ export function WorkItemDetailHeader({ className }: WorkItemDetailHeaderProps) {
           </Button>
         </div>
 
-        {/* Title row: Title + Phase badge */}
+        {/* Title row: Title + Phase badge + Department badge */}
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight truncate">{workItem.title}</h1>
 
@@ -108,6 +109,16 @@ export function WorkItemDetailHeader({ className }: WorkItemDetailHeaderProps) {
             <PhaseIcon className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">{phaseConfig.name}</span>
           </Badge>
+
+          {/* Department badge */}
+          {workItem.department && (
+            <DepartmentBadge
+              name={workItem.department.name}
+              color={workItem.department.color}
+              icon={workItem.department.icon}
+              size="default"
+            />
+          )}
         </div>
       </div>
     </header>

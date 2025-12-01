@@ -17,6 +17,7 @@ export interface ColumnVisibility {
   timeline: boolean
   status: boolean
   priority: boolean
+  department: boolean
   purpose: boolean
   integration: boolean
   tags: boolean
@@ -29,6 +30,7 @@ const DEFAULT_VISIBILITY: ColumnVisibility = {
   timeline: true,
   status: true,
   priority: true,
+  department: true,
   purpose: false,
   integration: false,
   tags: true,
@@ -100,6 +102,12 @@ export function ColumnVisibilityMenu({ onVisibilityChange }: ColumnVisibilityMen
           onCheckedChange={() => toggleColumn('priority')}
         >
           Priority
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={visibility.department}
+          onCheckedChange={() => toggleColumn('department')}
+        >
+          Department
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
           checked={visibility.tags}

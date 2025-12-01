@@ -33,6 +33,7 @@ import {
 } from '@/lib/work-items/table-config'
 import { EditWorkItemDialog } from '@/components/work-items/edit-work-item-dialog'
 import { WorkspacePhase } from '@/lib/constants/workspace-phases'
+import { DepartmentBadge } from '@/components/departments/department-badge'
 
 interface WorkItem {
   id: string
@@ -46,6 +47,13 @@ interface WorkItem {
   created_at: string
   updated_at: string
   created_by: string
+  department_id?: string | null
+  department?: {
+    id: string
+    name: string
+    color: string
+    icon: string
+  } | null
 }
 
 interface TimelineItem {
@@ -207,6 +215,22 @@ export function WorkItemsTableView({
               {React.createElement(getPriorityConfig(item.priority).icon, { className: 'h-2.5 w-2.5 mr-1' })}
               {getPriorityConfig(item.priority).label}
             </Badge>
+          </TableCell>
+        )}
+
+        {/* Department */}
+        {columnVisibility.department && (
+          <TableCell className="px-3 py-2">
+            {item.department ? (
+              <DepartmentBadge
+                name={item.department.name}
+                color={item.department.color}
+                icon={item.department.icon}
+                size="sm"
+              />
+            ) : (
+              <span className="text-[11px] text-muted-foreground">No dept</span>
+            )}
           </TableCell>
         )}
 
@@ -395,6 +419,22 @@ export function WorkItemsTableView({
             </TableCell>
           )}
 
+          {/* Department */}
+          {columnVisibility.department && (
+            <TableCell className="px-3 py-2">
+              {item.department ? (
+                <DepartmentBadge
+                  name={item.department.name}
+                  color={item.department.color}
+                  icon={item.department.icon}
+                  size="sm"
+                />
+              ) : (
+                <span className="text-[11px] text-muted-foreground">No dept</span>
+              )}
+            </TableCell>
+          )}
+
           {/* Purpose */}
           {columnVisibility.purpose && (
             <TableCell className="px-3 py-2">
@@ -543,6 +583,9 @@ export function WorkItemsTableView({
               {/* Priority - Empty for child rows */}
               {columnVisibility.priority && <TableCell className="px-3 py-2"></TableCell>}
 
+              {/* Department - Empty for child rows */}
+              {columnVisibility.department && <TableCell className="px-3 py-2"></TableCell>}
+
               {/* Purpose - Empty for child rows */}
               {columnVisibility.purpose && <TableCell className="px-3 py-2"></TableCell>}
 
@@ -595,6 +638,7 @@ export function WorkItemsTableView({
             )}
             {columnVisibility.status && <TableHead className="font-semibold text-xs px-3 py-2">Status</TableHead>}
             {columnVisibility.priority && <TableHead className="font-semibold text-xs px-3 py-2">Priority</TableHead>}
+            {columnVisibility.department && <TableHead className="font-semibold text-xs px-3 py-2">Department</TableHead>}
             {columnVisibility.purpose && <TableHead className="font-semibold text-xs px-3 py-2">Purpose</TableHead>}
             {columnVisibility.integration && <TableHead className="font-semibold text-xs px-3 py-2">Integration</TableHead>}
             {columnVisibility.tags && <TableHead className="font-semibold text-xs px-3 py-2">Tags</TableHead>}
@@ -619,6 +663,7 @@ export function WorkItemsTableView({
                   (columnVisibility.timeline ? 1 : 0) +
                   (columnVisibility.status ? 1 : 0) +
                   (columnVisibility.priority ? 1 : 0) +
+                  (columnVisibility.department ? 1 : 0) +
                   (columnVisibility.purpose ? 1 : 0) +
                   (columnVisibility.integration ? 1 : 0) +
                   (columnVisibility.tags ? 1 : 0) +

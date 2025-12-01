@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useRouter } from 'next/navigation'
+import { WorkspaceModeSelector } from '@/components/workspaces/workspace-mode-selector'
+import { type WorkspaceMode, getDefaultWorkspaceMode } from '@/lib/types/workspace-mode'
 
 interface CreateWorkspaceDialogProps {
   teamId: string
@@ -33,6 +35,7 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [mode, setMode] = useState<WorkspaceMode>(getDefaultWorkspaceMode())
 
   const router = useRouter()
   const supabase = createClient()
@@ -65,6 +68,8 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
         description,
         phase: 'research', // Default phase, actual phase is calculated from work items
         enabled_modules: allModules,
+        mode, // Workspace lifecycle mode
+        mode_changed_at: new Date().toISOString(),
       })
 
       if (error) throw error
@@ -72,6 +77,7 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
       // Reset form
       setName('')
       setDescription('')
+      setMode(getDefaultWorkspaceMode())
       setOpen(false)
 
       // Refresh the page to show new workspace
@@ -124,6 +130,15 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
               disabled={loading}
             />
           </div>
+
+          {/* Workspace Mode Selector */}
+          <WorkspaceModeSelector
+            value={mode}
+            onValueChange={setMode}
+            disabled={loading}
+            showDescription={true}
+            showTransitionHint={false}
+          />
 
           <DialogFooter>
             <Button
