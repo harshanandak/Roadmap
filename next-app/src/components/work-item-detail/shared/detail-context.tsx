@@ -41,6 +41,7 @@ export interface WorkItemData {
   updated_at: string | null
   workspace_id: string
   team_id: string
+  department_id?: string | null
   // Relationships loaded from server
   workspace?: {
     id: string
@@ -58,6 +59,12 @@ export interface WorkItemData {
     id: string
     name: string | null
     email: string
+  } | null
+  department?: {
+    id: string
+    name: string
+    color: string
+    icon: string
   } | null
 }
 

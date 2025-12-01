@@ -15,6 +15,12 @@ import {
 } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
 import { Loader2, Trash2, Check } from 'lucide-react'
+import { WorkspaceModeSelector } from '@/components/workspaces/workspace-mode-selector'
+import {
+  type WorkspaceMode,
+  WORKSPACE_MODE_CONFIG,
+  isValidWorkspaceMode,
+} from '@/lib/types/workspace-mode'
 
 interface WorkspaceGeneralSettingsProps {
   workspace: {
@@ -23,6 +29,8 @@ interface WorkspaceGeneralSettingsProps {
     description: string | null
     phase: string
     team_id: string
+    mode?: string | null
+    mode_changed_at?: string | null
   }
   currentUserId?: string
 }
@@ -37,6 +45,14 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
   const [saved, setSaved] = useState(false)
   const [sidebarBehavior, setSidebarBehavior] = useState<SidebarBehavior>('expanded')
   const [sidebarSaved, setSidebarSaved] = useState(false)
+
+  // Workspace mode state
+  const initialMode: WorkspaceMode = isValidWorkspaceMode(workspace.mode || '')
+    ? (workspace.mode as WorkspaceMode)
+    : 'development'
+  const [mode, setMode] = useState<WorkspaceMode>(initialMode)
+  const [modeLoading, setModeLoading] = useState(false)
+  const [modeSaved, setModeSaved] = useState(false)
 
   const router = useRouter()
   const supabase = createClient()
@@ -94,6 +110,37 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
 
     // Reload to apply changes
     window.location.reload()
+  }
+
+  const handleModeChange = async (newMode: WorkspaceMode) => {
+    if (newMode === mode) return
+
+    setModeLoading(true)
+    setModeSaved(false)
+
+    try {
+      const { error } = await supabase
+        .from('workspaces')
+        .update({
+          mode: newMode,
+          mode_changed_at: new Date().toISOString(),
+        })
+        .eq('id', workspace.id)
+
+      if (error) throw error
+
+      setMode(newMode)
+      setModeSaved(true)
+      router.refresh()
+
+      // Hide success message after 3 seconds
+      setTimeout(() => setModeSaved(false), 3000)
+    } catch (error: any) {
+      console.error('Error updating workspace mode:', error)
+      alert(error.message || 'Failed to update workspace mode')
+    } finally {
+      setModeLoading(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -168,6 +215,46 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
               )}
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Workspace Mode Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Workspace Mode</CardTitle>
+          <CardDescription>
+            Set the lifecycle stage of your workspace. This affects AI behavior and prioritization.
+            {workspace.mode_changed_at && (
+              <span className="block mt-1 text-xs">
+                Last changed: {new Date(workspace.mode_changed_at).toLocaleDateString()}
+              </span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <WorkspaceModeSelector
+              value={mode}
+              onValueChange={handleModeChange}
+              disabled={modeLoading}
+              showDescription={true}
+              showTransitionHint={true}
+            />
+
+            {modeSaved && (
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <Check className="h-4 w-4" />
+                <span>Mode updated successfully</span>
+              </div>
+            )}
+
+            {modeLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Updating mode...</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
