@@ -5,6 +5,8 @@ import { WorkspaceStatsGrid } from '@/components/workspaces/workspace-stats-grid
 import { MultiPhaseProgressBar } from '@/components/workspaces/multi-phase-progress-bar';
 import { ActivityFeed } from '@/components/workspaces/activity-feed';
 import { ContextualOnboarding } from './contextual-onboarding';
+import { ModeAwareDashboard } from '@/components/dashboard/mode-aware-dashboard';
+import { type WorkspaceMode } from '@/lib/types/workspace-mode';
 
 interface DashboardViewProps {
   workspace: any;
@@ -13,6 +15,8 @@ interface DashboardViewProps {
   teamSize: number;
   phaseDistribution: any;
   onboardingState: any;
+  /** Enable mode-aware dashboard widgets */
+  useModeAwareDashboard?: boolean;
 }
 
 export function DashboardView({
@@ -22,6 +26,7 @@ export function DashboardView({
   teamSize,
   phaseDistribution,
   onboardingState,
+  useModeAwareDashboard = true,
 }: DashboardViewProps) {
   // Calculate stats
   const totalWorkItems = workItems?.length || 0;
@@ -31,6 +36,46 @@ export function DashboardView({
     ? Math.round((completedWorkItems / totalWorkItems) * 100)
     : 0;
 
+  // Get workspace mode (defaults to 'development')
+  const workspaceMode = (workspace.mode || 'development') as WorkspaceMode;
+
+  // Use mode-aware dashboard when enabled and workspace has a mode
+  if (useModeAwareDashboard && workspace.mode) {
+    return (
+      <div className="space-y-6">
+        {/* Mode-Aware Dashboard */}
+        <ModeAwareDashboard
+          mode={workspaceMode}
+          workspaceId={workspace.id}
+          workItems={workItems || []}
+          teamSize={teamSize}
+          phaseDistribution={phaseDistribution}
+        />
+
+        {/* Description */}
+        {workspace.description && (
+          <Card>
+            <CardHeader>
+              <CardTitle>About this Workspace</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">{workspace.description}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Contextual Onboarding (if applicable) */}
+        {onboardingState && !onboardingState.isComplete && (
+          <ContextualOnboarding
+            workspaceId={workspace.id}
+            onboardingState={onboardingState}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Classic dashboard layout (fallback)
   return (
     <div className="space-y-6">
       {/* Stats Grid */}

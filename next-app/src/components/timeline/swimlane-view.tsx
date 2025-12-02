@@ -10,10 +10,15 @@ import { cn } from '@/lib/utils'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { DraggableTimelineBar } from './draggable-timeline-bar'
 import { ZoomLevel, TimelineWorkItem } from './timeline-view'
+import type { Department } from '@/lib/types/department'
+import { getDepartmentColorClasses } from '@/lib/types/department'
+import * as LucideIcons from 'lucide-react'
 
 interface SwimlaneViewProps {
   workItems: TimelineWorkItem[]
-  groupBy: 'status' | 'priority' | 'phase' | 'assignee'
+  groupBy: 'status' | 'priority' | 'phase' | 'assignee' | 'department'
+  /** Departments for department grouping mode */
+  departments?: Department[]
   zoomLevel: ZoomLevel
   timeIntervals: Array<{ date: Date; label: string; width: number }>
   totalWidth: number
@@ -34,6 +39,7 @@ interface Swimlane {
 export function SwimlaneView({
   workItems,
   groupBy,
+  departments = [],
   zoomLevel,
   timeIntervals,
   totalWidth,
@@ -74,6 +80,9 @@ export function SwimlaneView({
         case 'assignee':
           groupKey = item.assignee || 'unassigned'
           break
+        case 'department':
+          groupKey = item.department_id || 'no-department'
+          break
         default:
           groupKey = 'other'
       }
@@ -89,15 +98,15 @@ export function SwimlaneView({
     groups.forEach((items, key) => {
       lanes.push({
         id: key,
-        title: formatGroupTitle(key, groupBy),
-        color: getGroupColor(key, groupBy),
+        title: formatGroupTitle(key, groupBy, departments),
+        color: getGroupColor(key, groupBy, departments),
         items,
       })
     })
 
     // Sort lanes by predefined order
     return lanes.sort((a, b) => {
-      const order = getLaneOrder(groupBy)
+      const order = getLaneOrder(groupBy, departments)
       const aIndex = order.indexOf(a.id)
       const bIndex = order.indexOf(b.id)
       if (aIndex === -1 && bIndex === -1) return 0
@@ -105,10 +114,10 @@ export function SwimlaneView({
       if (bIndex === -1) return -1
       return aIndex - bIndex
     })
-  }, [workItems, groupBy])
+  }, [workItems, groupBy, departments])
 
   // Format group title
-  function formatGroupTitle(key: string, groupBy: string): string {
+  function formatGroupTitle(key: string, groupBy: string, depts: Department[]): string {
     if (groupBy === 'status') {
       const statusLabels: Record<string, string> = {
         planned: 'Planned',
@@ -129,11 +138,16 @@ export function SwimlaneView({
     if (groupBy === 'priority') {
       return key.charAt(0).toUpperCase() + key.slice(1)
     }
+    if (groupBy === 'department') {
+      if (key === 'no-department') return 'No Department'
+      const dept = depts.find(d => d.id === key)
+      return dept?.name || 'Unknown Department'
+    }
     return key.charAt(0).toUpperCase() + key.slice(1)
   }
 
   // Get color for group header
-  function getGroupColor(key: string, groupBy: string): string {
+  function getGroupColor(key: string, groupBy: string, depts: Department[]): string {
     if (groupBy === 'status') {
       const statusColors: Record<string, string> = {
         planned: 'bg-gray-100 text-gray-700',
@@ -160,11 +174,20 @@ export function SwimlaneView({
       }
       return priorityColors[key] || 'bg-slate-100 text-slate-700'
     }
+    if (groupBy === 'department') {
+      if (key === 'no-department') return 'bg-slate-100 text-slate-700'
+      const dept = depts.find(d => d.id === key)
+      if (dept) {
+        const colorClasses = getDepartmentColorClasses(dept.color)
+        return `${colorClasses.bgClass} ${colorClasses.textClass}`
+      }
+      return 'bg-slate-100 text-slate-700'
+    }
     return 'bg-slate-100 text-slate-700'
   }
 
   // Get predefined lane order
-  function getLaneOrder(groupBy: string): string[] {
+  function getLaneOrder(groupBy: string, depts: Department[]): string[] {
     if (groupBy === 'status') {
       return ['planned', 'in_progress', 'on_hold', 'completed']
     }
@@ -173,6 +196,11 @@ export function SwimlaneView({
     }
     if (groupBy === 'priority') {
       return ['high', 'medium', 'low', 'none']
+    }
+    if (groupBy === 'department') {
+      // Sort by department sort_order, with 'no-department' at the end
+      const sortedDepts = [...depts].sort((a, b) => a.sort_order - b.sort_order)
+      return [...sortedDepts.map(d => d.id), 'no-department']
     }
     return []
   }

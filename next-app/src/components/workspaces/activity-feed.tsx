@@ -20,8 +20,8 @@ interface WorkItem {
   id: string
   name: string
   status: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 interface ActivityFeedProps {
@@ -59,13 +59,15 @@ function Circle({ className }: { className?: string }) {
 }
 
 export function ActivityFeed({ workItems }: ActivityFeedProps) {
-  // Sort work items by updated_at (most recent first)
+  // Filter items with dates and sort by updated_at (most recent first)
   const sortedItems = [...workItems]
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .filter((item) => item.updated_at) // Only include items with dates
+    .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())
     .slice(0, 10) // Show only last 10 items
 
   // Determine if item was recently created (within 5 minutes of created_at === updated_at)
   const isNewlyCreated = (item: WorkItem) => {
+    if (!item.created_at || !item.updated_at) return false
     const created = new Date(item.created_at).getTime()
     const updated = new Date(item.updated_at).getTime()
     return Math.abs(updated - created) < 5 * 60 * 1000 // 5 minutes
@@ -129,7 +131,7 @@ export function ActivityFeed({ workItems }: ActivityFeedProps) {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>
                         {isNew ? 'Created' : 'Updated'}{' '}
-                        {formatDistanceToNow(new Date(item.updated_at), {
+                        {formatDistanceToNow(new Date(item.updated_at!), {
                           addSuffix: true,
                         })}
                       </span>

@@ -4,6 +4,9 @@
  * React hook for checking if current user is admin or owner in a team.
  * Admins and owners bypass phase-based restrictions.
  *
+ * OPTIMIZED: Now uses PermissionsProvider context when available,
+ * eliminating duplicate subscriptions to team_members table.
+ *
  * Usage:
  * ```tsx
  * const { isAdmin, isLoading } = useIsAdmin({ teamId: 'team_456' });
@@ -14,9 +17,10 @@
  * ```
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { isUserAdminOrOwner } from '@/lib/utils/phase-permissions'
+import { usePermissionsOptional } from '@/providers/permissions-provider'
 import type { TeamRole } from '@/lib/types/team'
 
 interface UseIsAdminParams {
@@ -43,19 +47,48 @@ interface UseIsAdminReturn {
 /**
  * Hook to check if user is admin or owner
  *
- * Automatically refreshes when team membership changes.
+ * If used within PermissionsProvider, reads from shared context (recommended).
+ * Falls back to direct subscription if provider not available.
  *
  * @param params - Team ID to check
  * @returns Admin status and utilities
  */
 export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
+  // Try to use context first (optimized path - no duplicate subscriptions)
+  const contextPermissions = usePermissionsOptional()
+
+  // Check if context matches our team
+  const useContext =
+    contextPermissions &&
+    contextPermissions.teamId === teamId
+
+  // If context is available and matches, use it directly
+  if (useContext) {
+    return {
+      isAdmin: contextPermissions.isAdmin,
+      role: contextPermissions.role,
+      isLoading: contextPermissions.isAdminLoading,
+      error: contextPermissions.error,
+      refresh: contextPermissions.refresh,
+    }
+  }
+
+  // Fallback: Direct subscription (for backward compatibility)
+  return useIsAdminDirect({ teamId })
+}
+
+/**
+ * Direct implementation without context (fallback)
+ * @internal
+ */
+function useIsAdminDirect({ teamId }: UseIsAdminParams): UseIsAdminReturn {
   const [isAdmin, setIsAdmin] = useState(false)
   const [role, setRole] = useState<TeamRole | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const supabase = createClient()
 
-  const checkAdminStatus = async () => {
+  const checkAdminStatus = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -79,7 +112,7 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
         .eq('user_id', user.id)
         .single()
 
-      if (memberError) {
+      if (memberError && memberError.code !== 'PGRST116') {
         throw memberError
       }
 
@@ -92,17 +125,22 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [teamId, supabase])
 
   // Load admin status on mount and when team changes
   useEffect(() => {
     checkAdminStatus()
-  }, [teamId])
+  }, [checkAdminStatus])
 
   // Subscribe to real-time updates for team membership changes
   useEffect(() => {
+    console.warn(
+      '[useIsAdmin] Using direct subscription. ' +
+      'Consider wrapping with PermissionsProvider for better performance.'
+    )
+
     const channel = supabase
-      .channel(`team-admin-${teamId}`)
+      .channel(`team-admin-fallback-${teamId}`)
       .on(
         'postgres_changes',
         {
@@ -112,7 +150,6 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
           filter: `team_id=eq.${teamId}`,
         },
         () => {
-          // Reload admin status when team roles change
           checkAdminStatus()
         }
       )
@@ -121,7 +158,7 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [teamId])
+  }, [teamId, supabase, checkAdminStatus])
 
   return {
     isAdmin,

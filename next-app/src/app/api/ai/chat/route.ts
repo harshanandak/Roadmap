@@ -238,14 +238,12 @@ export async function POST(request: NextRequest) {
  * GET endpoint to list available models
  */
 export async function GET() {
-  const { getAllModels } = await import('@/lib/ai/models')
+  const { getAllModels, AI_MODELS } = await import('@/lib/ai/models')
   const models = getAllModels()
 
   return NextResponse.json({
     openrouter: models.map((m) => ({
-      key: Object.entries(
-        (await import('@/lib/ai/models')).AI_MODELS
-      ).find(([_, v]) => v.id === m.id)?.[0],
+      key: Object.entries(AI_MODELS).find(([_, v]) => v.id === m.id)?.[0],
       id: m.id,
       name: m.name,
       provider: m.provider,

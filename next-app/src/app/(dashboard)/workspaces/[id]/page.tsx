@@ -56,6 +56,7 @@ export default async function WorkspacePage({
     { data: mindMaps },
     { data: workItemTagRels },
     { data: tags },
+    { data: departments },
     { count: teamSize },
     { data: userProfile },
   ] = await Promise.all([
@@ -73,10 +74,10 @@ export default async function WorkspacePage({
       .eq('team_id', workspace.team_id)
       .order('name'),
 
-    // Work items
+    // Work items (with department join for timeline swimlanes)
     supabase
       .from('work_items')
-      .select('*')
+      .select('*, department:departments(id, name, color, icon)')
       .eq('workspace_id', id)
       .eq('team_id', workspace.team_id)
       .order('updated_at', { ascending: false }),
@@ -111,6 +112,13 @@ export default async function WorkspacePage({
       .from('tags')
       .select('*')
       .eq('team_id', workspace.team_id),
+
+    // Departments (for timeline swimlanes)
+    supabase
+      .from('departments')
+      .select('*')
+      .eq('team_id', workspace.team_id)
+      .order('sort_order'),
 
     // Team size
     supabase
@@ -156,6 +164,7 @@ export default async function WorkspacePage({
       linkedItems={linkedItems || []}
       mindMaps={mindMaps || []}
       tags={tags || []}
+      departments={departments || []}
       teamSize={teamSize || 0}
       phaseDistribution={phaseDistribution}
       onboardingState={onboardingState}

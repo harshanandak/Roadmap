@@ -1,19 +1,65 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar } from 'lucide-react';
+/**
+ * TimelineView Wrapper Component
+ *
+ * Transforms workspace data into the format required by the
+ * core TimelineView component from @/components/timeline.
+ * Handles data transformation and dependency mapping.
+ *
+ * @module workspaces/timeline-view
+ */
+
+import { useMemo } from 'react';
+import { TimelineView as CoreTimelineView, TimelineWorkItem } from '@/components/timeline/timeline-view';
+import type { Department } from '@/lib/types/department';
 
 interface TimelineViewProps {
   workspace: any;
   workItems: any[];
   timelineItems: any[];
+  linkedItems: any[];
+  departments: Department[];
+  currentUserId: string;
 }
 
 export function TimelineView({
   workspace,
   workItems,
   timelineItems,
+  linkedItems,
+  departments,
+  currentUserId,
 }: TimelineViewProps) {
+  // Transform work items to TimelineWorkItem format
+  const transformedWorkItems = useMemo<TimelineWorkItem[]>(() => {
+    return workItems.map((item) => {
+      // Find dependencies for this item
+      const itemDependencies = linkedItems
+        .filter((link) => link.source_id === item.id)
+        .map((link) => ({
+          targetId: link.target_id,
+          type: link.link_type || 'relates_to',
+        }));
+
+      return {
+        id: item.id,
+        name: item.name || item.title || 'Untitled',
+        timeline_phase: item.timeline_phase || 'MVP',
+        status: item.status || 'planned',
+        priority: item.priority,
+        planned_start_date: item.start_date || item.planned_start_date,
+        planned_end_date: item.end_date || item.planned_end_date,
+        duration_days: item.duration_days,
+        dependencies: itemDependencies,
+        assignee: item.assignee,
+        team: item.team,
+        department_id: item.department_id,
+        department: item.department,
+      };
+    });
+  }, [workItems, linkedItems]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -21,32 +67,19 @@ export function TimelineView({
         <div>
           <h2 className="text-3xl font-bold">Timeline</h2>
           <p className="text-muted-foreground">
-            Gantt chart and timeline visualization
+            Gantt chart and timeline visualization for {workspace.name}
           </p>
         </div>
       </div>
 
-      {/* Timeline Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Project Timeline
-          </CardTitle>
-          <CardDescription>
-            Visual timeline coming soon
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center py-12">
-          <div className="text-6xl mb-4">📅</div>
-          <h3 className="text-lg font-semibold mb-2">
-            Timeline view in development
-          </h3>
-          <p className="text-muted-foreground">
-            Gantt chart visualization will be available soon
-          </p>
-        </CardContent>
-      </Card>
+      {/* Core Timeline Component */}
+      <CoreTimelineView
+        workItems={transformedWorkItems}
+        workspaceId={workspace.id}
+        teamId={workspace.team_id}
+        currentUserId={currentUserId}
+        departments={departments}
+      />
     </div>
   );
 }

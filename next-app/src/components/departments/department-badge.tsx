@@ -44,9 +44,15 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   globe: Globe,
 };
 
-interface DepartmentBadgeProps {
+/** Minimal department data needed for badge display */
+type DepartmentBadgeData = Pick<Department, 'name' | 'color' | 'icon'> & {
+  is_default?: boolean;
+  description?: string | null;
+};
+
+export interface DepartmentBadgeProps {
   /** Department data - if null, nothing is rendered */
-  department: Department | null | undefined;
+  department: DepartmentBadgeData | null | undefined;
   /** Badge size variant */
   size?: 'sm' | 'default';
   /** Whether to show the department icon */

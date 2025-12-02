@@ -83,6 +83,7 @@ export function WorkItemsViewWrapper({
     tags: true,
     links: true,
     date: false,
+    department: true,
   })
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

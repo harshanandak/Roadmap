@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { Search, Zap } from 'lucide-react'
-import { format, startOfQuarter, endOfQuarter, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, addDays, addMonths } from 'date-fns'
+import { Search, Zap, CalendarDays } from 'lucide-react'
+import { format, startOfQuarter, endOfQuarter, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, addDays, addMonths, differenceInDays } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { DraggableTimelineBar } from './draggable-timeline-bar'
@@ -31,16 +31,29 @@ export interface TimelineWorkItem {
   dependencies: Array<{ targetId: string; type: string }>
   assignee?: string
   team?: string
+  /** Department ID (Phase 1 integration) */
+  department_id?: string
+  /** Department object with color/icon for display */
+  department?: {
+    id: string
+    name: string
+    color: string
+    icon: string
+  }
 }
+
+import type { Department } from '@/lib/types/department'
 
 interface TimelineViewProps {
   workItems: TimelineWorkItem[]
   workspaceId: string
   teamId: string
   currentUserId: string
+  /** Departments for swimlane grouping */
+  departments?: Department[]
 }
 
-export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId, currentUserId }: TimelineViewProps) {
+export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId, currentUserId, departments = [] }: TimelineViewProps) {
   const [workItems, setWorkItems] = useState(initialWorkItems)
   const { toast } = useToast()
 
@@ -55,7 +68,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [phaseFilter, setPhaseFilter] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'gantt' | 'swimlane'>('gantt')
-  const [groupBy, setGroupBy] = useState<'status' | 'priority' | 'phase' | 'assignee'>('status')
+  const [groupBy, setGroupBy] = useState<'status' | 'priority' | 'phase' | 'assignee' | 'department'>('status')
   const [showCriticalPath, setShowCriticalPath] = useState(false)
   const [scrollLeft, setScrollLeft] = useState(0)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -218,6 +231,32 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
   }, [dateRange, zoomLevel])
 
   const totalWidth = timeIntervals.reduce((sum, interval) => sum + interval.width, 0)
+
+  // Check if today is in the visible range
+  const isTodayInRange = useMemo(() => {
+    const today = new Date()
+    return today >= dateRange.start && today <= dateRange.end
+  }, [dateRange])
+
+  // Scroll to today
+  const handleScrollToToday = useCallback(() => {
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer || timeIntervals.length === 0) return
+
+    const today = new Date()
+    const firstInterval = timeIntervals[0]
+    const pixelsPerDay = getPixelsPerDay()
+    const daysSinceStart = differenceInDays(today, firstInterval.date)
+    const todayPosition = Math.max(0, daysSinceStart * pixelsPerDay)
+
+    // Center today in the viewport
+    const centerPosition = todayPosition - scrollContainer.clientWidth / 2
+
+    scrollContainer.scrollTo({
+      left: Math.max(0, centerPosition),
+      behavior: 'smooth',
+    })
+  }, [timeIntervals])
 
   // Calculate position and width for a work item bar
   const getBarStyle = (item: TimelineWorkItem) => {
@@ -462,6 +501,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
                       : groupBy === 'priority' ? 'priority'
                       : groupBy === 'phase' ? 'timeline_phase'
                       : groupBy === 'assignee' ? 'assignee'
+                      : groupBy === 'department' ? 'department_id'
                       : null
 
     if (!updateField) return
@@ -587,6 +627,19 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
                   <Zap className="h-4 w-4" />
                   Critical Path
                 </Button>
+
+                {/* Today Button */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleScrollToToday}
+                  disabled={!isTodayInRange}
+                  className="gap-2"
+                  title={isTodayInRange ? 'Scroll to today' : 'Today is outside the current date range'}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  Today
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -642,6 +695,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
                     <SelectItem value="phase">Group by Phase</SelectItem>
                     <SelectItem value="priority">Group by Priority</SelectItem>
                     <SelectItem value="assignee">Group by Assignee</SelectItem>
+                    <SelectItem value="department">Group by Department</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -759,6 +813,7 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId, teamId,
             <SwimlaneView
               workItems={itemsWithDates}
               groupBy={groupBy}
+              departments={departments}
               zoomLevel={zoomLevel}
               timeIntervals={timeIntervals}
               totalWidth={totalWidth}
