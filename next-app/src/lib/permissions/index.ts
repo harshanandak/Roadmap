@@ -44,11 +44,22 @@ export {
 // React Hooks
 // ============================================================================
 
+// Main optimized hooks (use context when available)
 export {
   usePhasePermissions,
-  useIsAdmin,
+  useCanEditPhase,
   usePhaseAssignments,
-} from '@/lib/hooks/use-phase-permissions'
+} from '@/hooks/use-phase-permissions'
+
+export { useIsAdmin, useHasRole } from '@/hooks/use-is-admin'
+
+// Permission context provider (wrap workspace routes for optimal performance)
+export {
+  PermissionsProvider,
+  usePermissions,
+  useAdminStatus,
+  usePermissionsOptional,
+} from '@/providers/permissions-provider'
 
 // ============================================================================
 // Constants

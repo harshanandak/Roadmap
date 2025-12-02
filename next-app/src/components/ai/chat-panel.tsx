@@ -12,7 +12,7 @@
  * - Responsive design for sidebar or full-page use
  */
 
-import { useChat, type Message } from '@ai-sdk/react'
+import { useChat, type UIMessage } from '@ai-sdk/react'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -115,17 +115,11 @@ export function ChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    error,
-    reload,
-    stop,
-    setMessages,
-  } = useChat({
+  const [inputValue, setInputValue] = useState('')
+
+  // Note: AI SDK v5 has different API - using type assertions for compatibility
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chatHelpers = useChat({
     api: '/api/ai/sdk-chat',
     body: {
       model: selectedModel,
@@ -134,10 +128,21 @@ export function ChatPanel({
       systemPrompt,
       workspaceContext,
     },
-    onError: (err) => {
+    onError: (err: Error) => {
       console.error('[ChatPanel] Error:', err)
     },
-  })
+  } as Parameters<typeof useChat>[0])
+
+  // Extract properties with type assertions for v5 compatibility
+  const messages = chatHelpers.messages as UIMessage[]
+  const status = (chatHelpers as { status?: string }).status
+  const error = chatHelpers.error
+  const setMessages = chatHelpers.setMessages
+  const stop = (chatHelpers as { stop?: () => void }).stop
+  const reload = (chatHelpers as { reload?: () => void }).reload
+  const submitChat = (chatHelpers as { handleSubmit?: (e: React.FormEvent) => void }).handleSubmit
+
+  const isLoading = status === 'streaming' || status === 'submitted' || status === 'in_progress'
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -148,11 +153,12 @@ export function ChatPanel({
   const onSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
-      if (input.trim() && !isLoading) {
-        handleSubmit(e)
+      if (inputValue.trim() && !isLoading && submitChat) {
+        submitChat(e)
+        setInputValue('')
       }
     },
-    [input, isLoading, handleSubmit]
+    [inputValue, isLoading, submitChat]
   )
 
   // Handle keyboard shortcuts
@@ -310,7 +316,7 @@ export function ChatPanel({
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => reload()}
+                onClick={() => reload?.()}
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
                 Retry
@@ -327,8 +333,8 @@ export function ChatPanel({
         <form onSubmit={onSubmit} className="flex gap-2">
           <Textarea
             ref={textareaRef}
-            value={input}
-            onChange={handleInputChange}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything... (Shift+Enter for new line)"
             className="min-h-[44px] max-h-[120px] resize-none"
@@ -340,7 +346,7 @@ export function ChatPanel({
               <X className="h-4 w-4" />
             </Button>
           ) : (
-            <Button type="submit" disabled={!input.trim()}>
+            <Button type="submit" disabled={!inputValue.trim()}>
               <Send className="h-4 w-4" />
             </Button>
           )}
@@ -411,15 +417,31 @@ function SuggestionChip({
   )
 }
 
+// Legacy message interface for v4 compatibility
+interface LegacyMessage {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content?: string
+  toolInvocations?: Array<{
+    toolName: string
+    state: 'partial-call' | 'result' | 'call'
+    result?: unknown
+    args?: unknown
+  }>
+}
+
 /**
  * Individual message bubble
  */
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message }: { message: UIMessage }) {
   const isUser = message.role === 'user'
   const [isExpanded, setIsExpanded] = useState(true)
 
+  // Cast to legacy message format for v4/v5 compatibility
+  const legacyMessage = message as unknown as LegacyMessage
+
   // Check if message has tool invocations
-  const hasToolCalls = message.toolInvocations && message.toolInvocations.length > 0
+  const hasToolCalls = legacyMessage.toolInvocations && legacyMessage.toolInvocations.length > 0
 
   return (
     <div
@@ -453,14 +475,14 @@ function MessageBubble({ message }: { message: Message }) {
           )}
         >
           <div className="text-sm whitespace-pre-wrap break-words">
-            {message.content}
+            {legacyMessage.content || ''}
           </div>
         </div>
 
         {/* Tool Invocations */}
         {hasToolCalls && (
           <div className="space-y-2">
-            {message.toolInvocations?.map((tool, index) => (
+            {legacyMessage.toolInvocations?.map((tool, index: number) => (
               <ToolInvocationDisplay key={index} toolInvocation={tool} />
             ))}
           </div>
@@ -476,7 +498,7 @@ function MessageBubble({ message }: { message: Message }) {
 function ToolInvocationDisplay({
   toolInvocation,
 }: {
-  toolInvocation: Message['toolInvocations'][0]
+  toolInvocation: NonNullable<LegacyMessage['toolInvocations']>[0]
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
 

@@ -113,9 +113,7 @@ export function WorkItemDetailHeader({ className }: WorkItemDetailHeaderProps) {
           {/* Department badge */}
           {workItem.department && (
             <DepartmentBadge
-              name={workItem.department.name}
-              color={workItem.department.color}
-              icon={workItem.department.icon}
+              department={workItem.department}
               size="default"
             />
           )}

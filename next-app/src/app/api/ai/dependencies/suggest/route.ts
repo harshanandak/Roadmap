@@ -218,8 +218,8 @@ export async function POST(request: Request) {
 
     // Calculate estimated cost from usage
     const estimatedCost = result.usage
-      ? (result.usage.promptTokens / 1_000_000) * configModel.costPer1M.input +
-        (result.usage.completionTokens / 1_000_000) * configModel.costPer1M.output
+      ? ((result.usage.inputTokens ?? 0) / 1_000_000) * configModel.costPer1M.input +
+        ((result.usage.outputTokens ?? 0) / 1_000_000) * configModel.costPer1M.output
       : 0
 
     // Track AI usage in database
@@ -234,8 +234,8 @@ export async function POST(request: Request) {
         model_name: configModel.name,
         provider: configModel.provider,
         feature_type: 'dependency_suggestion',
-        prompt_tokens: result.usage?.promptTokens || 0,
-        completion_tokens: result.usage?.completionTokens || 0,
+        prompt_tokens: result.usage?.inputTokens || 0,
+        completion_tokens: result.usage?.outputTokens || 0,
         total_tokens: result.usage?.totalTokens || 0,
         cost_usd: estimatedCost,
         suggestions_generated: enhancedSuggestions.length,
@@ -255,9 +255,9 @@ export async function POST(request: Request) {
       },
       usage: result.usage
         ? {
-            promptTokens: result.usage.promptTokens,
-            completionTokens: result.usage.completionTokens,
-            totalTokens: result.usage.totalTokens,
+            inputTokens: result.usage.inputTokens ?? 0,
+            outputTokens: result.usage.outputTokens ?? 0,
+            totalTokens: result.usage.totalTokens ?? 0,
             costUsd: estimatedCost,
           }
         : undefined,

@@ -31,8 +31,8 @@ interface AnalyzeNoteResponse {
   suggestion: SuggestedWorkItem
   model: string
   usage?: {
-    promptTokens: number
-    completionTokens: number
+    inputTokens: number
+    outputTokens: number
     totalTokens: number
   }
 }
@@ -121,9 +121,9 @@ Provide a structured suggestion with appropriate type, name, purpose, priority, 
       model: configModel?.name || 'Claude Haiku 4.5',
       usage: result.usage
         ? {
-            promptTokens: result.usage.promptTokens,
-            completionTokens: result.usage.completionTokens,
-            totalTokens: result.usage.totalTokens,
+            inputTokens: result.usage.inputTokens ?? 0,
+            outputTokens: result.usage.outputTokens ?? 0,
+            totalTokens: result.usage.totalTokens ?? 0,
           }
         : undefined,
     }

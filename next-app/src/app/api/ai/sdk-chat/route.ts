@@ -13,7 +13,7 @@
  *                               Parallel AI APIs
  */
 
-import { streamText, convertToCoreMessages, type Message } from 'ai'
+import { streamText, convertToCoreMessages, type UIMessage, type LanguageModel } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 import { openrouter, aiModels, getModelFromConfig } from '@/lib/ai/ai-sdk-client'
 import { parallelAITools, parallelAIQuickTools } from '@/lib/ai/tools/parallel-ai-tools'
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       systemPrompt,
       workspaceContext,
     } = body as {
-      messages: Message[]
+      messages: UIMessage[]
       model?: string
       enableTools?: boolean
       quickMode?: boolean
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     }
 
     // Determine which model to use
-    let aiModel = aiModels.claudeHaiku // Default
+    let aiModel: LanguageModel = aiModels.claudeHaiku // Default
 
     if (modelInput) {
       // Check if it's a model key from our config (e.g., 'claude-haiku-45')
@@ -144,8 +144,6 @@ export async function POST(request: Request) {
       system: fullSystemPrompt,
       messages: convertToCoreMessages(messages),
       tools,
-      // Allow multiple tool calls in a single response
-      maxSteps: 5,
       // Optional: Handle tool execution errors gracefully
       onStepFinish({ text, toolCalls, toolResults, finishReason, usage }) {
         // Log tool usage for debugging (can be removed in production)
@@ -156,7 +154,7 @@ export async function POST(request: Request) {
     })
 
     // Return the streaming response in AI SDK format
-    return result.toDataStreamResponse()
+    return result.toTextStreamResponse()
   } catch (error) {
     console.error('[AI SDK Chat] Error:', error)
     return new Response(

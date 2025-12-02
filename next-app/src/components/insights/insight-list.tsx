@@ -57,6 +57,10 @@ interface InsightListProps {
   onLink?: (insight: CustomerInsightWithMeta) => void
   onView?: (insight: CustomerInsightWithMeta) => void
   className?: string
+  // External filter props (from dashboard)
+  sentimentFilter?: string
+  statusFilter?: string
+  hasWorkItems?: boolean
 }
 
 const ITEMS_PER_PAGE = 20
@@ -68,6 +72,10 @@ export function InsightList({
   onCreateNew,
   onEdit,
   onDelete,
+  // External filter props
+  sentimentFilter: externalSentimentFilter,
+  statusFilter: externalStatusFilter,
+  hasWorkItems: externalHasWorkItems,
   onLink,
   onView,
   className,
@@ -115,8 +123,14 @@ export function InsightList({
       if (workspaceId) params.set('workspace_id', workspaceId)
       if (search) params.set('search', search)
       if (sourceFilter !== 'all') params.set('source', sourceFilter)
-      if (sentimentFilter !== 'all') params.set('sentiment', sentimentFilter)
-      if (statusFilter !== 'all') params.set('status', statusFilter)
+
+      // Use external filter if provided, otherwise use internal state
+      const effectiveSentiment = externalSentimentFilter || (sentimentFilter !== 'all' ? sentimentFilter : null)
+      const effectiveStatus = externalStatusFilter || (statusFilter !== 'all' ? statusFilter : null)
+
+      if (effectiveSentiment) params.set('sentiment', effectiveSentiment)
+      if (effectiveStatus) params.set('status', effectiveStatus)
+      if (externalHasWorkItems) params.set('has_work_items', 'true')
 
       const response = await fetch(`/api/insights?${params}`)
 
@@ -142,7 +156,7 @@ export function InsightList({
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [teamId, workspaceId, offset, sortBy, sortDir, search, sourceFilter, sentimentFilter, statusFilter])
+  }, [teamId, workspaceId, offset, sortBy, sortDir, search, sourceFilter, sentimentFilter, statusFilter, externalSentimentFilter, externalStatusFilter, externalHasWorkItems])
 
   // Initial fetch and refetch on filter changes
   useEffect(() => {

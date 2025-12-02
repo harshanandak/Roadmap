@@ -852,3 +852,221 @@ CREATE TABLE prototype_votes (
 - **Week 6**: [Timeline & Execution](week-6-timeline-execution.md) - Work Item Detail Page
 - **Week 7**: [AI Integration & Analytics](week-7-ai-analytics.md) - Feedback Module, AI features
 - **Product Tasks**: [Week 5](week-5-review-system.md) - Tasks implementation
+
+---
+
+# Part 11: Feedback & Insights UI System
+
+**Status**: ✅ IMPLEMENTATION COMPLETE
+**Completed**: 2025-12-02
+**Estimated Time**: ~16 hours
+**Actual Time**: ~14 hours (2 sessions)
+
+---
+
+## Overview
+
+A comprehensive system for collecting public feedback, managing customer insights, and enabling stakeholder voting—all without requiring authentication for external users.
+
+**Key Design Decisions**:
+- **Security**: Multi-layer (honeypot + time check + rate limiting), CAPTCHA-ready
+- **Widget**: Enabled by default with easy disable toggle
+- **Voting**: Team-configurable verification (teams choose if email required)
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  PUBLIC ROUTES (No Auth Required)                                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│  /feedback/[workspaceId]    → Public feedback form                       │
+│  /widget/[workspaceId]      → Embeddable iframe widget                   │
+│  /vote/[insightId]          → Public voting page                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│  PUBLIC API ROUTES                                                        │
+│  POST /api/public/feedback        → Submit anonymous feedback             │
+│  GET  /api/public/workspaces/[id] → Validate workspace + get settings     │
+│  GET  /api/public/insights/[id]   → Get sanitized insight for voting      │
+│  POST /api/public/insights/[id]/vote → Submit vote                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│  SECURITY LAYER                                                           │
+│  🍯 Honeypot Fields    → Hidden inputs bots fill out                      │
+│  ⏱️ Time Validation    → Reject submissions < 3 seconds                   │
+│  🚦 Rate Limiting      → 10 feedback / 30 votes per 15 min per IP         │
+│  🔒 CAPTCHA Ready      → Interface for reCAPTCHA/hCaptcha integration     │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Components Created
+
+### Security Utilities (`src/lib/security/`)
+
+| File | Purpose |
+|------|---------|
+| `honeypot.ts` | Spam prevention with hidden fields + time check |
+| `rate-limit.ts` | In-memory rate limiting with auto-cleanup |
+| `index.ts` | Security exports |
+
+### Insights Dashboard (`src/components/insights/`)
+
+| File | Purpose |
+|------|---------|
+| `insights-dashboard.tsx` | Main dashboard with tabs (all/triage/linked) |
+| `insights-dashboard-stats.tsx` | Stats cards with clickable filters |
+| `insight-detail-sheet.tsx` | Slide-over panel for insight details |
+| `insight-triage-queue.tsx` | Keyboard-driven rapid review UI |
+| `hooks/use-insight-shortcuts.ts` | Vim-style keyboard navigation |
+| `public-vote-card.tsx` | External voting UI with configurable verification |
+
+### Feedback Components (`src/components/feedback/`)
+
+| File | Purpose |
+|------|---------|
+| `public-feedback-form.tsx` | Simplified form with honeypot integration |
+| `feedback-thank-you.tsx` | Success confirmation component |
+| `feedback-widget-embed.tsx` | Embed code generator with live preview |
+
+### Work Item Integration (`src/components/work-items/`)
+
+| File | Purpose |
+|------|---------|
+| `linked-insights-section.tsx` | Shows/manages insights linked to work item |
+
+### Settings (`src/components/settings/`)
+
+| File | Purpose |
+|------|---------|
+| `workspace-feedback-settings.tsx` | Full admin panel for feedback config |
+
+### Public Pages (`src/app/(public)/`)
+
+| Path | Purpose |
+|------|---------|
+| `layout.tsx` | Minimal layout with gradient background |
+| `feedback/[workspaceId]/page.tsx` | Public feedback submission |
+| `widget/[workspaceId]/page.tsx` | Embeddable widget with URL params |
+| `vote/[insightId]/page.tsx` | Public voting page |
+
+### Insights Dashboard Page (`src/app/(dashboard)/`)
+
+| Path | Purpose |
+|------|---------|
+| `workspaces/[id]/insights/page.tsx` | Dashboard route for insights |
+
+---
+
+## Keyboard Shortcuts (Triage Queue)
+
+| Key | Action |
+|-----|--------|
+| `j` / `↓` | Next insight |
+| `k` / `↑` | Previous insight |
+| `R` | Mark as Reviewed |
+| `A` | Mark as Actionable |
+| `D` | Archive (Dismiss) |
+| `L` | Link to work item |
+| `Enter` | Open detail sheet |
+| `/` | Focus search |
+| `?` | Show help |
+
+---
+
+## Database Migration
+
+**Migration**: `20251202120000_add_public_feedback_settings.sql`
+
+```sql
+-- Added to workspaces table:
+ALTER TABLE workspaces ADD COLUMN public_feedback_settings JSONB DEFAULT '{
+  "enabled": true,
+  "widget_enabled": true,
+  "voting_enabled": true,
+  "require_email_verification": false
+}'::jsonb;
+
+-- Public helper functions with security:
+CREATE FUNCTION check_public_feedback_enabled(workspace_id TEXT) ...
+CREATE FUNCTION get_workspace_public_settings(workspace_id TEXT) ...
+```
+
+---
+
+## Widget Embed System
+
+### URL Parameters
+```
+/widget/[workspaceId]?theme=light|dark|auto
+                     &primaryColor=#3B82F6
+                     &requireEmail=true|false
+```
+
+### PostMessage Communication
+```javascript
+// Widget → Parent: Notify success
+window.parent.postMessage({
+  type: 'feedback-submitted',
+  workspaceId: '...',
+  timestamp: Date.now()
+}, '*')
+```
+
+### Generated Embed Code
+```html
+<button id="feedback-widget-btn">Feedback</button>
+<script>
+document.getElementById('feedback-widget-btn').onclick = function() {
+  var iframe = document.createElement('iframe');
+  iframe.src = 'https://yourapp.com/widget/abc123?theme=auto';
+  iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;...';
+  document.body.appendChild(iframe);
+};
+</script>
+```
+
+---
+
+## Rate Limiting Strategy
+
+```typescript
+const LIMITS = {
+  feedback: { requests: 10, window: 15 * 60 * 1000 },  // 10 per 15 min
+  vote: { requests: 30, window: 15 * 60 * 1000 },      // 30 per 15 min
+}
+
+// In-memory store with automatic cleanup every 5 minutes
+const ipStore = new Map<string, { count: number, resetAt: number }>()
+```
+
+---
+
+## CAPTCHA-Ready Architecture
+
+```typescript
+interface CaptchaProvider {
+  name: 'recaptcha' | 'hcaptcha' | 'turnstile'
+  siteKey: string
+  verify: (token: string) => Promise<boolean>
+}
+
+// Placeholder for future integration
+export function verifyCaptcha(
+  provider: CaptchaProvider,
+  token: string
+): Promise<boolean> {
+  // TODO: Implement provider-specific verification
+  return Promise.resolve(true)
+}
+```
+
+---
+
+## Change Log
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2025-12-02 | Session 1: Database migration, dashboard stats, detail sheet | Claude |
+| 2025-12-02 | Session 2: Triage queue, public pages, widget, voting, settings | Claude |

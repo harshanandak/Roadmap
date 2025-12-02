@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
-import { DashboardHeader } from '@/components/layout/dashboard-header'
 
 export default async function DashboardLayout({
   children,
@@ -64,11 +63,7 @@ export default async function DashboardLayout({
         userName={userProfile?.name || user.user_metadata?.full_name}
       />
       <SidebarInset>
-        <DashboardHeader
-          userEmail={user.email}
-          userName={userProfile?.name || user.user_metadata?.full_name}
-        />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </SidebarInset>

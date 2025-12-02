@@ -1,6 +1,6 @@
 # 📜 CHANGELOG
 
-**Last Updated**: 2025-12-01
+**Last Updated**: 2025-12-02
 **Project**: Product Lifecycle Management Platform
 **Format**: Based on [Keep a Changelog](https://keepachangelog.com/)
 
@@ -9,6 +9,28 @@ All notable changes, migrations, and feature implementations are documented in t
 ---
 
 ## [Unreleased]
+
+### Fixed
+
+#### AI SDK v5 Proper Migration (2025-12-02)
+- **Issue**: TypeScript compilation errors due to using legacy v4 API syntax with AI SDK v5.0.104
+- **Root Cause**: Tools used `parameters` property (v4 syntax) instead of `inputSchema` (v5 syntax)
+- **Research**: Confirmed v6 is in beta (stable end of 2025), maintains same tool API - migration will be minimal
+- **Files Fixed**:
+  - `src/lib/ai/tools/parallel-ai-tools.ts` - Migrated all 5 tools to proper v5 API:
+    - Changed `parameters` → `inputSchema` for all tools (webSearchTool, extractContentTool, deepResearchTool, researchStatusTool, quickAnswerTool)
+    - Updated `execute` signature to include `options: { toolCallId, abortSignal }`
+    - Removed `createTool` workaround helper and all `any` type casts
+    - Full type safety now working with zero workarounds
+  - `src/lib/ai/ai-sdk-client.ts` - Changed `LanguageModelV1` → `LanguageModel` type
+  - `src/app/api/ai/sdk-chat/route.ts` - Fixed `Message` → `UIMessage`, `toDataStreamResponse` → `toTextStreamResponse`
+  - `src/app/api/ai/analyze-note/route.ts` - Fixed token usage: `promptTokens` → `inputTokens`, `completionTokens` → `outputTokens`
+  - `src/app/api/ai/dependencies/suggest/route.ts` - Same token usage property fixes with null coalescing
+  - `src/app/api/ai/chat/route.ts` - Fixed async import issue inside synchronous map
+  - `src/components/ai/chat-panel.tsx` - Added `LegacyMessage` interface for backward compatibility with useChat hook
+  - `tests/utils/database.ts` - Added `GenerateLinkPropertiesWithTokens` interface for Supabase type compatibility
+- **Impact**: Full TypeScript compilation with zero errors, proper type safety, ready for v6 migration
+- **v6 Readiness**: AI SDK v6 (beta, stable end of 2025) maintains the same tool API, so migration will be minimal
 
 ### Added
 - PROGRESS.md - Weekly implementation tracker with completion percentages
@@ -19,7 +41,82 @@ All notable changes, migrations, and feature implementations are documented in t
 ### Changed
 - Documentation structure improvements in progress
 
+### Security
+#### Function Search Path Vulnerabilities (Migration: `20251202150000_fix_remaining_function_search_paths.sql`)
+- **Issue**: Supabase advisor detected 16 `function_search_path_mutable` warnings - functions without immutable search_path are vulnerable to search path injection attacks
+- **Fix**: Added `SET search_path = ''` to 30+ functions using ALTER FUNCTION with DO blocks for safe execution
+- **Functions Fixed**:
+  - Trigger functions: handle_work_item_reference_cleanup, validate_work_item_reference, update_feedback_updated_at, calculate_work_item_duration, update_customer_insights_updated_at, handle_new_user, log_phase_change, auto_refresh_workload_cache, update_workspace_templates_updated_at, update_work_flows_updated_at, update_flow_counts, update_strategy_calculated_progress
+  - Auth helpers: user_is_team_member, user_is_team_admin
+  - Work item functions: calculate_work_item_status, calculate_work_item_progress, calculate_work_item_phase
+  - Resource functions: purge_soft_deleted, purge_deleted_resources, get_resource_history, search_resources, purge_unlinked_work_item_resources, manual_purge_all_deleted
+  - Phase functions: count_phase_leads, refresh_phase_workload_cache, get_phase_lead_info
+  - Task functions: get_workspace_task_stats, get_work_item_tasks
+  - Public feedback: check_public_feedback_enabled, get_workspace_public_settings
+  - Strategy functions: calculate_strategy_progress
+- **Impact**: Eliminated search path injection attack vector for all database functions
+- **Verification**: Supabase advisor confirmed 0 `function_search_path_mutable` warnings post-migration
+- **Remaining**: `auth_leaked_password_protection` warning - This is a **Pro Plan feature** (HaveIBeenPwned.org integration). Cannot be enabled on Free Plan.
+
+#### Departments & Insight Votes RLS Fix (Migration: `20251202160000_fix_departments_insight_votes_rls.sql`)
+- **Issue 1**: `auth_rls_initplan` on `departments` table - 4 RLS policies using `auth.uid()` directly
+- **Issue 2**: `multiple_permissive_policies` on `insight_votes` table - duplicate INSERT policies
+- **Fix 1**: Replaced `auth.uid()` with `(select auth.uid())` in all 4 departments policies
+- **Fix 2**: Consolidated "Team members can create votes" and "External voters can vote via review links" into single policy with OR conditions
+- **Impact**: Improved RLS query performance on departments and insight_votes tables
+- **Verification**: Supabase advisor confirmed 0 WARN-level issues remaining (only INFO-level notices)
+
+#### Security Definer View Fix (Migration: `20251202170000_fix_security_definer_view.sql`)
+- **Issue**: `security_definer_view` ERROR on `public.cron_job_status` view
+- **Risk**: Views with SECURITY DEFINER run with the view creator's permissions (postgres), bypassing RLS
+- **Fix**: Dropped the `cron_job_status` view - admins can query `cron.job` directly if needed
+- **Impact**: Eliminated RLS bypass vulnerability
+
+#### Workspace Templates Trigger Search Path Fix (Migration: `20251202200000_fix_workspace_templates_trigger_search_path.sql`)
+- **Issue**: `function_search_path_mutable` WARN on `update_workspace_templates_updated_at` function
+- **Root Cause**: Function was created without explicit `search_path` setting during table creation
+- **Fix**: Added `SET search_path = ''` to function
+- **Verification**: Supabase security advisor shows 0 ERROR or WARN issues (except Pro Plan feature `auth_leaked_password_protection`)
+
 ### Performance
+
+#### Workspace Templates RLS + FK Indexes (Migration: `20251202180000_fix_workspace_templates_rls_and_add_fk_indexes.sql`)
+- **Issue 1**: `auth_rls_initplan` on `workspace_templates` - 4 RLS policies using `auth.uid()` directly
+- **Issue 2**: `unindexed_foreign_keys` - 30 foreign key columns without covering indexes
+- **Fix 1**: Replaced `auth.uid()` with `(select auth.uid())` in all 4 workspace_templates policies (SELECT, INSERT, UPDATE, DELETE)
+- **Fix 2**: Added 30 indexes on FK columns across 18 tables:
+  - `ai_usage`: workspace_id
+  - `custom_dashboards`: created_by, workspace_id
+  - `customer_insights`: created_by, workspace_id
+  - `departments`: created_by
+  - `feedback`: decision_by, implemented_in_id
+  - `insight_votes`: voter_id
+  - `invitations`: invited_by
+  - `linked_items`: created_by
+  - `mind_map_edges`: source_node_id, target_node_id
+  - `mind_map_nodes`: converted_to_work_item_id
+  - `product_strategies`: owner_id
+  - `product_tasks`: created_by
+  - `resource_audit_log`: team_id, workspace_id
+  - `resources`: created_by, deleted_by, last_modified_by, workspace_id
+  - `review_links`: created_by
+  - `subscriptions`: team_id
+  - `success_metrics`: feature_id, workspace_id
+  - `user_phase_assignments`: assigned_by
+  - `work_item_insights`: linked_by
+  - `work_item_resources`: added_by, unlinked_by
+- **Impact**: Improved RLS query performance + faster JOINs and CASCADE DELETEs
+- **Verification**: 0 WARN-level issues, only INFO-level unused indexes remain (expected in development)
+
+#### Workspace Templates SELECT Policy Consolidation (Migration: `20251202190000_consolidate_workspace_templates_select_policies.sql`)
+- **Issue**: `multiple_permissive_policies` WARN on `workspace_templates` - two SELECT policies (`workspace_templates_read_system` and `workspace_templates_read_team`) with overlapping scope
+- **Root Cause**: After fixing `auth_rls_initplan` in migration `20251202180000`, PostgreSQL flagged the two separate SELECT policies as potentially overlapping
+- **Fix**: Consolidated into single `workspace_templates_select` policy with OR conditions:
+  - System templates (`is_system = true`) are publicly readable
+  - Team templates are readable by team members via EXISTS subquery
+- **Impact**: Single policy evaluation instead of two separate checks per query
+- **Verification**: 0 ERROR, 0 WARN issues - all security and performance advisors clean (except Pro Plan feature and INFO-level notices)
+
 #### RLS Policy Optimization (Migration: `20251201000001_optimize_rls_auth_initplan.sql`)
 - **Issue**: Supabase advisor detected 44+ `auth_rls_initplan` warnings - `auth.uid()` and `current_setting()` calls were re-evaluated for every row scanned
 - **Fix**: Wrapped all `auth.uid()` and `current_setting()` calls in scalar subqueries `(select ...)` so they execute once per query instead of once per row
@@ -540,8 +637,15 @@ const result = await generateObject({
 | 49 | 2025-12-01 | `20251201000001_optimize_rls_auth_initplan.sql` | Optimize 119 RLS policies (auth.uid() → scalar subquery) |
 | 50 | 2025-12-01 | `20251201000002_consolidate_duplicate_rls_policies.sql` | Consolidate 50+ duplicate permissive RLS policies |
 | 51 | 2025-12-01 | `20251201000003_drop_duplicate_indexes.sql` | Drop 5 duplicate indexes |
+| 52 | 2025-12-01 | `20251201120000_create_customer_insights.sql` | Create customer insights & voting system |
+| 53 | 2025-12-01 | `20251201130000_create_product_strategies.sql` | Create product strategies (OKRs/Pillars) |
+| 54 | 2025-12-02 | `20251202120000_add_public_feedback_settings.sql` | Add public feedback & widget settings |
+| 55 | 2025-12-02 | `20251202125328_create_workspace_templates.sql` | Create workspace templates (8 system templates) |
+| 56 | 2025-12-02 | `20251202150000_fix_remaining_function_search_paths.sql` | Fix 30+ function search_path vulnerabilities |
+| 57 | 2025-12-02 | `20251202160000_fix_departments_insight_votes_rls.sql` | Fix departments RLS + consolidate insight_votes policies |
+| 58 | 2025-12-02 | `20251202170000_fix_security_definer_view.sql` | Drop cron_job_status view (security definer issue) |
 
-**Total Migrations**: 51
+**Total Migrations**: 58
 **Total Tables**: 26+
 
 ---

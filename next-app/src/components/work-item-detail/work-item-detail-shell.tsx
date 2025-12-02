@@ -67,7 +67,7 @@ function WorkItemDetailContent({ className }: { className?: string }) {
       <WorkItemDetailHeader />
 
       {/* Main content area */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="px-6 py-6">
         <div
           className={cn(
             'flex gap-6',

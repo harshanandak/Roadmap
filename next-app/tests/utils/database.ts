@@ -84,6 +84,18 @@ export async function deleteTestAuthUser(userId: string): Promise<void> {
 }
 
 /**
+ * Type for the link properties returned by generateLink
+ * The Supabase types don't include access_token/refresh_token but the runtime API provides them
+ */
+interface GenerateLinkPropertiesWithTokens {
+  access_token?: string;
+  refresh_token?: string;
+  hashed_token?: string;
+  verification_type?: string;
+  redirect_to?: string;
+}
+
+/**
  * Create a Supabase client authenticated as a specific user
  * Use this to test RLS policies from that user's perspective
  */
@@ -96,7 +108,10 @@ export async function createClientAsUser(userId: string): Promise<SupabaseClient
     email: (await admin.auth.admin.getUserById(userId)).data.user?.email || '',
   });
 
-  if (error || !data.properties?.access_token) {
+  // Cast properties to include runtime token properties
+  const properties = data?.properties as GenerateLinkPropertiesWithTokens | undefined;
+
+  if (error || !properties?.access_token) {
     throw new Error(`Failed to create client as user: ${error?.message}`);
   }
 
@@ -106,8 +121,8 @@ export async function createClientAsUser(userId: string): Promise<SupabaseClient
   });
 
   await userClient.auth.setSession({
-    access_token: data.properties.access_token,
-    refresh_token: data.properties.refresh_token || '',
+    access_token: properties.access_token,
+    refresh_token: properties.refresh_token || '',
   });
 
   return userClient;

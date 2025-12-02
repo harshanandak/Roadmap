@@ -9,6 +9,8 @@ import { CanvasView } from './canvas-view';
 import { SettingsView } from './settings-view';
 import { TeamAnalyticsView } from './team-analytics-view';
 import { ProductTasksView } from './product-tasks-view';
+import { PermissionsProvider } from '@/providers/permissions-provider';
+import type { Department } from '@/lib/types/department';
 
 interface WorkspaceContentProps {
   view: string;
@@ -19,6 +21,7 @@ interface WorkspaceContentProps {
   linkedItems: any[];
   mindMaps: any[];
   tags: any[];
+  departments: Department[];
   teamSize: number;
   phaseDistribution: any;
   onboardingState: any;
@@ -36,6 +39,7 @@ export function WorkspaceContent({
   linkedItems,
   mindMaps,
   tags,
+  departments,
   teamSize,
   phaseDistribution,
   onboardingState,
@@ -80,6 +84,9 @@ export function WorkspaceContent({
             workspace={workspace}
             workItems={workItems}
             timelineItems={timelineItems}
+            linkedItems={linkedItems}
+            departments={departments}
+            currentUserId={currentUserId}
           />
         );
 
@@ -132,11 +139,16 @@ export function WorkspaceContent({
   };
 
   return (
-    <div className="flex-1 overflow-auto">
-      {/* View-specific content */}
-      <main className="px-8 py-6">
-        {renderView()}
-      </main>
-    </div>
+    <PermissionsProvider
+      workspaceId={workspace.id}
+      teamId={workspace.team_id}
+    >
+      <div className="flex-1 overflow-auto">
+        {/* View-specific content */}
+        <main className="px-8 py-6">
+          {renderView()}
+        </main>
+      </div>
+    </PermissionsProvider>
   );
 }

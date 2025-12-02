@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -34,6 +34,12 @@ import {
 import { EditWorkItemDialog } from '@/components/work-items/edit-work-item-dialog'
 import { WorkspacePhase } from '@/lib/constants/workspace-phases'
 import { DepartmentBadge } from '@/components/departments/department-badge'
+import {
+  InlineStatusEditor,
+  InlinePriorityEditor,
+  InlineTypeEditor,
+} from '@/components/inline-editors'
+import { useToast } from '@/hooks/use-toast'
 
 interface WorkItem {
   id: string
@@ -90,9 +96,39 @@ export function WorkItemsTableView({
   columnVisibility,
 }: WorkItemsTableViewProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedWorkItem, setSelectedWorkItem] = useState<string | null>(null)
+
+  // Inline edit handler
+  const handleInlineUpdate = useCallback(async (
+    workItemId: string,
+    field: string,
+    value: string
+  ) => {
+    try {
+      const response = await fetch(`/api/work-items/${workItemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      })
+
+      if (!response.ok) throw new Error('Failed to update')
+
+      toast({
+        title: 'Updated',
+        description: `${field.charAt(0).toUpperCase() + field.slice(1)} changed successfully`,
+      })
+      router.refresh()
+    } catch {
+      toast({
+        title: 'Error',
+        description: `Failed to update ${field}`,
+        variant: 'destructive',
+      })
+    }
+  }, [router, toast])
 
   const toggleRowExpansion = (workItemId: string) => {
     setExpandedRows((prev) => {
@@ -127,12 +163,14 @@ export function WorkItemsTableView({
           </div>
         </TableCell>
 
-        {/* Type */}
+        {/* Type - Inline Editable */}
         {columnVisibility.type && (
           <TableCell className="px-3 py-2">
-            <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] font-medium">
-              {getItemLabel(item.type)}
-            </Badge>
+            <InlineTypeEditor
+              value={item.type}
+              onValueChange={(value) => handleInlineUpdate(item.id, 'type', value)}
+              variant="badge"
+            />
           </TableCell>
         )}
 
@@ -198,23 +236,25 @@ export function WorkItemsTableView({
           </TableCell>
         )}
 
-        {/* Status */}
+        {/* Status - Inline Editable */}
         {columnVisibility.status && (
           <TableCell className="px-3 py-2">
-            <Badge variant="outline" className={`${getStatusConfig(item.status).badgeColor} px-1.5 py-0.5 text-[10px] font-medium`}>
-              {React.createElement(getStatusConfig(item.status).icon, { className: 'h-2.5 w-2.5 mr-1' })}
-              {getStatusConfig(item.status).label}
-            </Badge>
+            <InlineStatusEditor
+              value={item.status}
+              onValueChange={(value) => handleInlineUpdate(item.id, 'status', value)}
+              variant="badge"
+            />
           </TableCell>
         )}
 
-        {/* Priority */}
+        {/* Priority - Inline Editable */}
         {columnVisibility.priority && (
           <TableCell className="px-3 py-2">
-            <Badge variant="outline" className={`${getPriorityConfig(item.priority).badgeColor} px-1.5 py-0.5 text-[10px] font-medium`}>
-              {React.createElement(getPriorityConfig(item.priority).icon, { className: 'h-2.5 w-2.5 mr-1' })}
-              {getPriorityConfig(item.priority).label}
-            </Badge>
+            <InlinePriorityEditor
+              value={item.priority}
+              onValueChange={(value) => handleInlineUpdate(item.id, 'priority', value)}
+              variant="badge"
+            />
           </TableCell>
         )}
 
@@ -223,9 +263,7 @@ export function WorkItemsTableView({
           <TableCell className="px-3 py-2">
             {item.department ? (
               <DepartmentBadge
-                name={item.department.name}
-                color={item.department.color}
-                icon={item.department.icon}
+                department={item.department}
                 size="sm"
               />
             ) : (
@@ -381,12 +419,14 @@ export function WorkItemsTableView({
             </div>
           </TableCell>
 
-          {/* Type */}
+          {/* Type - Inline Editable */}
           {columnVisibility.type && (
             <TableCell className="px-3 py-2">
-              <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] font-medium">
-                {getItemLabel(item.type)}
-              </Badge>
+              <InlineTypeEditor
+                value={item.type}
+                onValueChange={(value) => handleInlineUpdate(item.id, 'type', value)}
+                variant="badge"
+              />
             </TableCell>
           )}
 
@@ -399,23 +439,25 @@ export function WorkItemsTableView({
             </TableCell>
           )}
 
-          {/* Status */}
+          {/* Status - Inline Editable */}
           {columnVisibility.status && (
             <TableCell className="px-3 py-2">
-              <Badge variant="outline" className={`${getStatusConfig(item.status).badgeColor} px-1.5 py-0.5 text-[10px] font-medium`}>
-                {React.createElement(getStatusConfig(item.status).icon, { className: 'h-2.5 w-2.5 mr-1' })}
-                {getStatusConfig(item.status).label}
-              </Badge>
+              <InlineStatusEditor
+                value={item.status}
+                onValueChange={(value) => handleInlineUpdate(item.id, 'status', value)}
+                variant="badge"
+              />
             </TableCell>
           )}
 
-          {/* Priority */}
+          {/* Priority - Inline Editable */}
           {columnVisibility.priority && (
             <TableCell className="px-3 py-2">
-              <Badge variant="outline" className={`${getPriorityConfig(item.priority).badgeColor} px-1.5 py-0.5 text-[10px] font-medium`}>
-                {React.createElement(getPriorityConfig(item.priority).icon, { className: 'h-2.5 w-2.5 mr-1' })}
-                {getPriorityConfig(item.priority).label}
-              </Badge>
+              <InlinePriorityEditor
+                value={item.priority}
+                onValueChange={(value) => handleInlineUpdate(item.id, 'priority', value)}
+                variant="badge"
+              />
             </TableCell>
           )}
 
@@ -424,9 +466,7 @@ export function WorkItemsTableView({
             <TableCell className="px-3 py-2">
               {item.department ? (
                 <DepartmentBadge
-                  name={item.department.name}
-                  color={item.department.color}
-                  icon={item.department.icon}
+                  department={item.department}
                   size="sm"
                 />
               ) : (

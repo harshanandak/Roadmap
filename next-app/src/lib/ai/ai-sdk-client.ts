@@ -12,7 +12,7 @@
  */
 
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import type { LanguageModelV1 } from 'ai'
+import type { LanguageModel } from 'ai'
 
 /**
  * OpenRouter client configuration
@@ -105,7 +105,7 @@ export const recommendedModels = {
  */
 export function getAIModel(
   key: keyof typeof aiModels
-): LanguageModelV1 {
+): LanguageModel {
   return aiModels[key]
 }
 
@@ -113,7 +113,7 @@ export function getAIModel(
  * Get model by OpenRouter model ID
  * Supports dynamic model selection based on user preferences
  */
-export function getModelById(modelId: string): LanguageModelV1 {
+export function getModelById(modelId: string): LanguageModel {
   return openrouter(modelId)
 }
 
@@ -121,7 +121,7 @@ export function getModelById(modelId: string): LanguageModelV1 {
  * Model ID to AI SDK model mapping
  * Maps existing model IDs from models.ts to AI SDK models
  */
-export const modelIdMap: Record<string, LanguageModelV1> = {
+export const modelIdMap: Record<string, LanguageModel> = {
   'anthropic/claude-haiku-4.5:nitro': aiModels.claudeHaiku,
   'x-ai/grok-4-fast:nitro': aiModels.grok4Fast,
   'moonshotai/kimi-k2-thinking:nitro': aiModels.kimiK2,
@@ -134,7 +134,7 @@ export const modelIdMap: Record<string, LanguageModelV1> = {
  * Get AI SDK model from existing AIModel interface
  * Bridges the gap between existing model config and AI SDK
  */
-export function getModelFromConfig(modelId: string): LanguageModelV1 {
+export function getModelFromConfig(modelId: string): LanguageModel {
   return modelIdMap[modelId] || openrouter(modelId)
 }
 

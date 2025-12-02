@@ -1,5 +1,5 @@
 /**
- * Parallel AI Tools for Vercel AI SDK
+ * Parallel AI Tools for Vercel AI SDK v5
  *
  * Registers Parallel AI APIs as AI SDK tools that can be invoked by AI models.
  * This enables agentic workflows where the AI can:
@@ -20,6 +20,10 @@
  * │  │   Tool   │ │   Tool   │ │   Tool   │ │   Chat   │   │
  * │  └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
  * └─────────────────────────────────────────────────────────┘
+ *
+ * Updated for AI SDK v5:
+ * - Uses `inputSchema` instead of `parameters`
+ * - Execute function receives (input, options) with ToolCallOptions
  */
 
 import { tool } from 'ai'
@@ -44,7 +48,7 @@ import {
 export const webSearchTool = tool({
   description:
     'Search the web for current information. Use this when you need up-to-date data, news, documentation, or any information that might have changed recently. Returns relevant web pages with titles and content snippets.',
-  parameters: z.object({
+  inputSchema: z.object({
     query: z
       .string()
       .min(3)
@@ -57,7 +61,10 @@ export const webSearchTool = tool({
       .default(5)
       .describe('Maximum number of results to return (1-20, default: 5)'),
   }),
-  execute: async ({ query, maxResults }): Promise<{
+  execute: async (
+    { query, maxResults },
+    { toolCallId, abortSignal }
+  ): Promise<{
     success: boolean
     results: ParallelSearchResult[]
     query: string
@@ -94,7 +101,7 @@ export const webSearchTool = tool({
 export const extractContentTool = tool({
   description:
     'Extract content from one or more URLs. Use this to read the full content of web pages, articles, or documentation. Returns structured content in markdown format.',
-  parameters: z.object({
+  inputSchema: z.object({
     urls: z
       .array(z.string().url())
       .min(1)
@@ -111,7 +118,7 @@ export const extractContentTool = tool({
       .default('markdown')
       .describe('Output format for extracted content'),
   }),
-  execute: async ({ urls, objective, format }) => {
+  execute: async ({ urls, objective, format }, { toolCallId, abortSignal }) => {
     try {
       const results = await parallelExtract({
         urls,
@@ -147,7 +154,7 @@ export const extractContentTool = tool({
 export const deepResearchTool = tool({
   description:
     'Conduct deep, comprehensive research on a complex topic. This takes longer (30 seconds to several minutes) but provides thorough, well-researched results. Use for complex questions that require multi-source analysis.',
-  parameters: z.object({
+  inputSchema: z.object({
     topic: z
       .string()
       .min(10)
@@ -167,7 +174,7 @@ export const deepResearchTool = tool({
       .default(true)
       .describe('Whether to wait for the research to complete or return immediately with a task ID'),
   }),
-  execute: async ({ topic, depth, waitForCompletion }) => {
+  execute: async ({ topic, depth, waitForCompletion }, { toolCallId, abortSignal }) => {
     try {
       const processor = (depth || 'base') as TaskProcessor
       const task = await parallelTask({
@@ -221,10 +228,10 @@ export const deepResearchTool = tool({
 export const researchStatusTool = tool({
   description:
     'Check the status of an ongoing deep research task. Use this to poll for results if you started research with waitForCompletion: false.',
-  parameters: z.object({
+  inputSchema: z.object({
     runId: z.string().describe('The run_id returned when starting the research task'),
   }),
-  execute: async ({ runId }) => {
+  execute: async ({ runId }, { toolCallId, abortSignal }) => {
     try {
       const status = await parallelTaskStatus(runId)
 
@@ -256,14 +263,14 @@ export const researchStatusTool = tool({
 export const quickAnswerTool = tool({
   description:
     'Get a quick AI-generated answer to a simple question. This is fast but less thorough than deep research. Use for summaries, explanations, or simple factual questions.',
-  parameters: z.object({
+  inputSchema: z.object({
     question: z.string().describe('The question to answer'),
     context: z
       .string()
       .optional()
       .describe('Optional context or system instructions to guide the answer'),
   }),
-  execute: async ({ question, context }) => {
+  execute: async ({ question, context }, { toolCallId, abortSignal }) => {
     try {
       const answer = await quickChat(question, context)
 
