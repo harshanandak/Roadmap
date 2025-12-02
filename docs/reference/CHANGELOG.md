@@ -33,6 +33,120 @@ All notable changes, migrations, and feature implementations are documented in t
 - **v6 Readiness**: AI SDK v6 (beta, stable end of 2025) maintains the same tool API, so migration will be minimal
 
 ### Added
+
+#### Workspace Modes & UX Enhancements (Phase 1, Session 3 - 2025-12-02)
+
+**Workspace Mode System** (`lib/workspace-modes/mode-config.ts`)
+- 4 lifecycle modes: development, launch, growth, maintenance
+- Mode-specific feature visibility configuration
+- Mode-specific color schemes and icons
+- Mode transition recommendations
+
+**Progressive Form System** (`lib/hooks/use-progressive-form.ts`, `components/forms/`)
+- `useProgressiveForm` hook for dynamic field visibility
+- `ProgressiveForm` component with expandable sections
+- `ProgressiveFieldGroup` for field grouping by importance
+- `SmartWorkItemForm` - Mode-aware work item creation
+
+**Templates System** (Migration: `20251202125328_create_workspace_templates.sql`)
+- `workspace_templates` table with RLS policies
+- 8 system templates (2 per mode):
+  - Development: MVP Sprint, Feature Discovery
+  - Launch: Launch Checklist, Go-to-Market
+  - Growth: Growth Experiments, Feature Expansion
+  - Maintenance: Tech Debt Tracker, Stability Focus
+- Template types: `lib/templates/template-types.ts`
+- System templates registry: `lib/templates/system-templates.ts`
+- UI Components:
+  - `TemplateCard` - Card display with mode badge
+  - `TemplatePreview` - Sheet with full details
+  - `TemplateGallery` - Grid with mode tabs and search
+  - `CreateTemplateDialog` - Team template creation
+- API Routes:
+  - `GET/POST /api/templates` - List and create
+  - `GET/PUT/DELETE /api/templates/[id]` - Single template ops
+  - `POST /api/templates/apply` - Apply to workspace
+
+**Connection Menu** (`components/connection-menu/`)
+- Notion-style "/" command for entity linking
+- 6 entity types: work_item, member, department, strategy, insight, resource
+- Type-specific icons and colors
+- `useConnectionSearch` hook for parallel search
+- Keyboard navigation support (⌘K)
+
+**Mode Onboarding Wizard** (`components/onboarding/mode-onboarding-wizard.tsx`)
+- 4-step wizard: Welcome → Template → Tips → Complete
+- Template selection with preview
+- Mode-specific tips and guidance
+- Page route: `/workspaces/[id]/onboarding`
+
+**Mode-Aware Dashboard** (`components/dashboard/`)
+- Container: `ModeAwareDashboard` - Renders mode-specific widgets
+- Widgets:
+  - `QuickActionsWidget` - Mode-specific suggested actions
+  - `BlockersWidget` - Launch mode blocking issues
+  - `FeedbackSummaryWidget` - Growth mode feedback overview
+  - `TechDebtWidget` - Maintenance mode debt tracking
+- API Route: `GET/PUT /api/workspaces/[id]/mode` - Mode operations
+
+**Inline Editing Components** (`components/inline-editors/`)
+- `InlineSelect` - Base click-to-edit select with optimistic updates
+- `InlineStatusEditor` - Status field (planned/in_progress/completed/on_hold)
+- `InlinePriorityEditor` - Priority field (low/medium/high/critical)
+- `InlineTypeEditor` - Type field (concept/feature/bug/enhancement)
+- `InlineDepartmentEditor` - Department selector with live data
+
+**Component Integrations**
+- `dashboard-view.tsx` - Integrated ModeAwareDashboard for mode-aware workspaces
+- `work-items-table-view.tsx` - Added inline editors for type, status, priority columns
+
+#### Feedback & Insights UI System (2025-12-02)
+Complete implementation of public feedback collection and customer insights management.
+
+**Security Utilities** (`src/lib/security/`):
+- `honeypot.ts` - Spam prevention with hidden fields + time validation (< 3s = bot)
+- `rate-limit.ts` - In-memory rate limiting (10 feedback/30 votes per 15 min per IP)
+- CAPTCHA-ready architecture with pluggable provider interface
+
+**Insights Dashboard Components** (`src/components/insights/`):
+- `insights-dashboard.tsx` - Main dashboard with tabs (all/triage/linked)
+- `insights-dashboard-stats.tsx` - Stats cards with clickable filters
+- `insight-detail-sheet.tsx` - Slide-over panel for insight details
+- `insight-triage-queue.tsx` - Keyboard-driven rapid review (Vim-style j/k navigation)
+- `hooks/use-insight-shortcuts.ts` - Keyboard shortcuts hook
+- `public-vote-card.tsx` - External voting UI with configurable verification
+
+**Feedback Components** (`src/components/feedback/`):
+- `public-feedback-form.tsx` - Simplified form with honeypot integration
+- `feedback-thank-you.tsx` - Success confirmation component
+- `feedback-widget-embed.tsx` - Embed code generator with live preview
+
+**Work Item Integration** (`src/components/work-items/`):
+- `linked-insights-section.tsx` - Shows/manages insights linked to work items
+
+**Settings** (`src/components/settings/`):
+- `workspace-feedback-settings.tsx` - Admin panel for feedback configuration
+
+**Public Pages** (`src/app/(public)/`):
+- `layout.tsx` - Minimal layout with gradient background
+- `feedback/[workspaceId]/page.tsx` - Public feedback submission
+- `widget/[workspaceId]/page.tsx` - Embeddable widget with URL params
+- `vote/[insightId]/page.tsx` - Public voting page
+
+**Public API Routes**:
+- `POST /api/public/feedback` - Submit anonymous feedback with spam protection
+- `GET /api/public/workspaces/[id]` - Validate workspace + get public settings
+- `GET /api/public/insights/[id]` - Get sanitized insight for voting
+- `POST /api/public/insights/[id]/vote` - Submit public vote
+
+**Dashboard Route**:
+- `src/app/(dashboard)/workspaces/[id]/insights/page.tsx` - Insights dashboard
+
+**Keyboard Shortcuts (Triage Queue)**:
+- `j/k` - Navigate up/down, `R` - Reviewed, `A` - Actionable, `D` - Archive
+- `L` - Link to work item, `Enter` - Open detail, `/` - Search, `?` - Help
+
+#### Previous Additions
 - PROGRESS.md - Weekly implementation tracker with completion percentages
 - CHANGELOG.md - This file, tracking all changes and migrations
 - Updated README.md to reflect Next.js 15 platform (not legacy HTML app)
