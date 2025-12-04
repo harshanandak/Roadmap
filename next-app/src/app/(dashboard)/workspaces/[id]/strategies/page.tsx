@@ -4,17 +4,23 @@
  * Strategies Page
  *
  * Displays the hierarchical OKR/Pillar strategy system for a workspace.
- * Shows strategies in a tree view with progress tracking and work item alignment.
+ * Enhanced with:
+ * - React Query hooks for data management
+ * - Three main tabs: Hierarchy, Dashboard, AI Suggestions
+ * - Strategy Detail Sheet for viewing/editing
+ * - Alignment Dashboard with 4 visualizations
+ * - AI-powered alignment suggestions (Pro feature)
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
 import {
   Dialog,
   DialogContent,
@@ -22,10 +28,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Target, TreePine, List, RefreshCw } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Plus,
+  Target,
+  TreePine,
+  List,
+  RefreshCw,
+  BarChart3,
+  Sparkles,
+} from 'lucide-react'
 import { StrategyTree } from '@/components/strategy/strategy-tree'
 import { StrategyForm } from '@/components/strategy/strategy-form'
 import { StrategyCard } from '@/components/strategy/strategy-card'
+import { StrategyDetailSheet } from '@/components/strategy/strategy-detail-sheet'
+import { AlignmentDashboard } from '@/components/strategy/alignment-dashboard'
+import { AIAlignmentSuggestions } from '@/components/strategy/ai-alignment-suggestions'
+import {
+  useStrategyTree,
+  useStrategyStats,
+  useStrategy,
+  useCreateStrategy,
+  useUpdateStrategy,
+  useDeleteStrategy,
+  useReorderStrategy,
+} from '@/lib/hooks/use-strategies'
 import type {
   StrategyWithChildren,
   CreateStrategyRequest,
@@ -33,19 +69,24 @@ import type {
   StrategyType,
 } from '@/lib/types/strategy'
 
+type MainTab = 'hierarchy' | 'dashboard' | 'ai-suggestions'
 type ViewMode = 'tree' | 'list'
 
 export default function StrategiesPage() {
   const params = useParams()
   const workspaceId = params.id as string
+  const { toast } = useToast()
 
-  const [strategies, setStrategies] = useState<StrategyWithChildren[]>([])
+  // State
   const [teamId, setTeamId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [mainTab, setMainTab] = useState<MainTab>('hierarchy')
   const [viewMode, setViewMode] = useState<ViewMode>('tree')
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [editingStrategy, setEditingStrategy] = useState<StrategyWithChildren | null>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [selectedStrategy, setSelectedStrategy] = useState<StrategyWithChildren | null>(null)
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [strategyToDelete, setStrategyToDelete] = useState<StrategyWithChildren | null>(null)
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<StrategyType>('pillar')
 
@@ -66,125 +107,183 @@ export default function StrategiesPage() {
     fetchTeamId()
   }, [workspaceId])
 
-  // Fetch strategies
-  const fetchStrategies = useCallback(async () => {
-    if (!teamId) return
+  // React Query hooks
+  const {
+    data: treeData,
+    isLoading: treeLoading,
+    error: treeError,
+    refetch: refetchTree,
+  } = useStrategyTree({
+    teamId: teamId || '',
+    workspaceId,
+  })
 
-    setLoading(true)
-    setError(null)
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useStrategyStats({
+    teamId: teamId || '',
+    workspaceId,
+  })
 
-    try {
-      const response = await fetch(
-        `/api/strategies/tree?team_id=${teamId}&workspace_id=${workspaceId}`
-      )
-      const result = await response.json()
+  // Fetch single strategy details for the sheet
+  const {
+    data: strategyDetail,
+    isLoading: detailLoading,
+  } = useStrategy(selectedStrategy?.id || '')
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to fetch strategies')
-      }
+  // Mutations
+  const createMutation = useCreateStrategy()
+  const updateMutation = useUpdateStrategy()
+  const deleteMutation = useDeleteStrategy()
+  const reorderMutation = useReorderStrategy()
 
-      setStrategies(result.data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
-    }
-  }, [teamId, workspaceId])
+  const strategies = treeData?.data || []
 
-  useEffect(() => {
-    if (teamId) {
-      fetchStrategies()
-    }
-  }, [teamId, fetchStrategies])
-
-  // Create strategy (accepts union type to match form callback signature)
+  // Create strategy handler
   const handleCreate = async (data: CreateStrategyRequest | UpdateStrategyRequest) => {
     try {
-      const response = await fetch('/api/strategies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          team_id: teamId,
-          workspace_id: workspaceId,
-        }),
+      await createMutation.mutateAsync({
+        ...data as CreateStrategyRequest,
+        team_id: teamId!,
+        workspace_id: workspaceId,
       })
-
-      if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to create strategy')
-      }
-
       setCreateDialogOpen(false)
       setSelectedParentId(null)
-      fetchStrategies()
-    } catch (err) {
-      console.error('Error creating strategy:', err)
+      toast({
+        title: 'Strategy created',
+        description: 'Your strategy has been created successfully.',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to create strategy',
+        variant: 'destructive',
+      })
     }
   }
 
-  // Update strategy
+  // Update strategy handler
   const handleUpdate = async (id: string, data: UpdateStrategyRequest) => {
     try {
-      const response = await fetch(`/api/strategies/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await updateMutation.mutateAsync({
+        id,
+        teamId: teamId!,
+        workspaceId,
+        ...data,
       })
-
-      if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to update strategy')
-      }
-
-      setEditingStrategy(null)
-      fetchStrategies()
-    } catch (err) {
-      console.error('Error updating strategy:', err)
+      setEditDialogOpen(false)
+      setSelectedStrategy(null)
+      toast({
+        title: 'Strategy updated',
+        description: 'Your changes have been saved.',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to update strategy',
+        variant: 'destructive',
+      })
     }
   }
 
-  // Delete strategy (takes StrategyWithChildren to match tree component)
-  const handleDelete = async (strategy: StrategyWithChildren) => {
-    if (!confirm('Are you sure you want to delete this strategy? This will also delete all child strategies.')) {
-      return
-    }
+  // Delete strategy handler
+  const handleDelete = async () => {
+    if (!strategyToDelete) return
 
     try {
-      const response = await fetch(`/api/strategies/${strategy.id}`, {
-        method: 'DELETE',
+      await deleteMutation.mutateAsync({
+        id: strategyToDelete.id,
+        teamId: teamId!,
+        workspaceId,
       })
-
-      if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to delete strategy')
-      }
-
-      fetchStrategies()
-    } catch (err) {
-      console.error('Error deleting strategy:', err)
+      setDeleteDialogOpen(false)
+      setStrategyToDelete(null)
+      setDetailSheetOpen(false)
+      setSelectedStrategy(null)
+      toast({
+        title: 'Strategy deleted',
+        description: 'The strategy and its children have been deleted.',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to delete strategy',
+        variant: 'destructive',
+      })
     }
   }
 
-  // Add child strategy (takes parent StrategyWithChildren to match tree component)
+  // Request delete (opens confirmation dialog)
+  const requestDelete = (strategy: StrategyWithChildren) => {
+    setStrategyToDelete(strategy)
+    setDeleteDialogOpen(true)
+  }
+
+  // Add child strategy
   const handleAddChild = (parent: StrategyWithChildren) => {
-    // Determine the child type based on parent type
     const childTypeMap: Record<StrategyType, StrategyType> = {
       pillar: 'objective',
       objective: 'key_result',
       key_result: 'initiative',
-      initiative: 'initiative', // Can't go lower
+      initiative: 'initiative',
     }
     setSelectedParentId(parent.id)
     setSelectedType(childTypeMap[parent.type])
     setCreateDialogOpen(true)
   }
 
+  // Open strategy detail sheet
+  const handleStrategyClick = (strategy: StrategyWithChildren) => {
+    setSelectedStrategy(strategy)
+    setDetailSheetOpen(true)
+  }
+
+  // Open edit dialog from detail sheet
+  const handleEditFromSheet = (strategy: StrategyWithChildren) => {
+    setDetailSheetOpen(false)
+    setSelectedStrategy(strategy)
+    setEditDialogOpen(true)
+  }
+
+  // Add child from detail sheet
+  const handleAddChildFromSheet = (parent: StrategyWithChildren) => {
+    setDetailSheetOpen(false)
+    handleAddChild(parent)
+  }
+
+  // Reorder strategy handler (drag-drop)
+  const handleReorder = useCallback(
+    async (params: { id: string; parentId: string | null; sortOrder: number }) => {
+      try {
+        await reorderMutation.mutateAsync({
+          id: params.id,
+          parentId: params.parentId,
+          sortOrder: params.sortOrder,
+          teamId: teamId!,
+          workspaceId,
+        })
+        toast({
+          title: 'Strategy reordered',
+          description: 'The strategy has been moved successfully.',
+        })
+      } catch (err: any) {
+        toast({
+          title: 'Error',
+          description: err.message || 'Failed to reorder strategy',
+          variant: 'destructive',
+        })
+      }
+    },
+    [reorderMutation, teamId, workspaceId, toast]
+  )
+
   // Flatten strategies for list view
   const flattenStrategies = (items: StrategyWithChildren[]): StrategyWithChildren[] => {
     const result: StrategyWithChildren[] = []
     const flatten = (list: StrategyWithChildren[]) => {
-      list.forEach(item => {
+      list.forEach((item) => {
         result.push(item)
         if (item.children?.length) {
           flatten(item.children)
@@ -195,19 +294,29 @@ export default function StrategiesPage() {
     return result
   }
 
-  // Calculate summary stats
-  const stats = {
+  // Calculate summary stats from tree data
+  const summaryStats = {
     pillars: strategies.length,
     objectives: strategies.reduce((acc, p) => acc + (p.children?.length || 0), 0),
-    keyResults: strategies.reduce((acc, p) =>
-      acc + (p.children?.reduce((a, o) => a + (o.children?.length || 0), 0) || 0), 0),
-    avgProgress: strategies.length > 0
-      ? Math.round(strategies.reduce((acc, s) =>
-          acc + (s.progress_mode === 'auto' ? s.calculated_progress : s.progress), 0) / strategies.length)
-      : 0,
+    keyResults: strategies.reduce(
+      (acc, p) =>
+        acc + (p.children?.reduce((a, o) => a + (o.children?.length || 0), 0) || 0),
+      0
+    ),
+    avgProgress:
+      strategies.length > 0
+        ? Math.round(
+            strategies.reduce(
+              (acc, s) =>
+                acc + (s.progress_mode === 'auto' ? s.calculated_progress : s.progress),
+              0
+            ) / strategies.length
+          )
+        : 0,
   }
 
-  if (loading && !strategies.length) {
+  // Loading state
+  if (!teamId || (treeLoading && !strategies.length)) {
     return (
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
@@ -215,7 +324,7 @@ export default function StrategiesPage() {
           <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
@@ -227,7 +336,7 @@ export default function StrategiesPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <Target className="h-8 w-8 text-indigo-500" />
           <div>
@@ -238,16 +347,23 @@ export default function StrategiesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={fetchStrategies}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetchTree()}
+            disabled={treeLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${treeLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => {
-                setSelectedParentId(null)
-                setSelectedType('pillar')
-              }}>
+              <Button
+                onClick={() => {
+                  setSelectedParentId(null)
+                  setSelectedType('pillar')
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Strategy
               </Button>
@@ -255,7 +371,9 @@ export default function StrategiesPage() {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {selectedParentId ? `Add ${selectedType.replace('_', ' ')}` : 'Create Strategy'}
+                  {selectedParentId
+                    ? `Add ${selectedType.replace('_', ' ')}`
+                    : 'Create Strategy'}
                 </DialogTitle>
               </DialogHeader>
               <StrategyForm
@@ -276,116 +394,219 @@ export default function StrategiesPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-indigo-600">{stats.pillars}</div>
-            <p className="text-sm text-muted-foreground">Pillars</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.objectives}</div>
-            <p className="text-sm text-muted-foreground">Objectives</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-green-600">{stats.keyResults}</div>
-            <p className="text-sm text-muted-foreground">Key Results</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-purple-600">{stats.avgProgress}%</div>
-            <p className="text-sm text-muted-foreground">Avg Progress</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Tabs */}
+      <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as MainTab)}>
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="hierarchy" className="gap-2">
+            <TreePine className="h-4 w-4" />
+            <span className="hidden sm:inline">Hierarchy</span>
+          </TabsTrigger>
+          <TabsTrigger value="dashboard" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai-suggestions" className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">AI</span>
+            <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">
+              Pro
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Error State */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-4">
-            <p className="text-red-600">{error}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* View Tabs */}
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-        <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="tree" className="gap-2">
-              <TreePine className="h-4 w-4" />
-              Tree View
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-2">
-              <List className="h-4 w-4" />
-              List View
-            </TabsTrigger>
-          </TabsList>
-          <Badge variant="outline" className="text-muted-foreground">
-            {flattenStrategies(strategies).length} total strategies
-          </Badge>
-        </div>
-
-        <TabsContent value="tree" className="mt-4">
-          {strategies.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No strategies yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Create your first pillar to start building your product strategy.
-              </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Pillar
-              </Button>
+        {/* Hierarchy Tab */}
+        <TabsContent value="hierarchy" className="mt-6 space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold text-indigo-600">
+                  {summaryStats.pillars}
+                </div>
+                <p className="text-sm text-muted-foreground">Pillars</p>
+              </CardContent>
             </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold text-blue-600">
+                  {summaryStats.objectives}
+                </div>
+                <p className="text-sm text-muted-foreground">Objectives</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold text-green-600">
+                  {summaryStats.keyResults}
+                </div>
+                <p className="text-sm text-muted-foreground">Key Results</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold text-purple-600">
+                  {summaryStats.avgProgress}%
+                </div>
+                <p className="text-sm text-muted-foreground">Avg Progress</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Error State */}
+          {treeError && (
+            <Card className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+              <CardContent className="pt-4">
+                <p className="text-red-600 dark:text-red-400">{(treeError as Error).message}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* View Toggle */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'tree' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('tree')}
+              >
+                <TreePine className="h-4 w-4 mr-2" />
+                Tree
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4 mr-2" />
+                List
+              </Button>
+            </div>
+            <Badge variant="outline" className="text-muted-foreground">
+              {flattenStrategies(strategies).length} total strategies
+            </Badge>
+          </div>
+
+          {/* Tree/List View */}
+          {viewMode === 'tree' ? (
+            strategies.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No strategies yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create your first pillar to start building your product strategy.
+                </p>
+                <Button onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Pillar
+                </Button>
+              </Card>
+            ) : (
+              <StrategyTree
+                strategies={strategies}
+                onSelect={handleStrategyClick}
+                onEdit={handleStrategyClick}
+                onDelete={requestDelete}
+                onAddChild={handleAddChild}
+                onReorder={handleReorder}
+                enableDragDrop={true}
+              />
+            )
           ) : (
-            <StrategyTree
-              strategies={strategies}
-              onEdit={setEditingStrategy}
-              onDelete={handleDelete}
-              onAddChild={handleAddChild}
-            />
+            <div className="grid gap-4">
+              {flattenStrategies(strategies).map((strategy) => (
+                <StrategyCard
+                  key={strategy.id}
+                  strategy={strategy}
+                  onClick={() => handleStrategyClick(strategy)}
+                />
+              ))}
+            </div>
           )}
         </TabsContent>
 
-        <TabsContent value="list" className="mt-4">
-          <div className="grid gap-4">
-            {flattenStrategies(strategies).map(strategy => (
-              <StrategyCard
-                key={strategy.id}
-                strategy={strategy}
-                onClick={() => setEditingStrategy(strategy)}
-              />
-            ))}
-          </div>
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="mt-6">
+          <AlignmentDashboard
+            stats={statsData?.data}
+            isLoading={statsLoading}
+            error={statsError as Error | null}
+          />
+        </TabsContent>
+
+        {/* AI Suggestions Tab */}
+        <TabsContent value="ai-suggestions" className="mt-6">
+          {teamId && (
+            <AIAlignmentSuggestions
+              teamId={teamId}
+              workspaceId={workspaceId}
+              onSuggestionsApplied={() => {
+                refetchTree()
+              }}
+            />
+          )}
         </TabsContent>
       </Tabs>
 
+      {/* Strategy Detail Sheet */}
+      <StrategyDetailSheet
+        strategy={strategyDetail?.data || selectedStrategy}
+        open={detailSheetOpen}
+        onOpenChange={setDetailSheetOpen}
+        onEdit={handleEditFromSheet}
+        onDelete={requestDelete}
+        onAddChild={handleAddChildFromSheet}
+        isLoading={detailLoading}
+      />
+
       {/* Edit Dialog */}
-      {editingStrategy && (
-        <Dialog open={!!editingStrategy} onOpenChange={() => setEditingStrategy(null)}>
+      {selectedStrategy && editDialogOpen && (
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Strategy</DialogTitle>
             </DialogHeader>
             <StrategyForm
               mode="edit"
-              strategy={editingStrategy}
+              strategy={selectedStrategy}
               teamId={teamId!}
               workspaceId={workspaceId}
               parentStrategies={strategies}
-              onSubmit={(data) => handleUpdate(editingStrategy.id, data)}
-              onCancel={() => setEditingStrategy(null)}
+              onSubmit={(data) => handleUpdate(selectedStrategy.id, data)}
+              onCancel={() => {
+                setEditDialogOpen(false)
+                setSelectedStrategy(null)
+              }}
             />
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Strategy</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{strategyToDelete?.title}&quot;?
+              {strategyToDelete?.children && strategyToDelete.children.length > 0 && (
+                <span className="block mt-2 text-amber-600 dark:text-amber-400">
+                  This will also delete {strategyToDelete.children.length} child{' '}
+                  {strategyToDelete.children.length === 1 ? 'strategy' : 'strategies'}.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

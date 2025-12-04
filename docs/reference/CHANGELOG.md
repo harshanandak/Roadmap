@@ -1,6 +1,6 @@
 # 📜 CHANGELOG
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-03
 **Project**: Product Lifecycle Management Platform
 **Format**: Based on [Keep a Changelog](https://keepachangelog.com/)
 
@@ -33,6 +33,235 @@ All notable changes, migrations, and feature implementations are documented in t
 - **v6 Readiness**: AI SDK v6 (beta, stable end of 2025) maintains the same tool API, so migration will be minimal
 
 ### Added
+
+#### Collective Intelligence API + UI (Phase 1, Session 13 - 2025-12-04)
+Complete API routes and dashboard for the knowledge compression system.
+
+**API Routes** (`app/api/knowledge/`):
+- `POST /api/knowledge/compression` - Trigger compression jobs (l2_summary, l3_clustering, l4_extraction, full_refresh)
+- `GET /api/knowledge/compression` - List compression jobs with filtering
+- `GET /api/knowledge/compression/[jobId]` - Get job status
+- `DELETE /api/knowledge/compression/[jobId]` - Cancel running job
+- `GET /api/knowledge/graph` - Get knowledge graph for visualization
+- `POST /api/knowledge/context` - Get compressed context for AI prompts
+- `GET /api/knowledge/topics` - List topic clusters with documents
+
+**React Query Hooks** (`lib/hooks/use-knowledge.ts`):
+- `useKnowledgeGraph()` - Fetch knowledge graph data
+- `useCompressedContext()` - Query compressed context
+- `useTopics()` - Fetch topic clusters
+- `useCompressionJobs()` - List compression jobs
+- `useJobStatus()` - Poll single job status
+- `useTriggerCompression()` - Mutation to start jobs
+- `useCancelCompression()` - Mutation to cancel jobs
+- `useActiveJobs()` - Auto-polling for running jobs
+
+**Dashboard Component** (`components/knowledge/knowledge-dashboard.tsx`):
+- Stats overview: concepts, relationships, topics, jobs
+- Overview tab: top concepts and topic clusters
+- Graph tab: concept list with relationships
+- Topics tab: topic cards with documents
+- Jobs tab: trigger compression + job history
+
+---
+
+#### Knowledge Compression Services (Phase 1, Session 12 - 2025-12-03)
+AI-powered compression pipeline for generating L2-L4 knowledge layers.
+
+**L2 Summarizer** (`src/lib/ai/compression/l2-summarizer.ts`):
+- `summarizeDocument()` - Generate document summary with key points, topics, entities
+- `batchSummarizeDocuments()` - Process multiple documents with context accumulation
+- Zod schemas for structured AI output (summary, keyPoints, topics, entities, sentiment)
+- OpenRouter integration with Claude 3 Haiku for cost-efficient summarization
+
+**L3 Topic Clustering** (`src/lib/ai/compression/l3-topic-clustering.ts`):
+- `clusterTopics()` - Greedy clustering based on embedding similarity
+- `getClusterCenter()` - Calculate cluster centroid for similarity matching
+- `generateTopicFromCluster()` - AI synthesis of cross-document topics
+- Automatic topic creation/update with 0.85 similarity threshold
+
+**L4 Concept Extractor** (`src/lib/ai/compression/l4-concept-extractor.ts`):
+- `extractConcepts()` - Extract concepts and relationships from documents
+- `upsertConcept()` - Merge similar concepts by name or embedding similarity
+- `upsertRelationship()` - Create/strengthen relationships between concepts
+- `getKnowledgeGraph()` - Retrieve top concepts with relationships
+
+**Job Runner** (`src/lib/ai/compression/job-runner.ts`):
+- `runCompressionJob()` - Orchestrate L2/L3/L4 compression with progress tracking
+- `full_refresh` - Complete pipeline: summarize → cluster → extract
+- Job status tracking: pending → running → completed/failed
+- Progress callbacks for real-time UI updates
+
+---
+
+#### Collective Intelligence / Knowledge Compression (Phase 1, Session 11 - 2025-12-03)
+Hierarchical knowledge compression system for efficient AI context management.
+
+**Database Migration** (`20251203130000_create_collective_intelligence.sql`):
+- `document_summaries` - L2: Document-level summaries (~200 tokens)
+- `knowledge_topics` - L3: Cross-document topic clusters
+- `topic_documents` - Junction table for topic-document relationships
+- `knowledge_concepts` - L4: Knowledge graph concepts
+- `concept_relationships` - L4: Edges in knowledge graph
+- `compression_jobs` - Background compression job tracking
+- `get_compressed_context()` - Multi-layer semantic search function
+- `get_knowledge_graph()` - Knowledge graph retrieval function
+- HNSW vector indexes for L2-L4 embeddings
+
+**TypeScript Types** (`src/lib/types/collective-intelligence.ts`):
+- `DocumentSummary`, `KnowledgeTopic`, `KnowledgeConcept` - Core entity types
+- `ConceptRelationship`, `TopicDocument` - Relationship types
+- `CompressionJob`, `CompressionJobResult` - Job tracking types
+- `CompressedContext`, `KnowledgeGraph` - Function return types
+- `ConceptType`, `RelationshipType`, `TopicCategory` - Enums
+- `COMPRESSION_CONFIG` - Configuration constants
+
+**Compression Layers**:
+- L1: Document chunks (~500 tokens) - existing from Session 9
+- L2: Document summaries with key insights, entities, topics
+- L3: Cross-document topic clustering with importance/confidence scores
+- L4: Knowledge graph with concepts and typed relationships
+
+---
+
+#### Embedding Pipeline + Document Search (Phase 1, Session 10 - 2025-12-03)
+Text extraction, chunking, embedding generation, and semantic search.
+
+**Embedding Service** (`src/lib/ai/embeddings/embedding-service.ts`):
+- `chunkText()` - Intelligent text chunking with heading detection
+- `generateEmbeddings()` - Batch embedding generation via OpenAI
+- `embedQuery()` - Single query embedding generation
+- `formatEmbeddingForPgvector()` - pgvector format conversion
+- Supports OpenAI text-embedding-3-small (1536 dimensions)
+
+**Document Processor** (`src/lib/ai/embeddings/document-processor.ts`):
+- `processDocument()` - Full processing pipeline (extract → chunk → embed → store)
+- `extractText()` - Text extraction for TXT, MD, HTML, CSV, JSON
+- `searchDocuments()` - Vector similarity search wrapper
+
+**API Routes**:
+- `POST /api/documents` - Upload document with metadata
+- `GET /api/documents` - List documents with filtering
+- `POST /api/documents/search` - Semantic search with similarity scores
+
+---
+
+#### Knowledge Base / Document RAG System (Phase 1, Session 9 - 2025-12-03)
+Document storage and vector search system for AI-powered document retrieval.
+
+**Database Migration** (`20251203120000_create_knowledge_base.sql`):
+- `document_collections` - Organize documents by topic (PRDs, Meeting Notes, etc.)
+- `knowledge_documents` - Document metadata with processing status
+- `document_chunks` - Chunked text with pgvector embeddings (1536 dimensions)
+- `document_queries` - Query analytics and tracking
+- `search_documents()` - Vector similarity search function
+- `get_knowledge_base_stats()` - Statistics helper function
+- HNSW index for fast approximate nearest neighbor search
+
+**TypeScript Types** (`src/lib/types/knowledge.ts`):
+- `KnowledgeDocument`, `DocumentChunk`, `DocumentCollection` - Core types
+- `DocumentSearchResult`, `RAGContext`, `Citation` - Search and RAG types
+- `SUPPORTED_FILE_TYPES` - PDF, DOCX, MD, TXT, HTML, CSV, JSON
+- `EMBEDDING_CONFIG`, `SEARCH_CONFIG` - Configuration constants
+
+**Features**:
+- Vector embeddings via pgvector extension
+- Semantic search with configurable similarity threshold
+- Document visibility controls (private, team, workspace)
+- Processing pipeline status tracking
+- RAG context generation for AI prompts
+
+---
+
+#### MCP Gateway Integration System (Phase 1, Sessions 5-7 - 2025-12-03)
+External integration system supporting 270+ integrations via Docker MCP Gateway.
+
+**Database Migration** (`20251203100000_create_mcp_gateway_integrations.sql`):
+- `organization_integrations` - Team-level OAuth tokens and provider connections
+- `workspace_integration_access` - Workspace-level tool enablement
+- `integration_sync_logs` - Audit trail for all sync operations
+- RLS policies for multi-tenant access control
+- `get_team_integration_summary()` helper function
+
+**Docker Infrastructure** (`docker/`):
+- `mcp-gateway/Dockerfile` - Node.js 20 Alpine container for MCP server
+- `mcp-gateway/gateway.js` - JSON-RPC 2.0 server with OAuth flow support
+- `docker-compose.yml` - Gateway + Redis for token caching
+- Provider support: GitHub, Jira, Linear, Notion, Slack, Figma
+
+**TypeScript Client** (`src/lib/ai/mcp/`):
+- `gateway-client.ts` - Type-safe client with retry logic and health checks
+- `MCPGatewayClient` class with `callTool()`, `listTools()`, `initOAuth()` methods
+- Singleton `mcpGateway` instance for easy access
+
+**API Routes** (`app/api/integrations/`):
+- `GET /api/integrations` - List team integrations
+- `POST /api/integrations` - Create integration + initiate OAuth
+- `GET /api/integrations/[id]` - Integration details with sync logs
+- `DELETE /api/integrations/[id]` - Disconnect integration
+- `POST /api/integrations/[id]/sync` - Trigger sync operation
+- `GET /api/integrations/oauth/callback` - OAuth callback handler
+- `GET /api/workspaces/[id]/integrations` - Workspace-enabled integrations
+- `POST /api/workspaces/[id]/integrations` - Enable integration for workspace
+
+**Environment Variables**:
+- `MCP_GATEWAY_URL` - Gateway URL (default: http://localhost:3100)
+- OAuth credentials for each provider (GITHUB_CLIENT_ID, etc.)
+
+---
+
+#### Strategy Alignment System (Phase 1, Session 3 - 2025-12-03)
+Complete OKR/Pillar strategy system with hierarchical tree, drag-drop reordering, and AI alignment suggestions.
+
+**Database Migration** (`20251202162950_add_strategy_reorder_function.sql`):
+- `reorder_strategy()` PostgreSQL function for safe hierarchy reordering
+- Handles sort_order updates, parent changes, and circular reference prevention
+- Uses recursive CTE to validate hierarchy integrity
+
+**API Routes** (`app/api/strategies/`):
+- `GET /api/strategies` - List strategies with workspace/team filtering
+- `POST /api/strategies` - Create new strategy with hierarchy support
+- `GET /api/strategies/[id]` - Get single strategy with children
+- `PUT /api/strategies/[id]` - Update strategy fields
+- `DELETE /api/strategies/[id]` - Delete strategy (cascade to children)
+- `POST /api/strategies/[id]/reorder` - Safe drag-drop reordering with validation
+- `GET /api/strategies/stats` - Aggregate statistics (counts by type/status)
+- `POST /api/ai/strategies/suggest` - AI-powered alignment suggestions using OpenRouter
+
+**Components** (`src/components/strategies/`):
+- `StrategyTree` - Hierarchical tree view with @dnd-kit drag-drop
+- `StrategyTreeItem` - Collapsible tree node with type-specific icons/colors
+- `StrategyTypeCard` - Visual type selector (pillar/objective/key_result/initiative)
+- `StrategyDetailSheet` - Slide-over panel for viewing/editing strategy details
+- `CreateStrategyDialog` - Form dialog with type selection and parent picker
+- `AlignmentDashboard` - Recharts visualizations for alignment metrics
+- `AIAlignmentSuggestions` - AI-powered suggestion component with apply actions
+- `StrategyBreadcrumb` - Navigation breadcrumb for hierarchy traversal
+- `StrategyCard` - Card view for list display mode
+
+**React Query Hooks** (`lib/hooks/use-strategies.ts`):
+- `useStrategyTree` - Fetch hierarchical strategy tree
+- `useStrategy` - Single strategy fetch by ID
+- `useStrategyStats` - Statistics aggregation query
+- `useCreateStrategy` - Create mutation with cache invalidation
+- `useUpdateStrategy` - Update mutation with optimistic updates
+- `useDeleteStrategy` - Delete mutation with cascade handling
+- `useReorderStrategy` - Drag-drop reorder mutation
+
+**TypeScript Types** (`lib/types/strategy-types.ts`):
+- `Strategy` - Core strategy interface with all fields
+- `StrategyType` - Union type: 'pillar' | 'objective' | 'key_result' | 'initiative'
+- `StrategyStatus` - Status tracking: 'draft' | 'active' | 'completed' | 'archived'
+- `StrategyWithChildren` - Extended type for tree representation
+- `StrategyTreeNode` - Tree node structure for UI rendering
+- Request/response types for all API endpoints
+
+**Bug Fixes During Implementation**:
+- Fixed `supabase: any` → `Awaited<ReturnType<typeof createClient>>` in reorder route
+- Fixed `error: any` → `error: unknown` with `error instanceof Error` pattern
+- Added explicit Recharts interfaces (TooltipProps, LegendProps, payload types)
+- Fixed implicit `any` types in alignment dashboard tooltip/legend components
+- Fixed `isLoading` prop missing from StrategyDetailSheet
 
 #### Workspace Modes & UX Enhancements (Phase 1, Session 3 - 2025-12-02)
 
@@ -88,6 +317,66 @@ All notable changes, migrations, and feature implementations are documented in t
   - `FeedbackSummaryWidget` - Growth mode feedback overview
   - `TechDebtWidget` - Maintenance mode debt tracking
 - API Route: `GET/PUT /api/workspaces/[id]/mode` - Mode operations
+
+#### Analytics Dashboards System (Phase 1, Session 2 - 2025-12-02)
+
+Complete implementation of 4 pre-built analytics dashboards with Pro feature custom dashboard builder.
+
+**Core Analytics Types** (`lib/types/analytics.ts`):
+- `MetricCardData` - Individual metric display
+- `PieChartData` - Pie/donut chart data with index signature for Recharts compatibility
+- `BarChartData`, `LineChartData` - Time series visualization
+- `ActivityItem`, `ListItem` - Activity feed and list data
+- `DashboardData` - Unified dashboard response structure
+- `WidgetDefinition`, `WidgetInstance` - Widget system types for custom builder
+
+**Pre-Built Dashboards** (`components/analytics/dashboards/`):
+- `FeatureOverview` - Work item metrics, status/type breakdown, recent activity, completion trends
+- `DependencyHealth` - Dependency counts, health distribution, critical path, bottlenecks, orphaned items
+- `TeamPerformance` - Member productivity, workload distribution, velocity trends, phase allocation
+- `StrategyAlignment` - OKR/Pillar progress, alignment breakdown, at-risk strategies, unlinked items
+
+**Shared Components** (`components/analytics/`):
+- `MetricCard` - Stats display with trend indicators
+- `TrendIndicator` - Up/down/neutral trend visualization
+
+**Analytics View** (`app/(dashboard)/workspaces/[id]/analytics/`):
+- `page.tsx` - Server component with Pro feature gate
+- `analytics-view.tsx` - Tab-based dashboard selector with export functionality
+- `export.ts` - `exportToCSV()` utility for dashboard data export
+
+**Widget System for Custom Builder (Pro Feature)**:
+- `widget-registry.tsx` - 20+ widget definitions across 4 categories:
+  - Metrics: total-work-items, completion-rate, blocked-items, health-score, velocity, cycle-time
+  - Charts: status-breakdown-chart, type-breakdown-chart, timeline-distribution, dependency-flow, burndown-chart
+  - Lists: recent-activity, critical-path, bottlenecks, at-risk-items
+  - Progress: strategy-progress, phase-progress, team-workload, sprint-progress
+- `widget-picker.tsx` - Sheet-based widget selector with search and accordion categories
+- `dashboard-builder.tsx` - react-grid-layout drag-and-drop canvas with:
+  - Grid configuration (6 columns, 120px row height)
+  - Widget add/remove/duplicate/resize/drag
+  - Dashboard name editing
+  - Save functionality
+  - Pro feature gate (Lock UI for non-Pro users)
+
+**API Routes**:
+- `GET /api/analytics/overview` - Feature Overview dashboard data
+- `GET /api/analytics/dependencies` - Dependency Health dashboard data
+- `GET /api/analytics/performance` - Team Performance dashboard data
+- `GET /api/analytics/alignment` - Strategy Alignment dashboard data
+- `POST /api/analytics/dashboards` - Create custom dashboard (Pro)
+
+**Dependencies Added**:
+- `react-grid-layout` - Drag-and-drop grid layout
+- `@types/react-grid-layout` - TypeScript definitions
+- `accordion` - shadcn/ui component for widget picker
+
+**Bug Fixes During Implementation**:
+- Fixed `PieChartData` type incompatibility with Recharts by adding index signature
+- Fixed `LinkOff` → `Link2Off` icon import (lucide-react naming)
+- Fixed missing `isLoading` prop on `StrategyDetailSheet`
+- Fixed circular type inference in strategies reorder route
+- Fixed `useToast` import path
 
 **Inline Editing Components** (`components/inline-editors/`)
 - `InlineSelect` - Base click-to-edit select with optimistic updates
@@ -758,8 +1047,12 @@ const result = await generateObject({
 | 56 | 2025-12-02 | `20251202150000_fix_remaining_function_search_paths.sql` | Fix 30+ function search_path vulnerabilities |
 | 57 | 2025-12-02 | `20251202160000_fix_departments_insight_votes_rls.sql` | Fix departments RLS + consolidate insight_votes policies |
 | 58 | 2025-12-02 | `20251202170000_fix_security_definer_view.sql` | Drop cron_job_status view (security definer issue) |
+| 59 | 2025-12-02 | `20251202180000_fix_workspace_templates_rls_and_add_fk_indexes.sql` | Fix workspace_templates RLS + add 30 FK indexes |
+| 60 | 2025-12-02 | `20251202190000_consolidate_workspace_templates_select_policies.sql` | Consolidate workspace_templates SELECT policies |
+| 61 | 2025-12-02 | `20251202200000_fix_workspace_templates_trigger_search_path.sql` | Fix workspace_templates trigger search_path |
+| 62 | 2025-12-02 | `20251202162950_add_strategy_reorder_function.sql` | Add reorder_strategy() function for drag-drop |
 
-**Total Migrations**: 58
+**Total Migrations**: 62
 **Total Tables**: 26+
 
 ---

@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TeamGeneralSettings } from '@/components/team/settings/team-general-settings'
 import { TeamBillingSettings } from '@/components/team/settings/team-billing-settings'
+import { TeamIntegrationsSettings } from '@/components/team/settings/team-integrations-settings'
 import type { TeamRole } from '@/lib/types/team'
 
 interface Team {
@@ -104,7 +105,7 @@ export default function TeamSettingsPage() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="integrations" disabled>Integrations</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -113,6 +114,10 @@ export default function TeamSettingsPage() {
 
         <TabsContent value="billing">
           <TeamBillingSettings team={team} />
+        </TabsContent>
+
+        <TabsContent value="integrations">
+          <TeamIntegrationsSettings team={team} />
         </TabsContent>
       </Tabs>
     </div>

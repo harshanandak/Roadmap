@@ -28,8 +28,20 @@ export const openrouter = createOpenRouter({
 })
 
 /**
+ * Default provider preferences for all models
+ * data_collection: 'deny' excludes providers that may train on prompts
+ * This ensures requests go to privacy-respecting providers only
+ */
+const defaultProviderSettings = {
+  provider: {
+    data_collection: 'deny' as const,
+  },
+}
+
+/**
  * Pre-configured AI SDK models matching existing model IDs
  * All models use :nitro routing for 30-50% faster throughput
+ * All models exclude data-collecting providers (China first-party endpoints)
  */
 export const aiModels = {
   /**
@@ -37,41 +49,31 @@ export const aiModels = {
    * Best reasoning, fastest via nitro
    * Cost: $1.00/M input, $5.00/M output
    */
-  claudeHaiku: openrouter('anthropic/claude-haiku-4.5:nitro'),
+  claudeHaiku: openrouter('anthropic/claude-haiku-4.5:nitro', defaultProviderSettings),
 
   /**
    * Grok 4 Fast
    * Real-time reasoning, 2M context, fastest via nitro
    * Cost: $0.20/M input, $0.50/M output
    */
-  grok4Fast: openrouter('x-ai/grok-4-fast:nitro'),
+  grok4Fast: openrouter('x-ai/grok-4-fast:nitro', defaultProviderSettings),
 
   /**
    * Kimi K2 Thinking (CHEAPEST)
    * Deep reasoning with thinking traces
    * Cost: $0.15/M input, $2.50/M output
+   * Note: data_collection: 'deny' excludes Moonshot's China endpoint
    */
-  kimiK2: openrouter('moonshotai/kimi-k2-thinking:nitro'),
+  kimiK2: openrouter('moonshotai/kimi-k2-thinking:nitro', defaultProviderSettings),
 
   /**
-   * Minimax M2
-   * Balanced reasoning and speed, good for agentic workflows
-   * Cost: $0.50/M input, $1.50/M output
+   * DeepSeek V3.2 (NEW - Dec 2025)
+   * GPT-5 level reasoning, thinking in tool-use
+   * Cost: $0.28/M input, $0.40/M output
+   * Context: 163K tokens
+   * Note: data_collection: 'deny' excludes DeepSeek's China endpoint
    */
-  minimaxM2: openrouter('minimax/minimax-m2:nitro'),
-
-  /**
-   * Claude 3.5 Sonnet
-   * Higher capability for complex tasks
-   * Cost: Higher but more capable
-   */
-  claudeSonnet: openrouter('anthropic/claude-3.5-sonnet'),
-
-  /**
-   * GPT-4o with nitro routing
-   * OpenAI's multimodal model
-   */
-  gpt4o: openrouter('openai/gpt-4o:nitro'),
+  deepseekV32: openrouter('deepseek/deepseek-v3.2:nitro', defaultProviderSettings),
 } as const
 
 /**
@@ -93,11 +95,11 @@ export const recommendedModels = {
   /** Default model for most tasks */
   default: aiModels.claudeHaiku,
 
-  /** Agentic workflows with tool calling */
-  agentic: aiModels.minimaxM2,
+  /** Agentic workflows with tool calling (DeepSeek V3.2 - thinking in tool-use) */
+  agentic: aiModels.deepseekV32,
 
-  /** Complex multi-step tasks */
-  complex: aiModels.claudeSonnet,
+  /** Complex multi-step tasks (DeepSeek V3.2) */
+  complex: aiModels.deepseekV32,
 } as const
 
 /**
@@ -125,9 +127,7 @@ export const modelIdMap: Record<string, LanguageModel> = {
   'anthropic/claude-haiku-4.5:nitro': aiModels.claudeHaiku,
   'x-ai/grok-4-fast:nitro': aiModels.grok4Fast,
   'moonshotai/kimi-k2-thinking:nitro': aiModels.kimiK2,
-  'minimax/minimax-m2:nitro': aiModels.minimaxM2,
-  'anthropic/claude-3.5-sonnet': aiModels.claudeSonnet,
-  'openai/gpt-4o:nitro': aiModels.gpt4o,
+  'deepseek/deepseek-v3.2:nitro': aiModels.deepseekV32,
 }
 
 /**

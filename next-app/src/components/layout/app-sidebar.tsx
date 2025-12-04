@@ -23,7 +23,8 @@ import {
   ChevronsUpDown,
   Sparkles,
   Network,
-  Target
+  Target,
+  Bot,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -155,6 +156,7 @@ export function AppSidebar({ workspaceId: defaultWorkspaceId, workspaceName: def
   // Main navigation items
   const mainNavItems: NavItem[] = [
     { icon: LayoutDashboard, label: 'Dashboard', href: `/workspaces/${workspaceId}?view=dashboard` },
+    { icon: Bot, label: 'AI Assistant', href: `/workspaces/${workspaceId}/ai` },
     { icon: Boxes, label: 'Canvas', href: `/workspaces/${workspaceId}?view=canvas` },
     { icon: Network, label: 'Mind Maps', href: `/workspaces/${workspaceId}/mind-maps` },
     { icon: Target, label: 'Strategy', href: `/workspaces/${workspaceId}/strategies` },

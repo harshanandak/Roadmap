@@ -1,0 +1,120 @@
+# Docker Compose for MCP Gateway Infrastructure
+#
+# Services:
+# - mcp-gateway: The main MCP server (port 3100)
+# - redis: Token cache and rate limiting (port 6379)
+#
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Environment Variables (create .env file):
+#   - GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+#   - JIRA_CLIENT_ID, JIRA_CLIENT_SECRET
+#   - LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET
+#   - NOTION_CLIENT_ID, NOTION_CLIENT_SECRET
+#   - SLACK_CLIENT_ID, SLACK_CLIENT_SECRET
+#   - FIGMA_CLIENT_ID, FIGMA_CLIENT_SECRET
+#   - JWT_SECRET
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # MCP Gateway - Main Integration Server
+  # ==========================================================================
+  mcp-gateway:
+    build:
+      context: ./mcp-gateway
+      dockerfile: Dockerfile
+    container_name: plm-mcp-gateway
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    environment:
+      # Server Config
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3100
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+
+      # Redis
+      - REDIS_URL=redis://redis:6379
+
+      # Security
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+
+      # OAuth Credentials (GitHub)
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+
+      # OAuth Credentials (Jira/Atlassian)
+      - JIRA_CLIENT_ID=${JIRA_CLIENT_ID:-}
+      - JIRA_CLIENT_SECRET=${JIRA_CLIENT_SECRET:-}
+
+      # OAuth Credentials (Linear)
+      - LINEAR_CLIENT_ID=${LINEAR_CLIENT_ID:-}
+      - LINEAR_CLIENT_SECRET=${LINEAR_CLIENT_SECRET:-}
+
+      # OAuth Credentials (Notion)
+      - NOTION_CLIENT_ID=${NOTION_CLIENT_ID:-}
+      - NOTION_CLIENT_SECRET=${NOTION_CLIENT_SECRET:-}
+
+      # OAuth Credentials (Slack)
+      - SLACK_CLIENT_ID=${SLACK_CLIENT_ID:-}
+      - SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET:-}
+
+      # OAuth Credentials (Figma)
+      - FIGMA_CLIENT_ID=${FIGMA_CLIENT_ID:-}
+      - FIGMA_CLIENT_SECRET=${FIGMA_CLIENT_SECRET:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - plm-network
+    volumes:
+      # Mount for development hot reload
+      - ./mcp-gateway:/app:ro
+      # Exclude node_modules
+      - /app/node_modules
+
+  # ==========================================================================
+  # Redis - Token Cache & Rate Limiting
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: plm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - plm-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  plm-network:
+    driver: bridge
+    name: plm-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  redis-data:
+    name: plm-redis-data

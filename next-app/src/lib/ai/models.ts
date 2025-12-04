@@ -85,23 +85,23 @@ export const AI_MODELS: Record<string, AIModel> = {
     excludeProviders: ['MoonshotAI/Turbo'], // Exclude turbo provider
   },
 
-  'minimax-m2': {
-    id: 'minimax/minimax-m2:nitro',
-    name: 'Minimax M2',
-    provider: 'Minimax',
-    description: 'Balanced reasoning and speed via nitro',
+  'deepseek-v3.2': {
+    id: 'deepseek/deepseek-v3.2:nitro',
+    name: 'DeepSeek V3.2',
+    provider: 'DeepSeek',
+    description: 'GPT-5 level reasoning, thinking in tool-use, via nitro',
     capabilities: [
+      'Advanced reasoning',
+      'Thinking in tool-use',
+      'Agent workflows',
       'Code generation',
-      'Agentic workflows',
-      'Tool use',
-      'Multi-step tasks',
     ],
     costPer1M: {
-      input: 0.5,
-      output: 1.5,
+      input: 0.28,
+      output: 0.40,
     },
     speed: 'fast',
-    maxTokens: 230000,
+    maxTokens: 163840,
   },
 }
 
