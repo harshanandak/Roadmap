@@ -260,3 +260,57 @@ export const ChatIntentSchema = z.object({
 })
 
 export type ChatIntent = z.infer<typeof ChatIntentSchema>
+
+// =============================================================================
+// STRATEGY ALIGNMENT SUGGESTION SCHEMA
+// =============================================================================
+
+/**
+ * Valid alignment strength levels
+ */
+export const AlignmentStrengthSchema = z.enum(['weak', 'medium', 'strong'])
+
+export type AlignmentStrengthAI = z.infer<typeof AlignmentStrengthSchema>
+
+/**
+ * Schema for a single alignment suggestion
+ *
+ * Used by: POST /api/ai/strategies/suggest
+ */
+export const AlignmentSuggestionSchema = z.object({
+  workItemId: z.string().describe('ID of the work item to align'),
+  strategyId: z.string().describe('ID of the strategy to align to'),
+  confidence: z
+    .number()
+    .min(0)
+    .max(1)
+    .describe('Confidence in this suggestion (0.0-1.0)'),
+  reason: z
+    .string()
+    .min(10)
+    .max(300)
+    .describe('Brief explanation of why this work item aligns with this strategy'),
+  alignmentStrength: AlignmentStrengthSchema.describe(
+    'How strongly the work item aligns: weak (tangential), medium (supports), strong (directly contributes)'
+  ),
+})
+
+export type AlignmentSuggestionAI = z.infer<typeof AlignmentSuggestionSchema>
+
+/**
+ * Schema for array of alignment suggestions
+ *
+ * Used by: POST /api/ai/strategies/suggest
+ */
+export const AlignmentSuggestionsSchema = z.object({
+  suggestions: z
+    .array(AlignmentSuggestionSchema)
+    .describe('Array of suggested work item to strategy alignments'),
+  analysis: z
+    .string()
+    .max(500)
+    .optional()
+    .describe('Brief overall analysis of the alignment coverage'),
+})
+
+export type AlignmentSuggestionsAI = z.infer<typeof AlignmentSuggestionsSchema>

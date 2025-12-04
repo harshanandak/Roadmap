@@ -64,6 +64,7 @@ USING (
 DROP POLICY IF EXISTS "Team members can create votes" ON public.insight_votes;
 DROP POLICY IF EXISTS "External voters can vote via review links" ON public.insight_votes;
 DROP POLICY IF EXISTS "Public can vote on public insights" ON public.insight_votes;
+DROP POLICY IF EXISTS "Users can create votes (team or external)" ON public.insight_votes;
 
 -- Create consolidated INSERT policy
 CREATE POLICY "Users can create votes (team or external)"

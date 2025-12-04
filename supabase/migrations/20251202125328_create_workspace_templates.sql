@@ -30,6 +30,13 @@ CREATE INDEX IF NOT EXISTS idx_workspace_templates_is_system ON workspace_templa
 -- Enable RLS
 ALTER TABLE workspace_templates ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies (for idempotency)
+DROP POLICY IF EXISTS "workspace_templates_read_system" ON workspace_templates;
+DROP POLICY IF EXISTS "workspace_templates_read_team" ON workspace_templates;
+DROP POLICY IF EXISTS "workspace_templates_insert" ON workspace_templates;
+DROP POLICY IF EXISTS "workspace_templates_update" ON workspace_templates;
+DROP POLICY IF EXISTS "workspace_templates_delete" ON workspace_templates;
+
 -- Policy: Everyone can read system templates
 CREATE POLICY "workspace_templates_read_system"
   ON workspace_templates
@@ -291,7 +298,8 @@ VALUES
       ],
       "tags": ["stability", "monitoring", "devops", "security"]
     }'::jsonb
-  );
+  )
+ON CONFLICT (id) DO NOTHING;
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_workspace_templates_updated_at()

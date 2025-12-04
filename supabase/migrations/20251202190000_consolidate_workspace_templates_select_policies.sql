@@ -4,9 +4,10 @@
 -- Purpose: Fix multiple_permissive_policies warning by merging 2 SELECT policies
 -- ============================================================================
 
--- Drop the two overlapping SELECT policies
+-- Drop the two overlapping SELECT policies and the consolidated one (for idempotency)
 DROP POLICY IF EXISTS "workspace_templates_read_system" ON public.workspace_templates;
 DROP POLICY IF EXISTS "workspace_templates_read_team" ON public.workspace_templates;
+DROP POLICY IF EXISTS "workspace_templates_select" ON public.workspace_templates;
 
 -- Create consolidated SELECT policy with OR conditions
 CREATE POLICY "workspace_templates_select"

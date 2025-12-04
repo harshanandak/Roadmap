@@ -410,6 +410,54 @@ export function getProgressColor(progress: number, status: StrategyStatus): stri
   return 'bg-red-500';
 }
 
+// =============================================================================
+// DASHBOARD STATS TYPES
+// =============================================================================
+
+/**
+ * Alignment coverage metrics
+ */
+export interface AlignmentCoverage {
+  workItemsTotal: number;
+  workItemsWithPrimary: number;
+  workItemsWithAny: number;
+  coveragePercent: number;
+}
+
+/**
+ * Progress aggregation by strategy type
+ */
+export interface ProgressByType {
+  type: StrategyType;
+  avgProgress: number;
+  count: number;
+}
+
+/**
+ * Top strategy with alignment count
+ */
+export interface TopStrategyItem {
+  id: string;
+  title: string;
+  type: StrategyType;
+  alignedCount: number;
+}
+
+/**
+ * Complete strategy stats for dashboard
+ */
+export interface StrategyStats {
+  byType: Record<StrategyType, number>;
+  byStatus: Record<StrategyStatus, number>;
+  alignmentCoverage: AlignmentCoverage;
+  progressByType: ProgressByType[];
+  topStrategiesByAlignment: TopStrategyItem[];
+}
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
 /**
  * Build tree from flat list of strategies
  */

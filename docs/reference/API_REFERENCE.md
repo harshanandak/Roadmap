@@ -1,7 +1,7 @@
 # 📘 API REFERENCE
 
-**Last Updated:** 2025-11-26
-**Version:** 1.1
+**Last Updated:** 2025-12-03
+**Version:** 1.3
 **Base URL (Production):** `https://platform-test-cyan.vercel.app`
 **Base URL (Development):** `http://localhost:3000`
 
@@ -38,8 +38,10 @@ Cookie: sb-access-token=<token>; sb-refresh-token=<refresh-token>
 12. [Review & Feedback API](#review-feedback-api)
 13. [Search API](#search-api) *(New)*
 14. [AI Assistant API](#ai-assistant-api)
-15. [Analytics API](#analytics-api)
-16. [Webhooks](#webhooks)
+15. [Strategies API](#strategies-api) *(New)*
+16. [Analytics API](#analytics-api)
+17. [Integrations API](#integrations-api) *(New - MCP Gateway)*
+18. [Webhooks](#webhooks)
 
 ---
 
@@ -1677,49 +1679,470 @@ Execute AI tool (agentic mode)
 
 ---
 
-## 📊 ANALYTICS API
+## 🎯 STRATEGIES API
 
-### GET `/api/analytics/overview`
-Get workspace analytics overview
+The Strategies module provides OKR/Pillar management with hierarchical structure and AI-powered alignment suggestions.
+
+### GET `/api/strategies`
+List all strategies for a workspace with hierarchy support
 
 **Query Parameters:**
 - `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+- `parent_id` (optional): Filter by parent (use "null" for root)
+- `type` (optional): Filter by type (pillar, objective, key_result, initiative)
 
 **Response (200 OK):**
 ```json
 {
-  "feature_count": 25,
-  "completed_count": 12,
-  "in_progress_count": 8,
-  "not_started_count": 5,
-  "completion_rate": 0.48,
-  "by_timeline": {
-    "MVP": 15,
-    "SHORT": 7,
-    "LONG": 3
+  "data": [
+    {
+      "id": "1736857200100",
+      "team_id": "1736857200000",
+      "workspace_id": "1736857200001",
+      "parent_id": null,
+      "type": "pillar",
+      "title": "Customer Experience",
+      "description": "Improve customer satisfaction scores",
+      "status": "active",
+      "progress": 65,
+      "sort_order": 0,
+      "owner_id": "uuid",
+      "created_at": "2025-01-14T12:00:00Z",
+      "updated_at": "2025-01-14T12:00:00Z",
+      "children": [
+        {
+          "id": "1736857200101",
+          "type": "objective",
+          "title": "Reduce support ticket volume",
+          "progress": 40,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/strategies`
+Create a new strategy
+
+**Request Body:**
+```json
+{
+  "team_id": "1736857200000",
+  "workspace_id": "1736857200001",
+  "parent_id": null,
+  "type": "pillar",
+  "title": "Customer Experience",
+  "description": "Improve customer satisfaction scores",
+  "status": "draft",
+  "owner_id": "uuid"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": "1736857200100",
+  "team_id": "1736857200000",
+  "workspace_id": "1736857200001",
+  "type": "pillar",
+  "title": "Customer Experience",
+  "status": "draft",
+  "progress": 0,
+  "sort_order": 0,
+  "created_at": "2025-01-14T12:00:00Z"
+}
+```
+
+---
+
+### GET `/api/strategies/[id]`
+Get a single strategy with its children
+
+**Response (200 OK):**
+```json
+{
+  "id": "1736857200100",
+  "type": "pillar",
+  "title": "Customer Experience",
+  "description": "Improve customer satisfaction scores",
+  "status": "active",
+  "progress": 65,
+  "children": [/* nested children */],
+  "owner": {
+    "id": "uuid",
+    "name": "John Doe"
   }
 }
 ```
 
 ---
 
+### PUT `/api/strategies/[id]`
+Update a strategy
+
+**Request Body:**
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "status": "active",
+  "progress": 75
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": "1736857200100",
+  "title": "Updated Title",
+  "status": "active",
+  "progress": 75,
+  "updated_at": "2025-01-14T13:00:00Z"
+}
+```
+
+---
+
+### DELETE `/api/strategies/[id]`
+Delete a strategy and all its children (cascade)
+
+**Response (200 OK):**
+```json
+{
+  "message": "Strategy deleted successfully",
+  "deleted_count": 3
+}
+```
+
+---
+
+### POST `/api/strategies/[id]/reorder`
+Reorder a strategy within the hierarchy (drag-drop support)
+
+**Request Body:**
+```json
+{
+  "parent_id": "1736857200100",
+  "sort_order": 2,
+  "team_id": "1736857200000",
+  "workspace_id": "1736857200001"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "strategy": {
+    "id": "1736857200101",
+    "parent_id": "1736857200100",
+    "sort_order": 2
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid move (circular reference, invalid parent)
+- `404 Not Found`: Strategy not found
+
+---
+
+### GET `/api/strategies/stats`
+Get strategy statistics for a workspace
+
+**Query Parameters:**
+- `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+
+**Response (200 OK):**
+```json
+{
+  "total": 12,
+  "byType": {
+    "pillar": 2,
+    "objective": 4,
+    "key_result": 4,
+    "initiative": 2
+  },
+  "byStatus": {
+    "draft": 2,
+    "active": 8,
+    "completed": 2,
+    "archived": 0
+  },
+  "avgProgress": 58,
+  "alignedWorkItems": 15,
+  "unalignedWorkItems": 5
+}
+```
+
+---
+
+### POST `/api/ai/strategies/suggest`
+Get AI-powered alignment suggestions for work items
+
+**Request Body:**
+```json
+{
+  "workspace_id": "1736857200001",
+  "team_id": "1736857200000"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "suggestions": [
+    {
+      "workItemId": "1736857200050",
+      "workItemTitle": "Improve checkout flow",
+      "suggestedStrategyId": "1736857200100",
+      "suggestedStrategyTitle": "Customer Experience",
+      "confidence": 0.85,
+      "reasoning": "This work item directly addresses customer experience by improving the checkout process."
+    }
+  ]
+}
+```
+
+---
+
+## 📊 ANALYTICS API
+
+The Analytics module provides 4 pre-built dashboards plus a custom dashboard builder (Pro feature).
+
+### GET `/api/analytics/overview`
+Get Feature Overview dashboard data - work item metrics and status breakdowns
+
+**Query Parameters:**
+- `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "totalWorkItems": 25,
+    "completedWorkItems": 12,
+    "inProgressWorkItems": 8,
+    "blockedWorkItems": 2
+  },
+  "statusBreakdown": [
+    { "name": "Planned", "value": 5, "color": "#94a3b8" },
+    { "name": "In Progress", "value": 8, "color": "#3b82f6" },
+    { "name": "Completed", "value": 12, "color": "#22c55e" }
+  ],
+  "typeBreakdown": [
+    { "name": "Feature", "value": 18, "color": "#8b5cf6" },
+    { "name": "Bug", "value": 5, "color": "#ef4444" },
+    { "name": "Enhancement", "value": 2, "color": "#06b6d4" }
+  ],
+  "recentActivity": [
+    {
+      "id": "1736857200010",
+      "type": "status_change",
+      "description": "User Auth moved to Completed",
+      "timestamp": "2025-01-14T12:00:00Z",
+      "workItemId": "1736857200003"
+    }
+  ],
+  "trends": {
+    "completionRate": 0.48,
+    "velocityTrend": "up",
+    "weeklyCompleted": [3, 5, 4, 6, 8]
+  }
+}
+```
+
+---
+
+### GET `/api/analytics/dependencies`
+Get Dependency Health dashboard data - dependency graph analysis and bottlenecks
+
+**Query Parameters:**
+- `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "totalDependencies": 45,
+    "healthyDependencies": 38,
+    "blockedDependencies": 3,
+    "circularDependencies": 0
+  },
+  "healthDistribution": [
+    { "name": "Healthy", "value": 38, "color": "#22c55e" },
+    { "name": "At Risk", "value": 4, "color": "#f59e0b" },
+    { "name": "Blocked", "value": 3, "color": "#ef4444" }
+  ],
+  "dependencyTypeBreakdown": [
+    { "name": "Blocks", "value": 20, "color": "#ef4444" },
+    { "name": "Depends On", "value": 15, "color": "#3b82f6" },
+    { "name": "Related To", "value": 10, "color": "#8b5cf6" }
+  ],
+  "criticalPath": [
+    {
+      "id": "1736857200003",
+      "name": "User Authentication",
+      "status": "completed"
+    },
+    {
+      "id": "1736857200005",
+      "name": "Social Features",
+      "status": "in_progress"
+    }
+  ],
+  "bottlenecks": [
+    {
+      "id": "1736857200003",
+      "name": "User Authentication",
+      "blockingCount": 5,
+      "severity": "high"
+    }
+  ],
+  "orphanedItems": [
+    {
+      "id": "1736857200099",
+      "name": "Isolated Feature",
+      "type": "feature"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/analytics/performance`
+Get Team Performance dashboard data - team metrics and productivity analysis
+
+**Query Parameters:**
+- `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "totalMembers": 8,
+    "activeMembers": 6,
+    "avgTasksPerMember": 4.5,
+    "avgCompletionTime": 3.2
+  },
+  "memberPerformance": [
+    {
+      "id": "uuid-1",
+      "name": "John Doe",
+      "avatar": "https://...",
+      "tasksCompleted": 15,
+      "tasksInProgress": 3,
+      "avgCycleTime": 2.8
+    }
+  ],
+  "workloadDistribution": [
+    { "name": "John Doe", "value": 18, "color": "#3b82f6" },
+    { "name": "Jane Smith", "value": 12, "color": "#8b5cf6" }
+  ],
+  "velocityTrend": [
+    { "week": "W1", "completed": 5, "planned": 6 },
+    { "week": "W2", "completed": 8, "planned": 7 },
+    { "week": "W3", "completed": 6, "planned": 8 }
+  ],
+  "phaseDistribution": [
+    { "name": "Research", "members": 2 },
+    { "name": "Development", "members": 4 },
+    { "name": "Testing", "members": 2 }
+  ]
+}
+```
+
+---
+
+### GET `/api/analytics/alignment`
+Get Strategy Alignment dashboard data - OKR/Pillar alignment and progress
+
+**Query Parameters:**
+- `workspace_id` (required): Workspace ID
+- `team_id` (required): Team ID
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "totalStrategies": 5,
+    "alignedWorkItems": 20,
+    "unalignedWorkItems": 5,
+    "avgProgress": 45
+  },
+  "strategyProgress": [
+    {
+      "id": "1736857200020",
+      "name": "Improve User Onboarding",
+      "type": "objective",
+      "progress": 65,
+      "workItemCount": 8,
+      "status": "on_track"
+    }
+  ],
+  "alignmentBreakdown": [
+    { "name": "Aligned", "value": 20, "color": "#22c55e" },
+    { "name": "Unaligned", "value": 5, "color": "#94a3b8" }
+  ],
+  "strategyTypeBreakdown": [
+    { "name": "Objective", "value": 3, "color": "#3b82f6" },
+    { "name": "Key Result", "value": 8, "color": "#8b5cf6" },
+    { "name": "Pillar", "value": 2, "color": "#06b6d4" }
+  ],
+  "atRiskStrategies": [
+    {
+      "id": "1736857200021",
+      "name": "Reduce Churn",
+      "progress": 15,
+      "expectedProgress": 40,
+      "gap": 25
+    }
+  ],
+  "unlinkedWorkItems": [
+    {
+      "id": "1736857200099",
+      "name": "Feature without strategy",
+      "type": "feature"
+    }
+  ]
+}
+```
+
+---
+
 ### POST `/api/analytics/dashboards`
-Create custom dashboard
+Create custom dashboard (Pro Feature)
 
 **Request Body:**
 ```json
 {
   "workspace_id": "1736857200002",
+  "team_id": "1736857200000",
   "name": "Team Performance",
-  "layout": {
-    "widgets": [
-      {
-        "type": "bar_chart",
-        "data_source": "team_performance",
-        "position": { "x": 0, "y": 0, "w": 6, "h": 4 }
-      }
-    ]
-  }
+  "widgets": [
+    {
+      "id": "widget-1",
+      "widgetId": "total-work-items",
+      "position": { "x": 0, "y": 0, "w": 1, "h": 1 },
+      "config": {}
+    },
+    {
+      "id": "widget-2",
+      "widgetId": "status-breakdown-chart",
+      "position": { "x": 1, "y": 0, "w": 2, "h": 2 },
+      "config": {}
+    }
+  ]
 }
 ```
 
@@ -1729,10 +2152,217 @@ Create custom dashboard
   "dashboard": {
     "id": "1736857200011",
     "name": "Team Performance",
-    "layout": { /* widget configuration */ }
+    "widgets": [ /* widget instances */ ],
+    "created_at": "2025-01-14T12:00:00Z"
   }
 }
 ```
+
+**Available Widget IDs:**
+| Category | Widget IDs |
+|----------|------------|
+| Metrics | `total-work-items`, `completion-rate`, `blocked-items`, `health-score`, `velocity`, `cycle-time` |
+| Charts | `status-breakdown-chart`, `type-breakdown-chart`, `timeline-distribution`, `dependency-flow`, `burndown-chart` |
+| Lists | `recent-activity`, `critical-path`, `bottlenecks`, `at-risk-items` |
+| Progress | `strategy-progress`, `phase-progress`, `team-workload`, `sprint-progress` |
+
+---
+
+## 🔌 INTEGRATIONS API
+
+External integrations via MCP Gateway (270+ integrations).
+
+### GET `/api/integrations`
+List all integrations for the authenticated user's team.
+
+**Query Parameters:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `status` | string | Filter by status (`connected`, `expired`, `error`) |
+| `provider` | string | Filter by provider (`github`, `jira`, `slack`, etc.) |
+
+**Response (200 OK):**
+```json
+{
+  "integrations": [
+    {
+      "id": "1701234567890",
+      "provider": "github",
+      "name": "GitHub",
+      "status": "connected",
+      "providerAccountName": "acme-corp",
+      "scopes": ["repo", "read:user"],
+      "lastSyncAt": "2025-12-03T10:00:00Z",
+      "createdAt": "2025-12-01T12:00:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+---
+
+### POST `/api/integrations`
+Create a new integration and initiate OAuth flow.
+
+**Request Body:**
+```json
+{
+  "provider": "github",
+  "name": "GitHub Integration",
+  "scopes": ["repo", "read:user"]
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "integration": {
+    "id": "1701234567890",
+    "provider": "github",
+    "name": "GitHub Integration",
+    "status": "pending",
+    "scopes": ["repo", "read:user"],
+    "createdAt": "2025-12-03T12:00:00Z"
+  },
+  "oauthUrl": "https://github.com/login/oauth/authorize?..."
+}
+```
+
+---
+
+### GET `/api/integrations/[id]`
+Get details for a specific integration, including sync logs.
+
+**Response (200 OK):**
+```json
+{
+  "id": "1701234567890",
+  "provider": "github",
+  "name": "GitHub",
+  "status": "connected",
+  "scopes": ["repo", "read:user"],
+  "lastSyncAt": "2025-12-03T10:00:00Z",
+  "syncLogs": [
+    {
+      "id": "1701234567891",
+      "sync_type": "import",
+      "status": "completed",
+      "items_synced": 15,
+      "duration_ms": 1234
+    }
+  ]
+}
+```
+
+---
+
+### DELETE `/api/integrations/[id]`
+Disconnect and delete an integration.
+
+**Response (200 OK):**
+```json
+{
+  "message": "Integration deleted"
+}
+```
+
+---
+
+### POST `/api/integrations/[id]/sync`
+Trigger a sync operation for an integration.
+
+**Request Body:**
+```json
+{
+  "syncType": "import",
+  "workspaceId": "ws123",
+  "sourceEntity": "issues",
+  "targetEntity": "work_items"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "syncLogId": "1701234567892",
+  "status": "completed",
+  "itemsSynced": 15,
+  "duration": 1234
+}
+```
+
+---
+
+### GET `/api/integrations/oauth/callback`
+OAuth callback handler (redirects to settings page with status).
+
+**Query Parameters (from OAuth provider):**
+| Param | Type | Description |
+|-------|------|-------------|
+| `code` | string | Authorization code |
+| `state` | string | CSRF protection state |
+| `error` | string | Error code (if OAuth failed) |
+
+**Redirects to:** `/settings/integrations?success=...` or `/settings/integrations?error=...`
+
+---
+
+### GET `/api/workspaces/[id]/integrations`
+List integrations enabled for a workspace.
+
+**Response (200 OK):**
+```json
+{
+  "integrations": [
+    {
+      "id": "1701234567890",
+      "provider": "github",
+      "name": "GitHub",
+      "status": "connected",
+      "enabled": true,
+      "enabledTools": ["github_list_repos", "github_list_issues"],
+      "defaultProject": "acme/product"
+    }
+  ],
+  "count": 1
+}
+```
+
+---
+
+### POST `/api/workspaces/[id]/integrations`
+Enable an integration for a workspace.
+
+**Request Body:**
+```json
+{
+  "integrationId": "1701234567890",
+  "enabledTools": ["github_list_repos", "github_list_issues"],
+  "defaultProject": "acme/product"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "message": "Integration enabled for workspace",
+  "accessId": "1701234567893"
+}
+```
+
+---
+
+### Supported Providers
+
+| Provider | Category | Tools |
+|----------|----------|-------|
+| `github` | Development | `list_repos`, `list_issues`, `create_issue`, `list_pull_requests` |
+| `jira` | Project Management | `list_projects`, `list_issues`, `create_issue`, `transition_issue` |
+| `linear` | Project Management | `list_issues`, `create_issue`, `list_projects`, `list_cycles` |
+| `notion` | Documentation | `list_pages`, `get_page`, `create_page`, `search` |
+| `slack` | Communication | `list_channels`, `send_message`, `search_messages` |
+| `figma` | Design | `list_files`, `get_file`, `export_images` |
 
 ---
 
@@ -1896,6 +2526,6 @@ gem install platform-api
 
 ---
 
-**API Version:** 1.1
-**Last Updated:** 2025-11-26
+**API Version:** 1.2
+**Last Updated:** 2025-12-02
 **Changelog:** See [CHANGELOG.md](CHANGELOG.md)
