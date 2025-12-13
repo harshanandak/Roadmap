@@ -1,6 +1,7 @@
 # ARCHITECTURE CONSOLIDATION - Master Reference
 
 **Created**: 2025-12-11
+**Updated**: 2025-12-13 (Migrated to 4-Phase System)
 **Purpose**: Single source of truth for platform architecture decisions
 **Status**: CANONICAL - All other docs should align with this
 
@@ -14,10 +15,10 @@
 WORKSPACE (Aggregation View)
 ├── mode: development | launch | growth | maintenance
 ├── Shows: Phase DISTRIBUTION across all work items
-│   Example: "10 in research, 15 in planning, 8 in execution..."
+│   Example: "10 in design, 15 in build, 8 in refine..."
 │
 └── WORK ITEMS (Each has own phase)
-    ├── phase: research | planning | execution | review | complete
+    ├── phase: design | build | refine | launch
     │         ↑ THIS IS THE STATUS - No separate status field!
     │
     └── TIMELINE ITEMS (MVP/SHORT/LONG breakdowns)
@@ -36,19 +37,27 @@ WORKSPACE (Aggregation View)
 
 ---
 
-## 2. PHASE SYSTEM
+## 2. PHASE SYSTEM (4-Phase)
 
 ### 2.1 Work Item Phases (= Status)
 
 | Phase | Description | Focus Area |
 |-------|-------------|------------|
-| **research** | Initial exploration, problem understanding | Empathy, user needs |
-| **planning** | Structure, scope, timeline breakdown | MVP definition, priorities |
-| **execution** | Active development work | Building, coding, creating |
-| **review** | Testing, validation, feedback | Quality, user testing |
-| **complete** | Shipped, launched, done | Retrospective, metrics |
+| **design** | Research, ideation, problem definition | Empathy, user needs, scope planning |
+| **build** | Active development work | Building, coding, creating |
+| **refine** | Testing, validation, iteration | Quality, user testing, feedback |
+| **launch** | Shipped, deployed, done | Release, retrospective, metrics |
 
-### 2.2 Timeline Item Status (Separate)
+### 2.2 Phase Mapping (Migration Reference)
+
+| Old (5-Phase) | New (4-Phase) | Rationale |
+|--------------|---------------|-----------|
+| research, planning | **design** | Combined into single ideation phase |
+| execution | **build** | Clearer active development |
+| review | **refine** | Better reflects iteration nature |
+| complete | **launch** | Action-oriented completion |
+
+### 2.3 Timeline Item Status (Separate)
 
 | Status | Description |
 |--------|-------------|
@@ -59,16 +68,15 @@ WORKSPACE (Aggregation View)
 | `on_hold` | Paused intentionally |
 | `cancelled` | No longer needed |
 
-### 2.3 Phase Transition Requirements
+### 2.4 Phase Transition Requirements
 
 | From → To | Required Fields | Rationale |
 |-----------|-----------------|-----------|
-| research → planning | `purpose` filled, 1+ timeline items OR scope defined | Ready to plan |
-| planning → execution | `target_release`, `acceptance_criteria`, `priority`, `estimated_hours` | Planning complete |
-| execution → review | `progress_percent` >= 80, `actual_start_date` set | Work substantially done |
-| review → complete | Feedback addressed, `status` = 'completed' | Approved |
+| design → build | `purpose` filled, 1+ timeline items OR scope defined | Ready to build |
+| build → refine | `progress_percent` >= 80, `actual_start_date` set | Work substantially done |
+| refine → launch | Feedback addressed, quality approved | Ready to ship |
 
-### 2.4 Phase Upgrade Prompting
+### 2.5 Phase Upgrade Prompting
 
 - **Threshold**: 80% field completion
 - **Level**: Work item (NOT workspace)
@@ -83,16 +91,16 @@ WORKSPACE (Aggregation View)
 
 | Mode | Description | Default Phase | Type Weight Focus |
 |------|-------------|---------------|-------------------|
-| **development** | Building from scratch | planning | feature (10), concept (9) |
-| **launch** | Racing to release | execution | bug (10), feature (8) |
-| **growth** | Iterating on feedback | review | enhancement (9), feature (7) |
-| **maintenance** | Stability focus | execution | bug (10), enhancement (5) |
+| **development** | Building from scratch | design | feature (10), concept (9) |
+| **launch** | Racing to release | build | bug (10), feature (8) |
+| **growth** | Iterating on feedback | refine | enhancement (9), feature (7) |
+| **maintenance** | Stability focus | build | bug (10), enhancement (5) |
 
 ### 3.2 Workspace Does NOT Have Stage
 
 - Workspace shows **phase distribution** across work items
 - NO single `workspace.stage` or `workspace.launch_stage` field
-- Dashboard displays: "Research: 10, Planning: 15, Execution: 8..."
+- Dashboard displays: "Design: 10, Build: 15, Refine: 8..."
 
 ---
 
@@ -118,11 +126,10 @@ Design Thinking is a **human-centered, iterative methodology** for HOW to implem
 
 | Platform Phase | DT Methods | Guiding Questions |
 |----------------|------------|-------------------|
-| **Research** | Empathy Maps, Interviews, Personas | "Who has this problem?" |
-| **Planning** | HMW Questions, Brainstorming, Hills | "What's the MVP?" |
-| **Execution** | Rapid Prototyping, Storyboards | "How do we build it?" |
-| **Review** | Usability Testing, Playbacks | "Does it solve the problem?" |
-| **Complete** | Launch, Retrospectives | "What did we learn?" |
+| **Design** | Empathy Maps, Interviews, Personas, HMW Questions | "Who has this problem? What's the MVP?" |
+| **Build** | Rapid Prototyping, Storyboards, Sprints | "How do we build it?" |
+| **Refine** | Usability Testing, Playbacks, Iteration | "Does it solve the problem?" |
+| **Launch** | Release Planning, Retrospectives | "What did we learn?" |
 
 ### 4.4 AI Integration
 
@@ -202,40 +209,41 @@ interface WorkspaceAnalysis {
 
 ### 7.1 Eight Tabs (Phase-Aware)
 
-| Tab | research | planning | execution | review | complete |
-|-----|:--------:|:--------:|:---------:|:------:|:--------:|
-| Summary | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Inspiration | ✓ | ✓ | - | - | - |
-| Resources | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Scope | - | ✓ | ✓ | ✓ | ✓ |
-| Tasks | - | - | ✓ | ✓ | ✓ |
-| Feedback | - | - | ✓ | ✓ | ✓ |
-| Metrics | - | - | ✓ | ✓ | ✓ |
-| AI Copilot | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tab | design | build | refine | launch |
+|-----|:------:|:-----:|:------:|:------:|
+| Summary | ✓ | ✓ | ✓ | ✓ |
+| Inspiration | ✓ | - | - | - |
+| Resources | ✓ | ✓ | ✓ | ✓ |
+| Scope | ✓ | ✓ | ✓ | ✓ |
+| Tasks | - | ✓ | ✓ | ✓ |
+| Feedback | - | ✓ | ✓ | ✓ |
+| Metrics | - | ✓ | ✓ | ✓ |
+| AI Copilot | ✓ | ✓ | ✓ | ✓ |
 
 ### 7.2 Three Field Groups (Progressive Disclosure)
 
 **Group 1: Basic** (Always visible)
 - name, purpose, type, tags
 
-**Group 2: Planning** (Planning+, LOCKED from Execution+)
+**Group 2: Planning** (Design+, some fields LOCKED from Build+)
 - target_release, acceptance_criteria, business_value, customer_impact
 - strategic_alignment, estimated_hours, priority, stakeholders
 
-**Group 3: Execution** (Execution+)
+**Group 3: Execution** (Build+)
 - actual_start_date, actual_end_date, actual_hours
 - progress_percent, blockers
 
 ---
 
-## 8. KNOWN ISSUES TO FIX
+## 8. KNOWN ISSUES (Session 1 Complete)
 
-| Issue | Severity | Location |
-|-------|----------|----------|
-| Phase calculation overlap (line 167-172) | CRITICAL | workspace-phases.tsx |
-| No phase transition validation | CRITICAL | work-item-types.ts |
-| No phase transition timestamps | HIGH | All |
-| progress_percent no 0-100 validation | MEDIUM | phase-aware-form-fields.tsx |
+| Issue | Status | Resolution |
+|-------|--------|------------|
+| Phase calculation overlap | ✅ FIXED | workspace-phases.tsx updated |
+| No phase transition validation | ✅ FIXED | isValidPhaseTransition() added |
+| No phase transition timestamps | ✅ FIXED | phase_transitions JSONB added |
+| progress_percent no 0-100 validation | ✅ FIXED | Validation in API routes |
+| 5-phase to 4-phase migration | ✅ DONE | Database migration applied |
 
 ---
 
@@ -246,7 +254,7 @@ interface WorkspaceAnalysis {
 | **Workspace** | A product/project container | Organization |
 | **Work Item** | Feature, bug, enhancement, concept | Task |
 | **Timeline Item** | MVP/SHORT/LONG breakdown task | Work Item |
-| **Phase** | Work item lifecycle stage (= status) | Separate from status |
+| **Phase** | Work item lifecycle stage (= status): design, build, refine, launch | Separate from status |
 | **Mode** | Workspace lifecycle context | Stage |
 | **Stage** | (Deprecated) Use "Phase" for work items | - |
 
@@ -254,32 +262,34 @@ interface WorkspaceAnalysis {
 
 ## 10. IMPLEMENTATION SESSIONS
 
-### Session 1: Fix Phase Bugs
-- Fix calculation logic overlap
-- Add transition validation
-- Add timestamps
+### Session 1: Fix Phase Bugs ✅ COMPLETE (2025-12-13)
+- ✅ Fixed calculation logic overlap
+- ✅ Migrated from 5-phase to 4-phase system
+- ✅ Added transition validation (isValidPhaseTransition)
+- ✅ Added phase_transitions JSONB column
+- ✅ Applied database migration
 
-### Session 2: Phase Upgrade Prompts
+### Session 2: Phase Upgrade Prompts ⏳ PENDING
 - Create readiness calculator
 - Build upgrade prompt UI
 - Add guiding questions
 
-### Session 3: Workspace Analysis
+### Session 3: Workspace Analysis ⏳ PENDING
 - Create analyzer service
 - Build health card
 - Add API endpoint
 
-### Session 4: Design Thinking Integration
+### Session 4: Design Thinking Integration ⏳ PENDING
 - Add methodology guidance
 - Include other frameworks
 - AI active integration
 
-### Session 5: Strategy Customization
+### Session 5: Strategy Customization ⏳ PENDING
 - Add new fields
 - Org-level display component
 - Work-item-level display component
 
-### Session 6: Polish
+### Session 6: Polish ⏳ PENDING
 - Feedback conversion
 - Workspace card update
 - E2E testing
