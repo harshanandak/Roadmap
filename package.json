@@ -4,7 +4,8 @@
   "description": "Platform Roadmap Manager with MCP UI component generation",
   "type": "module",
   "scripts": {
-    "mcp-ui": "node mcp-ui-server.js"
+    "mcp-ui": "node mcp-ui-server.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mcp-ui/server": "^5.13.1"
@@ -15,5 +16,8 @@
     "ui-components"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
 }

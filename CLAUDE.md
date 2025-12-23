@@ -159,6 +159,19 @@ Skills must be invoked automatically at appropriate phases WITHOUT user promptin
 | `/tdd-feature` | Test-driven development | Red-green-refactor workflow |
 | `/week-update` | Progress documentation | Weekly update template |
 
+#### Phase-Specific Workflow Commands
+| Command | Phase | Purpose | Next Command |
+|---------|-------|---------|--------------|
+| `/status-check` | 1 | Read PROGRESS.md, select task | → `/research-plan` |
+| `/research-plan` | 2 | Research, create plan, **CREATE BRANCH** | → `/parallel-dev` |
+| `/parallel-dev` | 3 | Implement with parallel agents | → `/quality-review` |
+| `/quality-review` | 4 | Type check, code review, security | → `/test` |
+| `/test` | 5 | Run E2E tests, fix failures | → `/deploy` |
+| `/deploy` | 6 | Create PR, update docs | → `/status-check` (next task) |
+
+**Workflow Benefits**: Granular control, pause/resume between phases, re-run individual phases
+**Full Guide**: [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md)
+
 **Full workflow docs**: [docs/processes/MAKER_WORKFLOW.md](docs/processes/MAKER_WORKFLOW.md)
 
 ### Dev Server Policy
@@ -277,42 +290,76 @@ Use Task tool to preserve main context:
 
 ---
 
-## 🔀 Git Workflow
+## 🔀 PROFESSIONAL DEVELOPER WORKFLOW
 
-### Branch Naming
+**Full Guide**: [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md) - Complete tutorial with examples, checklists, and learning resources
+
+This section provides a quick reference for the daily development workflow used by professional developers.
+
+---
+
+### 8-Step Workflow (Quick Reference)
+
+**Rule**: Main branch is ALWAYS production-ready. Never commit directly to main.
+
+| Step | Command | Time |
+|------|---------|------|
+| 1. Start fresh | `git checkout main && git pull` | 10s |
+| 2. Create branch | `git checkout -b feat/name` | 5s |
+| 3. Develop | Code → `git add` → `git commit -m "feat: ..."` | 30-180min |
+| 4. Push | `git push -u origin feat/name` | 10s |
+| 5. Create PR | `gh pr create --title "..." --body "..."` | 3-5min |
+| 6. Self-review | Review diff on GitHub, fix issues | 5-15min ⚠️ |
+| 7. Merge | `gh pr merge --squash` | 30s |
+| 8. Verify | Test on production | 2-5min |
+
+**Total Overhead**: ~10-25 minutes beyond development time
+**Bugs Prevented**: ~80% caught before production (via self-review)
+
+---
+
+### Branch Naming Convention
+
 | Type | Format | Example |
 |------|--------|---------|
-| Feature | `feat/description` | `feat/mind-mapping-canvas` |
-| Bug fix | `fix/description` | `fix/dependency-cycle` |
-| Docs | `docs/description` | `docs/api-reference` |
-| Refactor | `refactor/description` | `refactor/timeline-component` |
+| Feature | `feat/description` | `feat/work-item-review-system` |
+| Bug fix | `fix/description` | `fix/timeline-calculation-loop` |
+| Docs | `docs/description` | `docs/update-api-reference` |
+| Refactor | `refactor/description` | `refactor/auth-service` |
+| Test | `test/description` | `test/e2e-workspace-crud` |
 
-### Rules
-- ❌ Never commit directly to `main`
-- ✅ Create branch → implement → PR → merge
-- ✅ Use descriptive branch names
-- ✅ One feature per branch
+---
 
 ### Commit Message Format
+
 ```
-feat: add mind mapping canvas with ReactFlow
-fix: resolve circular dependency detection
-docs: update API reference for work items
-refactor: extract timeline utils to separate module
+<type>: <short description (50 chars max)>
+
+[Optional body explaining WHY this change was made]
 ```
 
-### Parallel Development (Git Worktrees)
-Work on multiple features simultaneously:
-```bash
-# Create worktree for parallel feature
-git worktree add ../feature-x feat/feature-x
+**Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
 
-# Work in separate directory
-cd ../feature-x
+**Good Examples**:
+- `feat: add dark mode toggle to user settings`
+- `fix: resolve infinite loop in timeline calculation`
+- `docs: update API reference for work items endpoint`
 
-# Remove when done
-git worktree remove ../feature-x
-```
+**Bad Examples**: `Update files`, `fix bug`, `changes`, `WIP`
+
+---
+
+### Enforcing the Workflow
+
+**Option A: Branch Protection** (Recommended for solo)
+- GitHub → Settings → Branches → Add rule for `main`
+- Require PR before merging (0 approvals for self-merge)
+- Allow bypass for emergencies
+
+**Option B: Pre-Push Hook** (Strict)
+- Install Husky: `npm install --save-dev husky`
+- Create hook to block direct pushes to main
+- See full guide for implementation
 
 ---
 

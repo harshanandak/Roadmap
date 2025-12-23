@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Get current branch name
+branch=$(git branch --show-current)
+
+# Block push to main
+if [ "$branch" = "main" ]; then
+  echo ""
+  echo "🚫 Direct push to main blocked!"
+  echo ""
+  echo "Please use the feature branch workflow:"
+  echo "  1. git checkout -b feat/your-feature"
+  echo "  2. Make changes and commit"
+  echo "  3. git push -u origin feat/your-feature"
+  echo "  4. Create PR: gh pr create"
+  echo ""
+  echo "Or if you REALLY need to push to main (emergency):"
+  echo "  git push --no-verify"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Pushing to branch: $branch"

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Pre-commit hook disabled - using pre-push hook instead
+# Add any pre-commit checks here if needed
