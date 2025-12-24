@@ -367,16 +367,39 @@ export function VersionHistory({
     )
   }
 
-  // Error state
+  // Error state - show specific error messages for different scenarios
   if (error) {
+    // Determine error type for appropriate messaging
+    const isAccessDenied = error.includes('team context') || error.includes('permission')
+    const isNotFound = error.includes('not found') || error.includes('404')
+
     return (
       <div className={cn('space-y-4', className)}>
         <div className="flex items-center gap-2">
           <History className="h-5 w-5 text-muted-foreground" />
           <h3 className="font-semibold">Version History</h3>
         </div>
-        <Card className="p-4 text-center text-muted-foreground">
-          <p>Could not load version history</p>
+        <Card className="p-4 text-center">
+          {isAccessDenied ? (
+            <div className="text-amber-600">
+              <p className="font-medium">Access Denied</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                You don&apos;t have permission to view version history for this work item.
+              </p>
+            </div>
+          ) : isNotFound ? (
+            <div className="text-red-600">
+              <p className="font-medium">Work Item Not Found</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                The work item may have been deleted or moved.
+              </p>
+            </div>
+          ) : (
+            <div className="text-muted-foreground">
+              <p>Could not load version history</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+          )}
         </Card>
       </div>
     )
