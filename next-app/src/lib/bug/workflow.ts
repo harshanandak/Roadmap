@@ -255,7 +255,7 @@ export function getAllowedTransitions(currentPhase: BugPhase): BugPhase[] {
 /**
  * Check if triage data is complete enough to proceed
  */
-export function isTriageComplete(triage?: BugTriageData): boolean {
+export function isTriageComplete(triage?: Partial<BugTriageData>): boolean {
   if (!triage) return false
   // Severity is required
   if (!triage.severity) return false
@@ -269,7 +269,7 @@ export function isTriageComplete(triage?: BugTriageData): boolean {
 /**
  * Get missing triage fields
  */
-export function getMissingTriageFields(triage?: BugTriageData): string[] {
+export function getMissingTriageFields(triage?: Partial<BugTriageData>): string[] {
   const missing: string[] = []
   if (!triage?.severity) missing.push('Severity')
   if (triage?.reproducible === undefined) missing.push('Reproducible status')
@@ -282,7 +282,7 @@ export function getMissingTriageFields(triage?: BugTriageData): string[] {
 /**
  * Get triage completion percentage
  */
-export function getTriageCompletionPercent(triage?: BugTriageData): number {
+export function getTriageCompletionPercent(triage?: Partial<BugTriageData>): number {
   if (!triage) return 0
 
   let completed = 0
