@@ -69,10 +69,10 @@ Before starting this implementation:
 
 | Phase | Focus | Duration | Dependencies |
 |-------|-------|----------|--------------|
-| [Phase 1](phase-1-foundations.md) | Core Infrastructure | 2 weeks | Week 8 complete |
-| [Phase 2](phase-2-mcp-gateway.md) | MCP Gateway | 2 weeks | Phase 1 |
-| [Phase 3](phase-3-gemini-knowledge.md) | Gemini Knowledge Layer | 2 weeks | Phase 1 |
-| [Phase 4](phase-4-collective-intelligence.md) | Collective Intelligence | 3 weeks | Phases 2 & 3 |
+| Phase 1 | Core Infrastructure | 2 weeks | Week 8 complete |
+| Phase 2 | MCP Gateway | 2 weeks | Phase 1 |
+| Phase 3 | Gemini Knowledge Layer | 2 weeks | Phase 1 |
+| Phase 4 | Collective Intelligence | 3 weeks | Phases 2 & 3 |
 
 **Total Duration**: ~9 weeks
 
@@ -82,19 +82,19 @@ Before starting this implementation:
 
 ### Implementation Phases
 
-| Document | Content |
-|----------|---------|
-| [Phase 1: Core Infrastructure](phase-1-foundations.md) | Token efficiency, tool accuracy, multi-model support, error handling, streaming |
-| [Phase 2: MCP Gateway](phase-2-mcp-gateway.md) | Docker MCP integration, OAuth flow, organization-level connections, 270+ integrations |
-| [Phase 3: Gemini Knowledge](phase-3-gemini-knowledge.md) | Gemini File Search, document upload, corpus management, citations, metadata |
-| [Phase 4: Collective Intelligence](phase-4-collective-intelligence.md) | Universal knowledge compression, team knowledge graph, hierarchical summaries |
+| Phase | Content |
+|-------|---------|
+| Phase 1: Core Infrastructure | Token efficiency, tool accuracy, multi-model support, error handling, streaming |
+| Phase 2: MCP Gateway | Docker MCP integration, OAuth flow, organization-level connections, 270+ integrations |
+| Phase 3: Gemini Knowledge | Gemini File Search, document upload, corpus management, citations, metadata |
+| Phase 4: Collective Intelligence | Universal knowledge compression, team knowledge graph, hierarchical summaries |
 
 ### Reference Documents
 
 | Document | Content |
 |----------|---------|
-| [Mitigations Reference](mitigations-reference.md) | 12 production challenge categories with research-backed solutions |
-| [Implementation Priority](implementation-priority.md) | What to build first (Critical → Important → Enhancement) |
+| Mitigations Reference | 12 production challenge categories with research-backed solutions |
+| Implementation Priority | What to build first (Critical → Important → Enhancement) |
 
 ---
 
@@ -122,7 +122,7 @@ Before starting this implementation:
 | Research | "Competitor X uses feature Y" |
 | Questions | "How does billing work?" |
 | Meeting Notes | "Discussed Q4 priorities" |
-| And 14+ more types... | See [Phase 4](phase-4-collective-intelligence.md) |
+| And 14+ more types... | See Phase 4: Collective Intelligence |
 
 ### Knowledge Compression Pyramid
 
@@ -180,4 +180,4 @@ L1: Raw Items (Preserved) ─────  Individual decisions, ideas, feedback
 
 ---
 
-**Next Step**: [Phase 1: Core Infrastructure →](phase-1-foundations.md)
+**Next Step**: Phase 1 - Core Infrastructure (implementation details to be added)

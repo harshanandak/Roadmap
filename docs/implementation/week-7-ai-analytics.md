@@ -595,7 +595,7 @@ Complete workspace analysis service with health scoring algorithm, mismatch dete
 
 **Links:**
 - Consolidation: [docs/ARCHITECTURE_CONSOLIDATION.md](../ARCHITECTURE_CONSOLIDATION.md)
-- Session 1: [next-app/src/lib/phase/readiness-calculator.ts](../../next-app/src/lib/phase/readiness-calculator.ts)
+- Session 1: Phase readiness calculator (planned, not yet implemented)
 
 ---
 

@@ -216,8 +216,7 @@ For an open-source self-hosted application:
 **Result**: ✅ **PROCEED in Week 11-12** - All validation criteria met
 
 **References**:
-- **Strategic Decision**: [docs/research/metorial-integration-decision.md](../research/metorial-integration-decision.md)
-- **Full Plan**: `C:\Users\harsh\.claude\plans\kind-mapping-quasar.md`
+- **Strategic Decision**: Metorial integration decision (documented in session)
 - **Progress Entry**: [docs/planning/PROGRESS.md](../planning/PROGRESS.md#metorial-integration---strategic-decision--2025-12-23)
 - **External**: https://metorial.com/ | https://docs.metorial.com/
 

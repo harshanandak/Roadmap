@@ -185,7 +185,6 @@ Task(code-reviewer, files) -> wait -> Task(architect-review, files)
 
 - [CLAUDE.md](../../CLAUDE.md) - Project guidelines with slash command reference
 - [RECOMMENDED_AGENTS.md](../planning/RECOMMENDED_AGENTS.md) - Claude agents by phase
-- [Plan File](../../.claude/plans/woolly-baking-kite.md) - Full implementation plan
 
 ---
 
