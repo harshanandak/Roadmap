@@ -181,7 +181,7 @@ export function BugPhaseStepperInline({
   currentPhase: BugPhase
   className?: string
 }) {
-  const config = getBugPhaseConfig(currentPhase)
+  const config = BUG_PHASE_CONFIG[currentPhase]
   const currentIndex = getPhaseIndex(currentPhase)
 
   return (
