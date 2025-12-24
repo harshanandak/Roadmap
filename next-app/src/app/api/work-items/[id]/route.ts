@@ -35,7 +35,6 @@ interface WorkItemUpdateData {
   progress_percent?: number | null
   title?: string
   description?: string | null
-  status?: string
   has_timeline_breakdown?: boolean
   assigned_to?: string | null
   is_mind_map_conversion?: boolean
@@ -216,10 +215,9 @@ export async function PATCH(
     if (body.actual_hours !== undefined) updateData.actual_hours = body.actual_hours
     if (body.progress_percent !== undefined) updateData.progress_percent = body.progress_percent
 
-    // Legacy fields (for backward compatibility)
+    // Additional work item fields
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
-    if (body.status !== undefined) updateData.status = body.status
     if (body.has_timeline_breakdown !== undefined) updateData.has_timeline_breakdown = body.has_timeline_breakdown
     if (body.assigned_to !== undefined) updateData.assigned_to = body.assigned_to
     if (body.is_mind_map_conversion !== undefined) updateData.is_mind_map_conversion = body.is_mind_map_conversion
@@ -234,10 +232,11 @@ export async function PATCH(
 
     // 6. Recalculate phase if relevant fields changed
     // Updated 2025-12-13: Always recalculate phase based on merged data
+    // Note: phase IS the status per architecture - no separate status field
     const mergedItem = {
       ...currentItem,
       ...updateData,
-      status: updateData.status ?? currentItem.status,
+      phase: updateData.phase ?? currentItem.phase,
       has_timeline_breakdown: updateData.has_timeline_breakdown ?? currentItem.has_timeline_breakdown,
       assigned_to: updateData.assigned_to ?? currentItem.assigned_to,
       is_mind_map_conversion: updateData.is_mind_map_conversion ?? currentItem.is_mind_map_conversion,

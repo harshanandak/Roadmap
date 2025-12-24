@@ -255,11 +255,11 @@ export function ConceptWorkflowPanel() {
           </div>
 
           {/* Rejection Reason (if rejected) */}
-          {currentPhase === 'rejected' && (workItem as any).rejection_reason && (
+          {currentPhase === 'rejected' && workItem.rejection_reason && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                <strong>Rejection Reason:</strong> {(workItem as any).rejection_reason}
+                <strong>Rejection Reason:</strong> {workItem.rejection_reason}
               </AlertDescription>
             </Alert>
           )}
@@ -304,7 +304,13 @@ export function ConceptWorkflowPanel() {
 
       {/* Dialogs */}
       <ConceptPromotionDialog
-        concept={workItem as any}
+        concept={{
+          id: workItem.id,
+          name: workItem.title, // WorkItemData uses 'title', DB uses 'name'
+          description: workItem.description,
+          workspace_id: workItem.workspace_id,
+          team_id: workItem.team_id,
+        }}
         open={showPromotionDialog}
         onOpenChange={setShowPromotionDialog}
         onPromote={(featureId) => {

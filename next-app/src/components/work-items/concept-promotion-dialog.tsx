@@ -26,7 +26,7 @@ import { Loader2, Rocket } from 'lucide-react'
 
 export interface ConceptForPromotion {
   id: string
-  title: string
+  name: string
   description: string | null
   workspace_id: string
   team_id: string
@@ -48,7 +48,7 @@ export function ConceptPromotionDialog({
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  const [featureName, setFeatureName] = useState(concept.title)
+  const [featureName, setFeatureName] = useState(concept.name)
   const [featureDescription, setFeatureDescription] = useState(
     concept.description || ''
   )
@@ -69,7 +69,7 @@ export function ConceptPromotionDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: featureName.trim(),
+          name: featureName.trim(),
           description: featureDescription.trim() || null,
           type: 'feature',
           phase: 'design', // Start in design phase
