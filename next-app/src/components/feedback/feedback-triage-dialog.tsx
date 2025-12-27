@@ -81,9 +81,10 @@ export function FeedbackTriageDialog({
       onOpenChange(false)
       onSuccess?.()
     } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to triage feedback'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to triage feedback',
+        description: message,
         variant: 'destructive',
       })
     } finally {

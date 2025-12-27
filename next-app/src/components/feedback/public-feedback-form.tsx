@@ -126,7 +126,8 @@ export function PublicFeedbackForm({
       onSuccess?.()
     } catch (error: unknown) {
       console.error('Feedback submission error:', error)
-      onError?.(error.message || 'Failed to submit feedback')
+      const message = error instanceof Error ? error.message : 'Failed to submit feedback'
+      onError?.(message)
     } finally {
       setIsSubmitting(false)
     }

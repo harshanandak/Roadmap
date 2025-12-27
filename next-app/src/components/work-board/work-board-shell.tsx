@@ -86,6 +86,11 @@ interface DummyTask {
   updated_at?: string
   workspace_id?: string
   team_id?: string
+  due_date?: string | null
+  estimated_hours?: number | null
+  actual_hours?: number | null
+  order_index?: number
+  created_by?: string
   [key: string]: unknown
 }
 
@@ -110,8 +115,6 @@ function WorkBoardContent({
   teamMembers = [],
   className,
   dummyTasks = [],
-  _userEmail,
-  _userName,
 }: WorkBoardShellProps) {
   const { primaryTab, viewMode, filters, clearFilters, hasActiveFilters } = useWorkBoardContext()
   const [addTaskOpen, setAddTaskOpen] = useState(false)
@@ -422,7 +425,7 @@ function TasksContent({ workspace, viewMode, filters, dummyTasks = [] }: TasksCo
       externalStatusFilter={filters.status as 'todo' | 'in_progress' | 'done' | 'all' || 'all'}
       externalTypeFilter={filters.type as 'research' | 'design' | 'development' | 'qa' | 'marketing' | 'ops' | 'admin' | 'all' || 'all'}
       externalViewMode={viewMode}
-      dummyTasks={dummyTasks as unknown as typeof dummyTasks}
+      dummyTasks={dummyTasks as Parameters<typeof TaskList>[0]['dummyTasks']}
       onWorkItemClick={navigateToWorkItem}
     />
   )

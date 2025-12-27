@@ -11,16 +11,29 @@ import { useState, useCallback } from 'react'
 import { UnifiedCanvas } from './unified-canvas'
 import { ConvertNoteDialog } from './convert-note-dialog'
 import { createClient } from '@/lib/supabase/client'
-import { Tables } from '@/lib/supabase/database.types'
 import { useRouter } from 'next/navigation'
 
-type WorkItem = Tables<'work_items'>
+/** Work item for canvas (accepts any shape with id and required fields) */
+interface WorkItem {
+  id: string
+  name?: string | null
+  type?: string | null
+  phase?: string | null
+  priority?: string | null
+  [key: string]: unknown
+}
 
+/** Linked item for canvas (normalized fields) */
 interface LinkedItem {
   id: string
-  source_item_id: string
-  target_item_id: string
-  relationship_type: string
+  source_item_id?: string
+  target_item_id?: string
+  source_id?: string
+  target_id?: string
+  relationship_type?: string
+  link_type?: string
+  team_id?: string
+  [key: string]: unknown
 }
 
 interface CanvasViewWrapperProps {
@@ -65,12 +78,14 @@ export function CanvasViewWrapper({
 
   // Create link between work items
   const handleLinkCreate = useCallback(
-    async (link: { source_item_id: string; target_item_id: string; link_type: string }) => {
+    async (link: Omit<LinkedItem, 'id' | 'team_id'>) => {
       try {
         const { error } = await supabase.from('linked_items').insert({
           id: Date.now().toString(),
           team_id: teamId,
-          ...link,
+          source_item_id: link.source_item_id || link.source_id || '',
+          target_item_id: link.target_item_id || link.target_id || '',
+          relationship_type: link.link_type || link.relationship_type || 'relates_to',
         })
 
         if (error) {
@@ -201,8 +216,8 @@ export function CanvasViewWrapper({
 
   // Get workspace context for AI analysis
   const workspaceContext = {
-    existingTypes: Array.from(new Set(initialWorkItems.map((item) => item.type))),
-    existingTags: [], // TODO: Fetch tags from workspace
+    existingTypes: Array.from(new Set(initialWorkItems.map((item) => item.type).filter((t): t is string => typeof t === 'string'))),
+    existingTags: [] as string[], // TODO: Fetch tags from workspace
   }
 
   return (
@@ -222,7 +237,7 @@ export function CanvasViewWrapper({
         <ConvertNoteDialog
           open={convertNoteDialogOpen}
           onOpenChange={setConvertNoteDialogOpen}
-          noteContent={selectedNote.note_content || ''}
+          noteContent={(selectedNote.note_content as string) || ''}
           workspaceContext={workspaceContext}
           onConvert={handleNoteConvert}
         />

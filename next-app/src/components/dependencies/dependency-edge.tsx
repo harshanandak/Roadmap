@@ -6,9 +6,13 @@ import {
   EdgeLabelRenderer,
   EdgeProps,
   getBezierPath,
+  Edge,
 } from '@xyflow/react'
 import type { DependencyEdgeData } from '@/lib/types/dependencies'
 import { CONNECTION_TYPE_CONFIGS } from '@/lib/types/dependencies'
+
+// Define the edge type that ReactFlow v12+ expects
+type DependencyGraphEdge = Edge<DependencyEdgeData>
 
 export const DependencyEdge = memo(
   ({
@@ -21,8 +25,10 @@ export const DependencyEdge = memo(
     targetPosition,
     data,
     selected,
-  }: EdgeProps<DependencyEdgeData>) => {
-    const { connection, isOnCriticalPath } = data || {}
+  }: EdgeProps<DependencyGraphEdge>) => {
+    // Cast data to DependencyEdgeData for proper type access
+    const edgeData = data as DependencyEdgeData | undefined
+    const { connection, isOnCriticalPath } = edgeData || {}
 
     const [edgePath, labelX, labelY] = getBezierPath({
       sourceX,

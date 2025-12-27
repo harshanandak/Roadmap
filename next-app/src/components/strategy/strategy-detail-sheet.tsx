@@ -112,7 +112,6 @@ export function StrategyDetailSheet({
   strategy,
   open,
   onOpenChange,
-  __isLoading = false,
   onEdit,
   onDelete,
   onAddChild,

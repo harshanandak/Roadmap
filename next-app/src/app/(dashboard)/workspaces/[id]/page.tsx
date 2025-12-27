@@ -216,7 +216,7 @@ export default async function WorkspacePage({
   // Calculate phase distribution and stats
   const phaseDistribution = calculatePhaseDistribution(workItems || [])
 
-  // Calculate onboarding state
+  // Calculate onboarding state - Use 'phase' field (phase IS the status)
   const onboardingState = {
     hasWorkItems: (workItems?.length || 0) > 0,
     hasMindMaps: (mindMaps?.length || 0) > 0,
@@ -226,21 +226,54 @@ export default async function WorkspacePage({
     completionPercentage:
       workItems && workItems.length > 0
         ? Math.round(
-          ((workItems.filter((item) => item.status === 'completed').length || 0) /
+          ((workItems.filter((item) => item.phase === 'launch' || item.phase === 'verified' || item.phase === 'validated').length || 0) /
             workItems.length) *
           100
         )
         : 0,
   }
 
+  // Construct team object from query result
+  const teamData = {
+    id: workspace.team_id,
+    name: team?.name || 'Unknown Team',
+    created_at: new Date().toISOString(),
+    owner_id: user.id,
+    plan: (team?.subscription_plan as 'free' | 'pro' | null) || 'free',
+  }
+
+  // Map work items to include status field (derived from phase for component compatibility)
+  const mappedWorkItems = (workItems || []).map((item) => ({
+    ...item,
+    // Status is derived from phase for backward compatibility with components
+    status: item.phase || 'design',
+    owner: item.assigned_to || null,
+  }))
+
+  // Map timeline items to include title and required fields
+  const mappedTimelineItems = (timelineItems || []).map((item) => ({
+    ...item,
+    title: item.name || '',
+    work_item_id: item.work_item_id || '',
+    timeline: item.timeline || 'MVP',
+  }))
+
+  // Map linked items to include required fields
+  const mappedLinkedItems = (linkedItems || []).map((item) => ({
+    ...item,
+    link_type: item.relationship_type || 'relates_to',
+    source_id: item.source_item_id || '',
+    target_id: item.target_item_id || '',
+  }))
+
   return (
     <WorkspaceContent
       view={view}
       workspace={workspace}
-      team={team}
-      workItems={workItems || []}
-      timelineItems={timelineItems || []}
-      linkedItems={linkedItems || []}
+      team={teamData}
+      workItems={mappedWorkItems}
+      timelineItems={mappedTimelineItems}
+      linkedItems={mappedLinkedItems}
       mindMaps={mindMaps || []}
       tags={tags || []}
       departments={departments || []}

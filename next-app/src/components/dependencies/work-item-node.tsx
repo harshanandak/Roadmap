@@ -1,21 +1,22 @@
 'use client'
 
 import { memo } from 'react'
-import { Handle, Position, NodeProps } from '@xyflow/react'
+import { Handle, Position, NodeProps, Node } from '@xyflow/react'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { AlertCircle, Link2, TrendingUp } from 'lucide-react'
 import type { WorkItemNodeData } from '@/lib/types/dependencies'
 import { getItemIcon, getItemLabel } from '@/lib/constants/work-item-types'
 
-// Status color mapping
-const STATUS_COLORS = {
-  not_started: 'bg-gray-100 text-gray-800',
-  planned: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-green-100 text-green-800',
-  on_hold: 'bg-orange-100 text-orange-800',
-  cancelled: 'bg-red-100 text-red-800',
+// Phase color mapping (work items use phase as status)
+const PHASE_COLORS = {
+  research: 'bg-purple-100 text-purple-800',
+  planning: 'bg-blue-100 text-blue-800',
+  execution: 'bg-yellow-100 text-yellow-800',
+  review: 'bg-orange-100 text-orange-800',
+  complete: 'bg-green-100 text-green-800',
+  design: 'bg-indigo-100 text-indigo-800',
+  triage: 'bg-gray-100 text-gray-800',
 }
 
 // Priority color mapping
@@ -26,8 +27,13 @@ const PRIORITY_COLORS = {
   critical: 'bg-red-100 text-red-600',
 }
 
-export const WorkItemNode = memo(({ data, selected }: NodeProps<WorkItemNodeData>) => {
-  const { workItem, isOnCriticalPath, dependencyCount, dependentCount, riskScore } = data
+// Define the node type that ReactFlow v12+ expects
+type WorkItemGraphNode = Node<WorkItemNodeData>
+
+export const WorkItemNode = memo(({ data, selected }: NodeProps<WorkItemGraphNode>) => {
+  // Cast data to WorkItemNodeData for proper type access
+  const nodeData = data as WorkItemNodeData
+  const { workItem, isOnCriticalPath, dependencyCount, dependentCount, riskScore } = nodeData
 
   return (
     <Card
@@ -76,9 +82,9 @@ export const WorkItemNode = memo(({ data, selected }: NodeProps<WorkItemNodeData
         <div className="flex flex-wrap gap-1">
           <Badge
             variant="secondary"
-            className={`text-xs ${STATUS_COLORS[workItem.status as keyof typeof STATUS_COLORS] || STATUS_COLORS.not_started}`}
+            className={`text-xs ${PHASE_COLORS[workItem.phase as keyof typeof PHASE_COLORS] || PHASE_COLORS.research}`}
           >
-            {workItem.status.replace('_', ' ')}
+            {(workItem.phase || 'research').replace('_', ' ')}
           </Badge>
           <Badge
             variant="secondary"

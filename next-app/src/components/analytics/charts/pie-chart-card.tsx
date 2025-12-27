@@ -129,7 +129,7 @@ export function AnalyticsPieChart({
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltipContent total={total} />} />
-              {showLegend && <Legend content={renderLegend} />}
+              {showLegend && <Legend content={(props) => renderLegend(props as { payload?: LegendPayloadItem[] })} />}
             </PieChart>
           </ResponsiveContainer>
         )}

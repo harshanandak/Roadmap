@@ -120,6 +120,7 @@ export async function GET(request: NextRequest) {
       user_id: string
       name: string | null
       email: string | null
+      assigned_at?: string
     }
     const leadsByPhase: Record<WorkspacePhase, PhaseLeadInfo[]> = {
       design: [],

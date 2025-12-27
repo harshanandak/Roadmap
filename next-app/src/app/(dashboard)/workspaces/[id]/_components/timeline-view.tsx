@@ -75,7 +75,7 @@ export function TimelineView({
       return {
         id: item.id,
         name: item.name || item.title || 'Untitled',
-        timeline_phase: item.timeline_phase || 'MVP',
+        timeline_phase: (item.timeline_phase || 'MVP') as 'MVP' | 'SHORT' | 'LONG',
         status: item.status || 'planned',
         priority: item.priority,
         planned_start_date: item.start_date || item.planned_start_date,
@@ -85,7 +85,10 @@ export function TimelineView({
         assignee: item.assignee,
         team: item.team,
         department_id: item.department_id,
-        department: item.department,
+        // Convert string department to object if needed
+        department: typeof item.department === 'string'
+          ? { id: item.department_id || item.department, name: item.department, color: '#gray', icon: '' }
+          : item.department,
       };
     });
   }, [workItems, linkedItems]);

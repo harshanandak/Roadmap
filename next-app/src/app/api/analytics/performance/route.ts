@@ -89,9 +89,12 @@ export async function GET(req: NextRequest) {
       .eq('team_id', teamId)
 
     const memberMap: Record<string, string> = {}
-    members?.forEach((m: { user_id: string; users: { name: string | null; email: string } | null }) => {
-      if (m.users && m.user_id) {
-        memberMap[m.user_id] = m.users.name || m.users.email || 'Unknown'
+    members?.forEach((m) => {
+      // Handle Supabase join returning array or single object
+      const usersData = m.users;
+      const userInfo = Array.isArray(usersData) ? usersData[0] : usersData;
+      if (userInfo && m.user_id) {
+        memberMap[m.user_id] = userInfo.name || userInfo.email || 'Unknown'
       }
     })
 

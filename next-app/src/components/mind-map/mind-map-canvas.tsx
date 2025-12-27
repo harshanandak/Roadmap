@@ -30,22 +30,24 @@ interface MindMapCanvasProps {
   mindMapId: string
   initialNodes: MindMapReactFlowNode[]
   initialEdges: MindMapReactFlowEdge[]
-  onNodesChange?: (nodes: Node<MindMapNodeData>[]) => void
-  onEdgesChange?: (edges: Edge[]) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onNodesChange?: (nodes: any) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEdgesChange?: (edges: any) => void
   onEditNode?: (nodeId: string) => void
   onDeleteNode?: (nodeId: string) => void
   onConvertNode?: (nodeId: string) => void
   readOnly?: boolean
 }
 
-// Define custom node types
-const nodeTypes: NodeTypes = {
+// Define custom node types with proper casting for ReactFlow v12+
+const nodeTypes = {
   idea: IdeaNode,
   problem: ProblemNode,
   solution: SolutionNode,
   feature: FeatureNode,
   question: QuestionNode,
-}
+} as NodeTypes
 
 export function MindMapCanvas({
   mindMapId: _mindMapId,
@@ -55,7 +57,7 @@ export function MindMapCanvas({
   onEdgesChange,
   onEditNode,
   onDeleteNode,
-  onConvertNode: _onConvertNode,
+  onConvertNode,
   readOnly = false,
 }: MindMapCanvasProps) {
   const [nodes, setNodes, handleNodesChange] = useNodesState(initialNodes)
@@ -129,7 +131,7 @@ export function MindMapCanvas({
         onConvert: onConvertNode,
       },
     }))
-  }, [nodes, onEditNode, onDeleteNode])
+  }, [nodes, onEditNode, onDeleteNode, onConvertNode])
 
   // Auto-save on changes (debounced)
   useEffect(() => {

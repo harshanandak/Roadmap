@@ -162,7 +162,18 @@ export default async function TeamSettingsPage({
           </CardHeader>
           <CardContent>
             <TeamMembersList
-              members={(members as { id: string; user_id: string; role: string; joined_at: string; users: { id: string; email: string; name: string | null; avatar_url: string | null } | null }[]) || []}
+              members={(members || []).map((m) => {
+                // Handle Supabase join returning array or single object
+                const usersData = m.users;
+                const userInfo = Array.isArray(usersData) ? usersData[0] : usersData;
+                return {
+                  id: m.id,
+                  user_id: m.user_id,
+                  role: m.role,
+                  joined_at: m.joined_at,
+                  users: userInfo || null,
+                };
+              })}
               currentUserId={user.id}
               currentUserRole={membership.role}
               teamId={id}

@@ -51,8 +51,17 @@ import { TextNode } from './nodes/shapes/text-node'
 import { ArrowNode } from './nodes/shapes/arrow-node'
 import { WorkItemReferenceNode } from './nodes/shapes/work-item-reference-node'
 import { ShapeType, SHAPE_TYPE_CONFIGS, NodeType } from '@/lib/types/mind-map'
-import type { WorkItem } from '@/lib/types/work-items'
 import { cn } from '@/lib/utils'
+
+/** Work item structure for canvas references (matches WorkItemSearchDialog) */
+interface CanvasWorkItem {
+  id: string
+  title: string
+  description?: string
+  status: string
+  timeline?: 'MVP' | 'SHORT' | 'LONG'
+  assignee_name?: string
+}
 
 export interface FreeformCanvasProps {
   mindMapId: string
@@ -197,7 +206,7 @@ export function FreeformCanvas({
   ])
 
   const handleAddWorkItemReference = useCallback(
-    (workItem: WorkItem) => {
+    (workItem: CanvasWorkItem) => {
       if (!pendingNodePosition) return
 
       const config = SHAPE_TYPE_CONFIGS['work_item_reference']

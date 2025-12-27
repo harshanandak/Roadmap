@@ -59,10 +59,19 @@ export async function PATCH(
     }
 
     // Verify user is a team member
+    // Handle Supabase returning array or single object for joined data
+    const workspacesData = workItem.workspaces
+    const workspaceInfo = Array.isArray(workspacesData) ? workspacesData[0] : workspacesData
+    const teamId = (workspaceInfo as { team_id: string } | null)?.team_id
+
+    if (!teamId) {
+      return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
+    }
+
     const { data: membership } = await supabase
       .from('team_members')
       .select('role')
-      .eq('team_id', (workItem.workspaces as { team_id: string }).team_id)
+      .eq('team_id', teamId)
       .eq('user_id', user.id)
       .single()
 

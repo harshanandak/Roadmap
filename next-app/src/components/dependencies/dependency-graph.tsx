@@ -53,6 +53,7 @@ import type {
   WorkItemConnection,
   DependencyGraphNode,
   DependencyGraphEdge,
+  ConnectionType,
 } from '@/lib/types/dependencies'
 import type { CriticalPathNode } from '@/lib/algorithms/critical-path'
 import type { Cycle } from '@/lib/algorithms/cycle-detection'
@@ -72,15 +73,15 @@ interface DependencyGraphProps {
 
 import type { NodeTypes, EdgeTypes } from '@xyflow/react'
 
-// Define custom node types
-const nodeTypes: NodeTypes = {
+// Define custom node types with proper casting for ReactFlow v12+
+const nodeTypes = {
   workItem: WorkItemNode,
-}
+} as NodeTypes
 
-// Define custom edge types
-const edgeTypes: EdgeTypes = {
+// Define custom edge types with proper casting for ReactFlow v12+
+const edgeTypes = {
   dependency: DependencyEdge,
-}
+} as EdgeTypes
 
 interface AnalysisResult {
   hasCycles: boolean
@@ -255,7 +256,7 @@ function DependencyGraphInner({
   interface AISuggestion {
     sourceId: string
     targetId: string
-    connectionType: string
+    connectionType: ConnectionType
     strength: number
     reason: string
   }

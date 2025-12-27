@@ -89,7 +89,11 @@ export async function POST(
       public_feedback_enabled: boolean
       voting_settings?: VotingSettings
     }
-    const workspace = insight.workspaces as WorkspaceData | null
+    // Handle Supabase returning array or single object for joined data
+    const workspacesData = insight.workspaces
+    const workspace = Array.isArray(workspacesData)
+      ? (workspacesData[0] as WorkspaceData | undefined) || null
+      : (workspacesData as unknown as WorkspaceData | null)
     const votingSettings = workspace?.voting_settings || {
       enabled: true,
       requireEmailVerification: false,

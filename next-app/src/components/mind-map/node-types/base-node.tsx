@@ -1,12 +1,15 @@
 'use client'
 
 import { memo, useState, useCallback } from 'react'
-import { Handle, Position, NodeProps } from '@xyflow/react'
+import { Handle, Position, NodeProps, Node } from '@xyflow/react'
 import { MindMapNodeData, NodeTypeConfig } from '@/lib/types/mind-map'
 import { Badge } from '@/components/ui/badge'
 import { Edit3 } from 'lucide-react'
 
-interface BaseNodeProps extends NodeProps<MindMapNodeData> {
+// Define the node type that ReactFlow v12+ expects
+type MindMapNode = Node<MindMapNodeData>
+
+interface BaseNodeProps extends NodeProps<MindMapNode> {
   config: NodeTypeConfig
   onEdit?: (nodeId: string) => void
   onDelete?: (nodeId: string) => void
@@ -22,8 +25,10 @@ export const BaseNode = memo(function BaseNode({
   onDelete: _onDelete,
   onConvert: _onConvert,
 }: BaseNodeProps) {
+  // Cast data to MindMapNodeData for proper type access
+  const nodeData = data as MindMapNodeData
   const [isEditing, setIsEditing] = useState(false)
-  const [title, setTitle] = useState(data.title)
+  const [title, setTitle] = useState(nodeData.title)
 
   const handleDoubleClick = useCallback(() => {
     setIsEditing(true)
@@ -40,10 +45,10 @@ export const BaseNode = memo(function BaseNode({
       // TODO: Save title change via API
     }
     if (e.key === 'Escape') {
-      setTitle(data.title)
+      setTitle(nodeData.title)
       setIsEditing(false)
     }
-  }, [data.title])
+  }, [nodeData.title])
 
   return (
     <div
@@ -114,7 +119,7 @@ export const BaseNode = memo(function BaseNode({
               style={{ color: config.color }}
               onDoubleClick={handleDoubleClick}
             >
-              {data.title}
+              {nodeData.title}
             </h3>
           )}
 
@@ -129,19 +134,19 @@ export const BaseNode = memo(function BaseNode({
         </div>
 
         {/* Description */}
-        {data.description && (
+        {nodeData.description && (
           <div className="p-3 pt-2">
             <p
               className="text-xs line-clamp-3"
               style={{ color: `${config.color}cc` }}
             >
-              {data.description}
+              {nodeData.description}
             </p>
           </div>
         )}
 
         {/* Converted Badge */}
-        {data.convertedToWorkItemId && (
+        {nodeData.convertedToWorkItemId && (
           <div className="px-3 pb-3">
             <Badge
               variant="secondary"

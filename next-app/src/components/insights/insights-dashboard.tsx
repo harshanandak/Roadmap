@@ -65,7 +65,7 @@ export function InsightsDashboard({
   const [selectedInsight, setSelectedInsight] = useState<CustomerInsightWithMeta | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userVote, setUserVote] = useState<VoteType | null>(null)
-  const [linkedWorkItems, setLinkedWorkItems] = useState<Array<{ id: string; name: string; type?: string }>>([])
+  const [linkedWorkItems, setLinkedWorkItems] = useState<Array<{ id: string; name: string; type: string; status: string }>>([])
   const [isLoadingWorkItems, setIsLoadingWorkItems] = useState(false)
 
   // Dialog state
@@ -119,7 +119,13 @@ export function InsightsDashboard({
       const response = await fetch(`/api/insights/${insightId}?include_links=true`)
       if (response.ok) {
         const data = await response.json()
-        setLinkedWorkItems(data.data?.linked_work_items || [])
+        const workItems = (data.data?.linked_work_items || []).map((item: { id: string; name: string; type?: string; status?: string }) => ({
+          id: item.id,
+          name: item.name,
+          type: item.type || 'feature',
+          status: item.status || 'design',
+        }))
+        setLinkedWorkItems(workItems)
       }
     } catch (error) {
       console.error('Error fetching linked work items:', error)

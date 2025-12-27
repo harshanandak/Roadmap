@@ -238,6 +238,22 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId: _worksp
     return today >= dateRange.start && today <= dateRange.end
   }, [dateRange])
 
+  // Get pixels per day based on zoom level
+  const getPixelsPerDay = useCallback(() => {
+    switch (zoomLevel) {
+      case 'day':
+        return 80
+      case 'week':
+        return 14 // 100px per week / 7 days
+      case 'month':
+        return 4 // 120px per month / 30 days (approx)
+      case 'quarter':
+        return 1.5 // 200px per quarter / ~90 days (approx)
+      default:
+        return 4
+    }
+  }, [zoomLevel])
+
   // Scroll to today
   const handleScrollToToday = useCallback(() => {
     const scrollContainer = scrollContainerRef.current
@@ -316,22 +332,6 @@ export function TimelineView({ workItems: initialWorkItems, workspaceId: _worksp
         return 'border-gray-300'
     }
   }
-
-  // Get pixels per day based on zoom level
-  const getPixelsPerDay = useCallback(() => {
-    switch (zoomLevel) {
-      case 'day':
-        return 80
-      case 'week':
-        return 14 // 100px per week / 7 days
-      case 'month':
-        return 4 // 120px per month / 30 days (approx)
-      case 'quarter':
-        return 1.5 // 200px per quarter / ~90 days (approx)
-      default:
-        return 4
-    }
-  }, [zoomLevel])
 
   // Handle drag end - calculate new dates and update
   const handleDragEnd = async (event: DragEndEvent) => {

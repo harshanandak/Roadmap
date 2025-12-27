@@ -219,9 +219,10 @@ export function InsightFormDialog({
       onOpenChange(false)
       onSuccess?.(data.data)
     } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : `Failed to ${isEditing ? 'update' : 'create'} insight`
       toast({
         title: 'Error',
-        description: error.message || `Failed to ${isEditing ? 'update' : 'create'} insight`,
+        description: message,
         variant: 'destructive',
       })
     } finally {

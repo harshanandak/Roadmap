@@ -254,8 +254,10 @@ export function RelationshipTogglePanel({
  */
 interface EdgeWithData {
   id: string
+  source?: string
+  target?: string
   data?: { linkType?: string }
-  label?: string
+  label?: unknown // ReactNode can be string, number, null, or React element
 }
 
 export function filterEdgesByRelationships<T extends EdgeWithData>(edges: T[], filters: RelationshipFilters): T[] {
@@ -276,7 +278,8 @@ export function filterEdgesByRelationships<T extends EdgeWithData>(edges: T[], f
   )
 
   return edges.filter((edge) => {
-    const linkType = edge.data?.linkType || edge.label?.toLowerCase().replace(' ', '_')
+    const labelStr = typeof edge.label === 'string' ? edge.label : ''
+    const linkType = edge.data?.linkType || labelStr.toLowerCase().replace(' ', '_') || 'relates_to'
     return activeLinkTypes.has(linkType)
   })
 }
