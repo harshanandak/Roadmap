@@ -181,8 +181,7 @@ export const chatCreateWorkItemTool = tool({
     'Create a new work item (feature, bug, concept, or enhancement) based on the user description. Always ask for confirmation before creating.',
   inputSchema: createWorkItemSchema,
   execute: async (
-    params: CreateWorkItemInput,
-    { toolCallId, abortSignal }
+    params: CreateWorkItemInput
   ): Promise<ConfirmationRequest> => {
     return createConfirmationRequest({
       toolName: 'createWorkItem',
@@ -212,8 +211,7 @@ export const chatCreateTaskTool = tool({
     'Create a task under an existing work item. Tasks are specific executable work items. Always ask for confirmation before creating.',
   inputSchema: createTaskSchema,
   execute: async (
-    params: CreateTaskInput,
-    { toolCallId, abortSignal }
+    params: CreateTaskInput
   ): Promise<ConfirmationRequest> => {
     return createConfirmationRequest({
       toolName: 'createTask',
@@ -239,8 +237,7 @@ export const chatCreateDependencyTool = tool({
     'Create a dependency or relationship between two work items. Always ask for confirmation before creating.',
   inputSchema: createDependencySchema,
   execute: async (
-    params: CreateDependencyInput,
-    { toolCallId, abortSignal }
+    params: CreateDependencyInput
   ): Promise<ConfirmationRequest> => {
     const typeLabels: Record<typeof params.connectionType, string> = {
       dependency: 'depends on',
@@ -276,8 +273,7 @@ export const chatCreateTimelineItemTool = tool({
     'Create a timeline breakdown (MVP, Short-term, or Long-term) under a work item. Always ask for confirmation before creating.',
   inputSchema: createTimelineItemSchema,
   execute: async (
-    params: CreateTimelineItemInput,
-    { toolCallId, abortSignal }
+    params: CreateTimelineItemInput
   ): Promise<ConfirmationRequest> => {
     const timeframeLabels: Record<typeof params.timeframe, string> = {
       mvp: 'MVP (Must Have)',
@@ -312,8 +308,7 @@ export const chatCreateInsightTool = tool({
     'Create a customer insight or feedback record. Always ask for confirmation before creating.',
   inputSchema: createInsightSchema,
   execute: async (
-    params: CreateInsightInput,
-    { toolCallId, abortSignal }
+    params: CreateInsightInput
   ): Promise<ConfirmationRequest> => {
     return createConfirmationRequest({
       toolName: 'createInsight',
@@ -351,8 +346,7 @@ export const chatAnalyzeFeedbackTool = tool({
     'Analyze customer feedback for sentiment and themes. This is read-only analysis.',
   inputSchema: analyzeFeedbackSchema,
   execute: async (
-    params: AnalyzeFeedbackInput,
-    { toolCallId, abortSignal }
+    params: AnalyzeFeedbackInput
   ): Promise<AnalysisScopeResult> => {
     return {
       type: 'analysis_scope',
@@ -375,8 +369,7 @@ export const chatSuggestDependenciesTool = tool({
     'Analyze work items to suggest missing dependencies. This is read-only analysis.',
   inputSchema: suggestDependenciesSchema,
   execute: async (
-    params: SuggestDependenciesInput,
-    { toolCallId, abortSignal }
+    params: SuggestDependenciesInput
   ): Promise<AnalysisScopeResult> => {
     return {
       type: 'analysis_scope',

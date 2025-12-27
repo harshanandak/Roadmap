@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useRouter } from 'next/navigation'
-import { Trash2, Eye, Edit } from 'lucide-react'
+import { Trash2, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface Feature {
@@ -40,7 +40,7 @@ interface WorkItemsListProps {
 export function WorkItemsList({
   features,
   workspaceId,
-  currentUserId,
+  currentUserId: _currentUserId,
 }: WorkItemsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -62,9 +62,10 @@ export function WorkItemsList({
 
       setDeletingId(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting work item:', error)
-      alert(error.message || 'Failed to delete work item')
+      const message = error instanceof Error ? error.message : 'Failed to delete work item'
+      alert(message)
     } finally {
       setLoading(false)
     }

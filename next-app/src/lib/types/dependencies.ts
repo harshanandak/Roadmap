@@ -114,7 +114,7 @@ export interface WorkItemConnection {
   strength: number // 0.0 to 1.0
   is_bidirectional: boolean
   reason?: string
-  evidence?: Record<string, any> // AI-generated supporting data
+  evidence?: Record<string, unknown> // AI-generated supporting data
   confidence: number // 0.0 to 1.0
   discovered_by: 'user' | 'ai' | 'system' | 'correlation_engine'
   status: 'active' | 'inactive' | 'rejected' | 'pending_review'

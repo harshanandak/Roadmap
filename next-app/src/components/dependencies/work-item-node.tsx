@@ -26,7 +26,7 @@ const PRIORITY_COLORS = {
   critical: 'bg-red-100 text-red-600',
 }
 
-export const WorkItemNode = memo(({ data, selected }: NodeProps<any>) => {
+export const WorkItemNode = memo(({ data, selected }: NodeProps<WorkItemNodeData>) => {
   const { workItem, isOnCriticalPath, dependencyCount, dependentCount, riskScore } = data
 
   return (

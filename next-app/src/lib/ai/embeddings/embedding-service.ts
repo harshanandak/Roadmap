@@ -108,8 +108,6 @@ export function chunkText(
       const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph]
 
       for (const sentence of sentences) {
-        const sentenceTokens = estimateTokens(sentence)
-
         if (estimateTokens(currentChunk + sentence) > maxTokens) {
           if (currentChunk.trim() && estimateTokens(currentChunk) >= minChunkSize) {
             chunks.push({

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Trash2, Tag, Users, Download, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { X, Trash2, Download, CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -29,7 +29,7 @@ interface BulkActionBarProps {
   onDelete?: () => Promise<void>
   onChangeStatus?: (status: string) => Promise<void>
   onChangePriority?: (priority: string) => Promise<void>
-  onAssign?: (userId: string) => Promise<void>
+  _onAssign?: (userId: string) => Promise<void>
   onExport?: () => void
   className?: string
 }
@@ -40,7 +40,7 @@ export function BulkActionBar({
   onDelete,
   onChangeStatus,
   onChangePriority,
-  onAssign,
+  _onAssign,
   onExport,
   className,
 }: BulkActionBarProps) {
@@ -62,7 +62,7 @@ export function BulkActionBar({
         description: successMessage,
       })
       onClearSelection()
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to perform action',

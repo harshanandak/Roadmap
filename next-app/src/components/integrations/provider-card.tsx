@@ -7,7 +7,6 @@
  * Shows provider info, available tools, and OAuth connection.
  */
 
-import { useState } from 'react'
 import {
   Card,
   CardContent,

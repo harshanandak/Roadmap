@@ -74,10 +74,11 @@ export async function GET(
       ...reviewLink,
       work_items: workItems || [],
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching review link by token:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch review link'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch review link' },
+      { error: message },
       { status: 500 }
     )
   }

@@ -7,7 +7,7 @@ import { Loader2, Check, AlertCircle } from 'lucide-react'
 
 export default function SetupUsersPage() {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const setupUsersTable = async () => {
@@ -28,8 +28,9 @@ export default function SetupUsersPage() {
       }
 
       setResult(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to setup users table')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to setup users table'
+      setError(message)
     } finally {
       setLoading(false)
     }

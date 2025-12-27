@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getAllModels, getChatModels, type ModelConfig } from '@/lib/ai/models-config'
+import { getChatModels } from '@/lib/ai/models-config'
 import type { RoutingDebugInfo } from '@/lib/ai/message-analyzer'
 
 // =============================================================================

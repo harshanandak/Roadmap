@@ -14,11 +14,41 @@ import { useMemo } from 'react';
 import { TimelineView as CoreTimelineView, TimelineWorkItem } from '@/components/timeline/timeline-view';
 import type { Department } from '@/lib/types/department';
 
+interface WorkspaceData {
+  id: string;
+  name: string;
+  team_id: string;
+}
+
+interface WorkItemData {
+  id: string;
+  name?: string;
+  title?: string;
+  timeline_phase?: string;
+  status?: string;
+  priority?: string;
+  start_date?: string;
+  planned_start_date?: string;
+  end_date?: string;
+  planned_end_date?: string;
+  duration_days?: number;
+  assignee?: string;
+  team?: string;
+  department_id?: string;
+  department?: string;
+}
+
+interface LinkedItemData {
+  source_id: string;
+  target_id: string;
+  link_type?: string;
+}
+
 interface TimelineViewProps {
-  workspace: any;
-  workItems: any[];
-  timelineItems: any[];
-  linkedItems: any[];
+  workspace: WorkspaceData;
+  workItems: WorkItemData[];
+  timelineItems: unknown[];
+  linkedItems: LinkedItemData[];
   departments: Department[];
   currentUserId: string;
 }
@@ -26,7 +56,7 @@ interface TimelineViewProps {
 export function TimelineView({
   workspace,
   workItems,
-  timelineItems,
+  timelineItems: _timelineItems,
   linkedItems,
   departments,
   currentUserId,

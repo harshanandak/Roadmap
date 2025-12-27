@@ -33,10 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  MessageSquare,
   Vote,
   Code,
   ExternalLink,
@@ -77,7 +75,7 @@ interface WorkspaceFeedbackSettingsProps {
 export function WorkspaceFeedbackSettings({
   workspaceId,
   workspaceName,
-  teamId,
+  teamId: _teamId,
   className,
 }: WorkspaceFeedbackSettingsProps) {
   const { toast } = useToast()
@@ -152,10 +150,11 @@ export function WorkspaceFeedbackSettings({
         description: 'Your feedback settings have been updated',
       })
       setHasChanges(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save settings'
       toast({
         title: 'Error',
-        description: err.message,
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -400,7 +399,7 @@ export function WorkspaceFeedbackSettings({
                         <Label>Theme</Label>
                         <Select
                           value={widgetSettings.theme}
-                          onValueChange={(v) => updateWidget('theme', v as any)}
+                          onValueChange={(v) => updateWidget('theme', v as WidgetSettings['theme'])}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -418,7 +417,7 @@ export function WorkspaceFeedbackSettings({
                         <Label>Position</Label>
                         <Select
                           value={widgetSettings.position}
-                          onValueChange={(v) => updateWidget('position', v as any)}
+                          onValueChange={(v) => updateWidget('position', v as WidgetSettings['position'])}
                         >
                           <SelectTrigger>
                             <SelectValue />

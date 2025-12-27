@@ -3,7 +3,6 @@
 import { UseFormReturn } from 'react-hook-form'
 import { WorkspacePhase } from '@/lib/constants/work-item-types'
 import { usePhaseAwareFields } from '@/hooks/use-phase-aware-fields'
-import { FieldLockIndicator } from './field-lock-indicator'
 import {
   FormControl,
   FormDescription,
@@ -24,8 +23,28 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Info } from 'lucide-react'
 
+interface WorkItemFormValues {
+  name: string
+  purpose: string
+  type: string
+  tags?: string[]
+  target_release?: string
+  acceptance_criteria?: string | string[]
+  business_value?: string
+  customer_impact?: string
+  strategic_alignment?: string
+  estimated_hours?: number
+  priority?: string
+  status?: string
+  actual_start_date?: string
+  actual_end_date?: string
+  actual_hours?: number
+  progress_percent?: number
+  blockers?: Array<{ id: string; description: string; created_at: string }> | string
+}
+
 interface PhaseAwareFormFieldsProps {
-  form: UseFormReturn<any>
+  form: UseFormReturn<WorkItemFormValues>
   phase: WorkspacePhase
   isEdit?: boolean
 }
@@ -509,7 +528,7 @@ export function PhaseAwareFormFields({
                     value={
                       Array.isArray(field.value)
                         ? field.value
-                            .map((b: any) =>
+                            .map((b: { id: string; description: string; created_at: string } | string) =>
                               typeof b === 'string' ? b : b.description || ''
                             )
                             .join('\n')
@@ -530,7 +549,7 @@ export function PhaseAwareFormFields({
                   />
                 </FormControl>
                 <FormDescription>
-                  What's preventing progress? One per line
+                  What&apos;s preventing progress? One per line
                 </FormDescription>
                 <FormMessage />
               </FormItem>

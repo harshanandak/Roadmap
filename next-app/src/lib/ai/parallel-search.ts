@@ -96,9 +96,17 @@ export async function parallelSearch(
     // Calculate cost: $0.005 per search request + $0.001 per page extracted
     const costUsd = 0.005 + data.results.length * 0.001
 
+    interface ApiResult {
+      title: string
+      url: string
+      content: string
+      score: number
+      source: string
+    }
+
     return {
       query: data.query,
-      results: data.results.map((result: any) => ({
+      results: data.results.map((result: ApiResult) => ({
         title: result.title,
         url: result.url,
         content: result.content,
@@ -109,9 +117,10 @@ export async function parallelSearch(
       tokensUsed: data.tokens_used || 0,
       costUsd,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Parallel Search API error:', error)
-    throw new Error(`Failed to search with Parallel.ai: ${error.message}`)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Failed to search with Parallel.ai: ${message}`)
   }
 }
 

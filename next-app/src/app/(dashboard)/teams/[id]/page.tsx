@@ -162,7 +162,7 @@ export default async function TeamSettingsPage({
           </CardHeader>
           <CardContent>
             <TeamMembersList
-              members={(members as any) || []}
+              members={(members as { id: string; user_id: string; role: string; joined_at: string; users: { id: string; email: string; name: string | null; avatar_url: string | null } | null }[]) || []}
               currentUserId={user.id}
               currentUserRole={membership.role}
               teamId={id}

@@ -8,7 +8,7 @@ export default async function WorkItemDetailPage({
 }: {
   params: Promise<{ id: string; workItemId: string }>
 }) {
-  const { id: workspaceId, workItemId } = await params
+  const { id: _workspaceId, workItemId } = await params
   const supabase = await createClient()
 
   // Check authentication

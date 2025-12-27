@@ -115,11 +115,11 @@ export const prioritizeFeaturesTool = toolRegistry.register(
     }),
     execute: async (params, { toolCallId }) => {
       const {
-        workspaceId,
-        teamId,
+        workspaceId: _workspaceId,
+        teamId: _teamId,
         framework,
         workItemIds,
-        factors,
+        factors: _factors,
         applyChanges = true,
       } = params
 
@@ -239,11 +239,11 @@ export const balanceWorkloadTool = toolRegistry.register(
     }),
     execute: async (params, { toolCallId }) => {
       const {
-        workspaceId,
-        teamId,
+        workspaceId: _workspaceId,
+        teamId: _teamId,
         targetPhase = 'development',
-        includeUnassigned = true,
-        maxTasksPerPerson = 10,
+        includeUnassigned: _includeUnassigned = true,
+        maxTasksPerPerson: _maxTasksPerPerson = 10,
         respectSkills = true,
       } = params
 

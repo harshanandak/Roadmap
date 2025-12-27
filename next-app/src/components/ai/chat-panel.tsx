@@ -435,7 +435,7 @@ interface LegacyMessage {
  */
 function MessageBubble({ message }: { message: UIMessage }) {
   const isUser = message.role === 'user'
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [_isExpanded, _setIsExpanded] = useState(true)
 
   // Cast to legacy message format for v4/v5 compatibility
   const legacyMessage = message as unknown as LegacyMessage

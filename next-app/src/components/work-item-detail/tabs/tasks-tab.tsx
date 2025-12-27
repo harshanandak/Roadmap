@@ -16,7 +16,6 @@ import {
   List,
   Table2,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { useWorkItemDetailContext, type TabViewMode } from '../shared/detail-context'
 import { TaskList } from '@/components/product-tasks'
 import { CreateTaskDialog } from '@/components/product-tasks/create-task-dialog'

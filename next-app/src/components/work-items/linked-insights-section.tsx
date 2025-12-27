@@ -28,10 +28,8 @@ import {
   Plus,
   Link2,
   Unlink,
-  ExternalLink,
   ThumbsUp,
   ThumbsDown,
-  MessageSquare,
   Loader2,
   Search,
 } from 'lucide-react'
@@ -108,8 +106,9 @@ export function LinkedInsightsSection({
 
       const data = await response.json()
       setLinkedInsights(data.data || [])
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch linked insights'
+      setError(message)
       console.error('Error fetching linked insights:', err)
     } finally {
       setIsLoading(false)
@@ -186,10 +185,11 @@ export function LinkedInsightsSection({
 
       // Remove from search results
       setSearchResults((prev) => prev.filter((i) => i.id !== insight.id))
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to link insight'
       toast({
         title: 'Error',
-        description: err.message,
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -219,10 +219,11 @@ export function LinkedInsightsSection({
 
       // Remove from list
       setLinkedInsights((prev) => prev.filter((li) => li.link_id !== insight.link_id))
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to unlink insight'
       toast({
         title: 'Error',
-        description: err.message,
+        description: message,
         variant: 'destructive',
       })
     } finally {

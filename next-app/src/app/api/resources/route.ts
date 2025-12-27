@@ -13,7 +13,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type {
   CreateResourceRequest,
-  Resource,
   ResourceWithMeta,
 } from '@/lib/types/resources'
 import { extractDomain } from '@/lib/types/resources'

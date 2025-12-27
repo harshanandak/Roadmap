@@ -326,7 +326,7 @@ interface WorkItemsViewProps {
 
 export function WorkItemsView({
   workspace,
-  team,
+  team: _team,
   workItems,
   timelineItems,
   currentUserId,

@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { callOpenRouter, streamOpenRouter, type ChatMessage } from '@/lib/ai/openrouter'
 import { ParallelAI, type ParallelChatMessage } from '@/lib/ai/parallel-ai'
-import { getModelByKey, type AIModel } from '@/lib/ai/models'
+import { getModelByKey } from '@/lib/ai/models'
 
 export const maxDuration = 60 // Allow up to 60s for AI responses
 
@@ -43,7 +43,13 @@ interface ChatResponse {
     totalTokens: number
   }
   costUsd?: number
-  searchResults?: any[]
+  searchResults?: Array<{
+    title: string
+    url: string
+    content?: string
+    snippet?: string
+    score?: number
+  }>
 }
 
 export async function POST(request: NextRequest) {
@@ -80,7 +86,13 @@ export async function POST(request: NextRequest) {
 
     // Enrich context with web search if enabled
     const enrichedMessages = [...messages]
-    let searchResults: any[] = []
+    let searchResults: Array<{
+      title: string
+      url: string
+      content?: string
+      snippet?: string
+      score?: number
+    }> = []
 
     if (enableSearch) {
       const query = searchQuery || messages[messages.length - 1]?.content || ''
@@ -243,7 +255,7 @@ export async function GET() {
 
   return NextResponse.json({
     openrouter: models.map((m) => ({
-      key: Object.entries(AI_MODELS).find(([_, v]) => v.id === m.id)?.[0],
+      key: Object.entries(AI_MODELS).find(([, v]) => v.id === m.id)?.[0],
       id: m.id,
       name: m.name,
       provider: m.provider,

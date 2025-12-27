@@ -23,7 +23,7 @@ import { ProblemNode } from './node-types/problem-node'
 import { SolutionNode } from './node-types/solution-node'
 import { FeatureNode } from './node-types/feature-node'
 import { QuestionNode } from './node-types/question-node'
-import { Badge } from '@/components/ui/badge'
+import { Badge as _Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
 
 interface MindMapCanvasProps {
@@ -39,7 +39,7 @@ interface MindMapCanvasProps {
 }
 
 // Define custom node types
-const nodeTypes: any = {
+const nodeTypes: NodeTypes = {
   idea: IdeaNode,
   problem: ProblemNode,
   solution: SolutionNode,
@@ -48,14 +48,14 @@ const nodeTypes: any = {
 }
 
 export function MindMapCanvas({
-  mindMapId,
+  mindMapId: _mindMapId,
   initialNodes,
   initialEdges,
   onNodesChange,
   onEdgesChange,
   onEditNode,
   onDeleteNode,
-  onConvertNode,
+  onConvertNode: _onConvertNode,
   readOnly = false,
 }: MindMapCanvasProps) {
   const [nodes, setNodes, handleNodesChange] = useNodesState(initialNodes)
@@ -78,9 +78,11 @@ export function MindMapCanvas({
     (connection: Connection) => {
       if (readOnly) return
 
-      const newEdge: any = {
+      const newEdge: Edge = {
         ...connection,
         id: `edge-${Date.now()}`,
+        source: connection.source || '',
+        target: connection.target || '',
         type: 'smoothstep',
         animated: false,
         style: { stroke: '#94a3b8', strokeWidth: 2 },
@@ -127,7 +129,7 @@ export function MindMapCanvas({
         onConvert: onConvertNode,
       },
     }))
-  }, [nodes, onEditNode, onDeleteNode, onConvertNode])
+  }, [nodes, onEditNode, onDeleteNode])
 
   // Auto-save on changes (debounced)
   useEffect(() => {

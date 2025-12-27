@@ -13,7 +13,7 @@
  * @module lib/phase/guiding-questions
  */
 
-import type { WorkspacePhase, WorkItemType, AnyWorkItemPhase } from '@/lib/constants/workspace-phases'
+import type { WorkspacePhase, WorkItemType } from '@/lib/constants/workspace-phases'
 
 // ============================================================================
 // TYPE DEFINITIONS

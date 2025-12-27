@@ -15,7 +15,7 @@
  * - InsightPreview: Customer insight card
  */
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -29,7 +29,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Card,
   CardContent,
   CardHeader,
 } from '@/components/ui/card'
@@ -43,7 +42,6 @@ import {
   Calendar,
   MessageSquare,
   Tag,
-  AlertCircle,
   Clock,
   User,
   Link2,
@@ -143,7 +141,7 @@ export const premiumCardStyles = {
 /**
  * Category-specific premium styles
  */
-const categoryStyles = {
+const _categoryStyles = {
   creation: {
     gradient: 'from-emerald-500/10 via-green-500/5 to-transparent',
     border: 'border-emerald-500/30',
@@ -213,7 +211,7 @@ const typeStyles = {
 }
 
 // Legacy flat colors (for backward compatibility)
-const typeColors: Record<string, string> = {
+const _typeColors: Record<string, string> = {
   concept: 'bg-purple-100 text-purple-700 border-purple-200',
   feature: 'bg-blue-100 text-blue-700 border-blue-200',
   bug: 'bg-red-100 text-red-700 border-red-200',
@@ -242,7 +240,7 @@ const priorityStyles = {
 }
 
 // Legacy flat priority colors (for backward compatibility)
-const priorityColors: Record<string, string> = {
+const _priorityColors: Record<string, string> = {
   critical: 'bg-red-500 text-white',
   high: 'bg-orange-500 text-white',
   medium: 'bg-yellow-500 text-black',

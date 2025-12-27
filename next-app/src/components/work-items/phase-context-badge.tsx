@@ -3,7 +3,6 @@
 import { Badge } from '@/components/ui/badge'
 import { WorkspacePhase, migrateLifecyclePhase } from '@/lib/constants/work-item-types'
 import {
-  PHASE_CONFIG,
   getTypePhaseConfig,
   isTerminalPhase,
   type WorkItemType

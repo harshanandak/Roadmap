@@ -5,10 +5,10 @@
  * This ensures tests have the required configuration before starting.
  */
 
-import { chromium, firefox, webkit, FullConfig } from '@playwright/test';
+import { chromium, firefox, webkit } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   console.log('\n🔧 Running global test setup...\n');
 
   const errors: string[] = [];
@@ -71,7 +71,7 @@ async function globalSetup(config: FullConfig) {
       const instance = await browser.launcher.launch({ headless: true });
       await instance.close();
       console.log(`✅ ${browser.name}: Installed and working`);
-    } catch (e) {
+    } catch {
       warnings.push(`${browser.name} not installed. Run: npx playwright install ${browser.name.toLowerCase()}`);
     }
   }

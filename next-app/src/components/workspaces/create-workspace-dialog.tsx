@@ -83,9 +83,10 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
       // Refresh the page to show new workspace
       router.refresh()
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating workspace:', error)
-      alert(error.message || 'Failed to create workspace')
+      const message = error instanceof Error ? error.message : 'Failed to create workspace'
+      alert(message)
     } finally {
       setLoading(false)
     }

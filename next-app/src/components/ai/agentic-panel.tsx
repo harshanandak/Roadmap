@@ -29,7 +29,6 @@ import {
   History,
   Wrench,
   ChevronRight,
-  Bell,
   Settings,
   Loader2,
   Plus,

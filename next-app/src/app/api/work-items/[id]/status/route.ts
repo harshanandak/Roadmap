@@ -98,10 +98,11 @@ export async function GET(
       timeline_items_count: timelineItems?.length || 0,
       breakdown,
     }, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error calculating work item status:', error)
+    const message = error instanceof Error ? error.message : 'Failed to calculate work item status'
     return NextResponse.json(
-      { error: error.message || 'Failed to calculate work item status' },
+      { error: message },
       { status: 500 }
     )
   }

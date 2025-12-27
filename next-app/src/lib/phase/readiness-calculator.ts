@@ -16,12 +16,8 @@
 import type {
   WorkspacePhase,
   WorkItemType,
-  AnyWorkItemPhase,
-  ConceptPhase,
-  BugPhase,
 } from '@/lib/constants/workspace-phases'
 import {
-  getNextPhaseForType,
   isTerminalPhase,
 } from '@/lib/constants/workspace-phases'
 

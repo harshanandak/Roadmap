@@ -52,14 +52,13 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
-  Zap,
   Target,
   Copy,
   Check,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToolShortcutBar } from './tool-shortcut-bar'
-import { ToolConfirmationCard, type ToolConfirmationData } from './tool-confirmation-card'
+import { ToolConfirmationCard } from './tool-confirmation-card'
 import type { ToolCategory } from '@/lib/ai/schemas/agentic-schemas'
 import { getModelOptionsForUI } from '@/lib/ai/models-config'
 
@@ -715,7 +714,7 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: UIMess
                     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                     em: ({ children }) => <em className="italic">{children}</em>,
                     // Inline code (not in a code block)
-                    code: ({ className, children, ...props }) => {
+                    code: ({ className, children, ..._props }) => {
                       const match = /language-(\w+)/.exec(className || '')
                       const isInline = !className
 

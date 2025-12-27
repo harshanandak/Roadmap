@@ -17,10 +17,8 @@ import {
   type CaseStudy,
   type FrameworkConfig,
   getFrameworkById,
-  getToolsByFramework,
   getCaseStudiesByFramework,
   DESIGN_THINKING_TOOLS,
-  CASE_STUDIES,
 } from './frameworks'
 import { getPhaseGuidance, type GuidingQuestion } from '@/lib/phase/guiding-questions'
 

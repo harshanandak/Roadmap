@@ -3,7 +3,7 @@
  * React Query hooks for fetching analytics dashboard data
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   AnalyticsScope,
   DashboardType,
@@ -136,7 +136,7 @@ export function useStrategyAlignment(
  * Call this when user hovers over a tab
  */
 export function usePrefetchDashboard() {
-  const { queryClient } = require('@tanstack/react-query')
+  const queryClient = useQueryClient()
 
   return (
     type: DashboardType,

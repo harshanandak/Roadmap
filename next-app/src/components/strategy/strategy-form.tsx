@@ -556,6 +556,7 @@ export function StrategyForm({
         />
 
         {/* Manual progress slider */}
+        {/* eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() is intentional */}
         {form.watch('progress_mode') === 'manual' && (
           <FormField
             control={form.control}

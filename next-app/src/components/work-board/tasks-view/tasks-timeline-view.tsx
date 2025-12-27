@@ -13,12 +13,10 @@ import {
   eachWeekOfInterval,
   eachDayOfInterval,
   isToday,
-  isSameDay,
   addWeeks,
   subWeeks,
   parseISO,
   startOfDay,
-  endOfDay,
 } from 'date-fns'
 import {
   ChevronLeft,

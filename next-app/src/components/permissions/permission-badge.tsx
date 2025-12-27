@@ -212,7 +212,7 @@ export function AllPhasesPermissionGrid({
     <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3', className)}>
       {(Object.keys(PHASE_CONFIG) as WorkspacePhase[]).map((phase) => {
         const phaseConfig = PHASE_CONFIG[phase]
-        const permission = permissions[phase]
+        const _permission = permissions[phase]
 
         return (
           <div

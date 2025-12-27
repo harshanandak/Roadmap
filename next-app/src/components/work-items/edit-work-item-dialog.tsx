@@ -118,6 +118,7 @@ export function EditWorkItemDialog({
   // Initialize form with default values
   // Note: Using 'any' for form type because different phases have different fields
   // The schema validation will ensure only valid fields are submitted
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic form with phase-dependent fields
   const form = useForm<any>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -151,6 +152,7 @@ export function EditWorkItemDialog({
     if (open && workItemId) {
       loadWorkItem()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, workItemId])
 
   /**
@@ -255,6 +257,7 @@ export function EditWorkItemDialog({
    * Submit form and update work item via API
    * Uses PATCH endpoint with phase permission validation
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- form values depend on dynamic schema
   async function onSubmit(values: any) {
     try {
       setIsLoading(true)
@@ -310,11 +313,11 @@ export function EditWorkItemDialog({
 
       // Call success callback
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating work item:', error)
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update work item',
+        description: error instanceof Error ? error.message : 'Failed to update work item',
         variant: 'destructive',
       })
     } finally {

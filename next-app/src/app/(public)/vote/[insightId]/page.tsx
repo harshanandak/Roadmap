@@ -57,8 +57,8 @@ export default function PublicVotePage() {
 
         setInsight(data.insight)
         setWorkspace(data.workspace)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load insight')
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load insight')
       } finally {
         setIsLoading(false)
       }

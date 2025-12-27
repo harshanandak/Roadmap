@@ -156,7 +156,7 @@ export function ConceptPromotionDialog({
             <ul className="mt-1 list-inside list-disc space-y-1 text-xs">
               <li>New feature created in Design phase</li>
               <li>Linked to this concept for traceability</li>
-              <li>You'll be redirected to the new feature</li>
+              <li>You&apos;ll be redirected to the new feature</li>
             </ul>
           </div>
         </div>

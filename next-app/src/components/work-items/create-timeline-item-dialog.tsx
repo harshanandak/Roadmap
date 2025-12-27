@@ -42,7 +42,7 @@ interface CreateTimelineItemDialogProps {
 export function CreateTimelineItemDialog({
   workItemId,
   timeline,
-  orderIndex,
+  orderIndex: _orderIndex,
 }: CreateTimelineItemDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -109,13 +109,14 @@ export function CreateTimelineItemDialog({
 
       // Refresh the page
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating timeline item:', error)
       // Handle unique constraint violation from database
-      if (error.code === '23505' || error.message?.includes('unique_work_item_timeline')) {
+      const errorObj = error as { code?: string; message?: string }
+      if (errorObj.code === '23505' || errorObj.message?.includes('unique_work_item_timeline')) {
         alert(`A ${timeline} timeline item already exists for this work item. Each work item can only have one item per timeline type (MVP, SHORT, LONG).`)
       } else {
-        alert(error.message || 'Failed to create timeline item')
+        alert(errorObj.message || 'Failed to create timeline item')
       }
     } finally {
       setLoading(false)

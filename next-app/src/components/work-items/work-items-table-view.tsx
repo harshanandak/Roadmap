@@ -21,13 +21,12 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getItemLabel, getItemIcon } from '@/lib/constants/work-item-types'
+import { getItemIcon } from '@/lib/constants/work-item-types'
 import { LinkManagementModal } from './link-management-modal'
 import { ViewMode } from './work-items-filter'
 import { ColumnVisibility } from './column-visibility-menu'
 import {
   getStatusConfig,
-  getPriorityConfig,
   getDifficultyConfig,
   TIMELINE_PHASE_CONFIG,
 } from '@/lib/work-items/table-config'

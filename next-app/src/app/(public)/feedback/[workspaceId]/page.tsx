@@ -12,9 +12,8 @@ import { useParams } from 'next/navigation'
 import { PublicFeedbackForm } from '@/components/feedback/public-feedback-form'
 import { FeedbackThankYou } from '@/components/feedback/feedback-thank-you'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertCircle, MessageSquare } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface WorkspaceInfo {
@@ -50,8 +49,8 @@ export default function PublicFeedbackPage() {
         }
 
         setWorkspace(data.data)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load workspace')
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load workspace')
       } finally {
         setIsLoading(false)
       }

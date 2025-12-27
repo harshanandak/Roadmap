@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USERS } from '../tests/fixtures/test-data';
 
 /**
  * Team Management E2E Tests

@@ -112,9 +112,10 @@ export function EditWorkspaceDialog({ workspace, trigger }: EditWorkspaceDialogP
 
       setOpen(false)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating workspace:', error)
-      alert(error.message || 'Failed to update workspace')
+      const message = error instanceof Error ? error.message : 'Failed to update workspace'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -133,9 +134,10 @@ export function EditWorkspaceDialog({ workspace, trigger }: EditWorkspaceDialogP
 
       router.push('/dashboard')
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting workspace:', error)
-      alert(error.message || 'Failed to delete workspace')
+      const message = error instanceof Error ? error.message : 'Failed to delete workspace'
+      alert(message)
       setLoading(false)
     }
   }

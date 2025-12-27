@@ -80,7 +80,7 @@ export function FeedbackTriageDialog({
       router.refresh()
       onOpenChange(false)
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to triage feedback',

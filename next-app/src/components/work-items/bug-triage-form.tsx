@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 import {
   type BugTriageData,
-  type BugSeverity,
   BUG_SEVERITIES,
   SEVERITY_CONFIG,
   isTriageComplete,
@@ -46,6 +45,7 @@ export function BugTriageForm({
   // Sync with external triage data
   useEffect(() => {
     if (triage) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional prop-to-state sync pattern
       setLocalTriage(triage)
     }
   }, [triage])

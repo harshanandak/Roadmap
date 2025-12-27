@@ -51,10 +51,10 @@ export async function GET(request: NextRequest) {
 
     // Since we don't have a public.users table, we can't easily get emails
     // Just return the raw data for now
-    const memberWithEmail = null  // Will check manually in the UI
+    const _memberWithEmail = null  // Will check manually in the UI
 
     // Check phase assignments if member exists
-    const phaseAssignments = null
+    const _phaseAssignments = null
     // Note: This code is disabled because memberWithEmail is null
     // if (memberWithEmail) {
     //   const { data: assignments } = await supabase
@@ -75,10 +75,10 @@ export async function GET(request: NextRequest) {
         memberError: memberError?.message,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Debug API error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     )
   }

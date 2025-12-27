@@ -4,14 +4,13 @@ import { useState, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import {
   getItemLabel,
-  type WorkItemType,
   type WorkspacePhase,
 } from '@/lib/constants/work-item-types'
 
 interface Feature {
   id: string
   type: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface UseWorkItemFilterResult {
@@ -34,7 +33,7 @@ interface UseWorkItemFilterResult {
  */
 export function useWorkItemFilter(
   items: Feature[],
-  phase: WorkspacePhase
+  _phase: WorkspacePhase
 ): UseWorkItemFilterResult {
   const searchParams = useSearchParams()
   const router = useRouter()

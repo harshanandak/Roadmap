@@ -3,8 +3,6 @@
 import { useCallback, useState, useMemo, useEffect } from 'react'
 import {
   ReactFlow,
-  Node,
-  Edge,
   Controls,
   MiniMap,
   Background,
@@ -72,13 +70,15 @@ interface DependencyGraphProps {
   initialConnections: WorkItemConnection[]
 }
 
+import type { NodeTypes, EdgeTypes } from '@xyflow/react'
+
 // Define custom node types
-const nodeTypes: any = {
+const nodeTypes: NodeTypes = {
   workItem: WorkItemNode,
 }
 
 // Define custom edge types
-const edgeTypes: any = {
+const edgeTypes: EdgeTypes = {
   dependency: DependencyEdge,
 }
 
@@ -97,7 +97,7 @@ interface AnalysisResult {
 
 function DependencyGraphInner({
   workspaceId,
-  teamId,
+  teamId: _teamId,
   initialWorkItems,
   initialConnections,
 }: DependencyGraphProps) {
@@ -251,8 +251,17 @@ function DependencyGraphInner({
     [setEdges]
   )
 
+  /** AI suggestion type for dependency creation */
+  interface AISuggestion {
+    sourceId: string
+    targetId: string
+    connectionType: string
+    strength: number
+    reason: string
+  }
+
   // Handle AI suggestion approval
-  const handleApproveAISuggestions = async (suggestions: any[]) => {
+  const handleApproveAISuggestions = async (suggestions: AISuggestion[]) => {
     try {
       // Create connections for all approved suggestions
       await Promise.all(
@@ -272,7 +281,7 @@ function DependencyGraphInner({
         title: 'Dependencies Created',
         description: `Successfully added ${suggestions.length} dependency connection${suggestions.length > 1 ? 's' : ''}`,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating dependencies:', error)
       throw error
     }
@@ -310,11 +319,12 @@ function DependencyGraphInner({
           description: `Health Score: ${data.healthScore}/100`,
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Analysis error:', error)
+      const message = error instanceof Error ? error.message : 'Failed to analyze dependencies'
       toast({
         title: 'Analysis Failed',
-        description: error.message || 'Failed to analyze dependencies',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -322,10 +332,16 @@ function DependencyGraphInner({
     }
   }
 
+  /** Cycle fix action structure */
+  interface CycleFix {
+    action: string
+    connectionId?: string
+  }
+
   // Handle cycle fix application
-  const handleApplyFix = async (fix: any) => {
+  const handleApplyFix = async (fix: CycleFix) => {
     try {
-      if (fix.action === 'remove_connection') {
+      if (fix.action === 'remove_connection' && fix.connectionId) {
         await deleteDependency.mutateAsync({
           id: fix.connectionId,
           workspace_id: workspaceId,
@@ -338,10 +354,11 @@ function DependencyGraphInner({
         setTimeout(() => handleAnalyze(), 500)
       }
       // TODO: Handle other fix types (reverse, change type)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to apply fix'
       toast({
         title: 'Fix Failed',
-        description: error.message || 'Failed to apply fix',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -474,7 +491,7 @@ function DependencyGraphInner({
   const exportAsSVG = useCallback(() => {
     try {
       // Get the current viewport
-      const viewport = reactFlowInstance.getViewport()
+      const _viewport = reactFlowInstance.getViewport()
       const bounds = {
         x: Infinity,
         y: Infinity,

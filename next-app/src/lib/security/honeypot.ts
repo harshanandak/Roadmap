@@ -107,7 +107,48 @@ export type SpamProtectionProvider = 'honeypot' | 'hcaptcha' | 'recaptcha' | 'tu
  */
 export interface SpamProtector {
   provider: SpamProtectionProvider
-  verify: (data: Record<string, any>) => Promise<SpamCheckResult>
+  verify: (data: Record<string, unknown>) => Promise<SpamCheckResult>
+}
+
+/**
+ * Type guard to check if a value is a string
+ */
+function isString(value: unknown): value is string {
+  return typeof value === 'string'
+}
+
+/**
+ * Type guard to check if a value is a number
+ */
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number'
+}
+
+/**
+ * Safely extract honeypot value from unknown data
+ */
+function extractHoneypotValue(data: Record<string, unknown>): string | null | undefined {
+  const value = data.website ?? data.honeypot ?? data._hp
+  return isString(value) ? value : undefined
+}
+
+/**
+ * Safely extract form load time from unknown data
+ */
+function extractFormLoadTime(data: Record<string, unknown>): string | number {
+  const value = data._formLoadTime ?? data.formLoadTime ?? data._t
+  if (isString(value)) return value
+  if (isNumber(value)) return value
+  // Default to current time if invalid
+  return Date.now()
+}
+
+/**
+ * Safely extract min submit time from unknown data
+ */
+function extractMinSubmitTime(data: Record<string, unknown>): number | undefined {
+  const value = data.minSubmitTime
+  return isNumber(value) ? value : undefined
 }
 
 /**
@@ -117,9 +158,9 @@ export const honeypotProtector: SpamProtector = {
   provider: 'honeypot',
   verify: async (data) => {
     return checkHoneypot({
-      honeypotValue: data.website || data.honeypot || data._hp,
-      formLoadTime: data._formLoadTime || data.formLoadTime || data._t,
-      minSubmitTime: data.minSubmitTime || 3,
+      honeypotValue: extractHoneypotValue(data),
+      formLoadTime: extractFormLoadTime(data),
+      minSubmitTime: extractMinSubmitTime(data),
     })
   },
 }

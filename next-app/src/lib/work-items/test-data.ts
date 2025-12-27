@@ -110,8 +110,9 @@ const SAMPLE_TAGS = [
 
 /**
  * Sample integration systems
+ * @internal Reserved for future use in integration-related test data generation
  */
-const SAMPLE_INTEGRATIONS = [
+const _SAMPLE_INTEGRATIONS = [
   'Auth0',
   'Stripe',
   'Twilio',

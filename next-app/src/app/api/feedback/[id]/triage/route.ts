@@ -101,10 +101,10 @@ export async function POST(
     }
 
     return NextResponse.json(updatedFeedback, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error triaging feedback:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to triage feedback' },
+      { error: error instanceof Error ? error.message : 'Failed to triage feedback' },
       { status: 500 }
     )
   }

@@ -15,6 +15,44 @@ import { cn } from '@/lib/utils'
 import { CHART_COLORS, CHART_COLOR_PALETTE } from '@/lib/types/analytics'
 import type { LineChartData } from '@/lib/types/analytics'
 
+// Format date for x-axis - defined outside component
+const formatDate = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
+// Custom tooltip - defined outside of component to avoid recreation during render
+interface LineTooltipPayload {
+  name: string
+  value: number
+  color: string
+}
+interface LineTooltipProps {
+  active?: boolean
+  payload?: LineTooltipPayload[]
+  label?: string
+}
+
+function LineChartTooltip({ active, payload, label }: LineTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <p className="font-medium">{formatDate(label || '')}</p>
+        {payload.map((entry: LineTooltipPayload, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value.toLocaleString()}
+          </p>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
+
 export interface AnalyticsLineChartProps {
   title: string
   data: LineChartData[]
@@ -46,33 +84,6 @@ export function AnalyticsLineChart({
   const dataKeys = Array.isArray(dataKey) ? dataKey : [dataKey]
   const colors = Array.isArray(color) ? color : [color]
 
-  // Format date for x-axis
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    } catch {
-      return dateStr
-    }
-  }
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border bg-background p-2 shadow-sm">
-          <p className="font-medium">{formatDate(label)}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.value.toLocaleString()}
-            </p>
-          ))}
-        </div>
-      )
-    }
-    return null
-  }
-
   return (
     <Card className={cn('hover:shadow-md transition-shadow', className)}>
       <CardHeader className="pb-2">
@@ -101,7 +112,7 @@ export function AnalyticsLineChart({
                 tick={{ fontSize: 12 }}
               />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<LineChartTooltip />} />
               {showLegend && <Legend />}
               {dataKeys.map((key, index) => (
                 <Line

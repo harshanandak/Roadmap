@@ -89,7 +89,7 @@ export function CreateDependencyDialog({
       setConnectionType('dependency')
       setReason('')
       setOpen(false)
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create dependency',

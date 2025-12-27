@@ -18,7 +18,6 @@ import { Loader2, Trash2, Check } from 'lucide-react'
 import { WorkspaceModeSelector } from '@/components/workspaces/workspace-mode-selector'
 import {
   type WorkspaceMode,
-  WORKSPACE_MODE_CONFIG,
   isValidWorkspaceMode,
 } from '@/lib/types/workspace-mode'
 
@@ -37,7 +36,7 @@ interface WorkspaceGeneralSettingsProps {
 
 type SidebarBehavior = 'expanded' | 'collapsed' | 'hover'
 
-export function WorkspaceGeneralSettings({ workspace, currentUserId }: WorkspaceGeneralSettingsProps) {
+export function WorkspaceGeneralSettings({ workspace, currentUserId: _currentUserId }: WorkspaceGeneralSettingsProps) {
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState(workspace.name)
   const [description, setDescription] = useState(workspace.description || '')
@@ -86,9 +85,10 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
 
       // Hide success message after 3 seconds
       setTimeout(() => setSaved(false), 3000)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating workspace:', error)
-      alert(error.message || 'Failed to update workspace')
+      const message = error instanceof Error ? error.message : 'Failed to update workspace'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -135,9 +135,10 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
 
       // Hide success message after 3 seconds
       setTimeout(() => setModeSaved(false), 3000)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating workspace mode:', error)
-      alert(error.message || 'Failed to update workspace mode')
+      const message = error instanceof Error ? error.message : 'Failed to update workspace mode'
+      alert(message)
     } finally {
       setModeLoading(false)
     }
@@ -156,9 +157,10 @@ export function WorkspaceGeneralSettings({ workspace, currentUserId }: Workspace
 
       router.push('/dashboard')
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting workspace:', error)
-      alert(error.message || 'Failed to delete workspace')
+      const message = error instanceof Error ? error.message : 'Failed to delete workspace'
+      alert(message)
       setLoading(false)
     }
   }

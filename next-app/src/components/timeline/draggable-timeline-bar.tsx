@@ -1,7 +1,6 @@
 'use client'
 
 import { useDraggable } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
@@ -22,8 +21,8 @@ interface DraggableTimelineBarProps {
 export function DraggableTimelineBar({
   id,
   name,
-  phase,
-  status,
+  phase: _phase,
+  status: _status,
   durationDays,
   barStyle,
   phaseColor,

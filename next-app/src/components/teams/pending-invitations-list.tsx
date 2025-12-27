@@ -17,17 +17,25 @@ import {
 import { useRouter } from 'next/navigation'
 import { Trash2, Mail } from 'lucide-react'
 
+interface PendingInvitation {
+  id: string
+  email: string
+  role: string
+  created_at: string
+  expires_at: string
+}
+
 interface PendingInvitationsListProps {
-  invitations: any[]
+  invitations: PendingInvitation[]
   teamId: string
 }
 
 export function PendingInvitationsList({
   invitations,
-  teamId,
+  teamId: _teamId,
 }: PendingInvitationsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [resendingId, setResendingId] = useState<string | null>(null)
+  const [_resendingId, setResendingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const router = useRouter()
@@ -50,9 +58,10 @@ export function PendingInvitationsList({
 
       setDeletingId(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting invitation:', error)
-      alert(error.message || 'Failed to delete invitation')
+      const message = error instanceof Error ? error.message : 'Failed to delete invitation'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -79,9 +88,10 @@ export function PendingInvitationsList({
 
       alert('Invitation email sent successfully!')
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resending invitation:', error)
-      alert(error.message || 'Failed to resend invitation')
+      const message = error instanceof Error ? error.message : 'Failed to resend invitation'
+      alert(message)
     } finally {
       setLoading(false)
       setResendingId(null)

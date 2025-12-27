@@ -70,6 +70,7 @@ export function WorkItemSearchDialog({
     if (open && workspaceId) {
       fetchWorkItems()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, workspaceId])
 
   // Filter work items based on search query

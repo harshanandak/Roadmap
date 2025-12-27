@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Create phase assignments if specified in invitation
     if (invitation.phase_assignments && Array.isArray(invitation.phase_assignments) && invitation.phase_assignments.length > 0) {
-      const phaseAssignments = invitation.phase_assignments.map((assignment: any) => ({
+      const phaseAssignments = invitation.phase_assignments.map((assignment: { workspace_id: string; phase: string; can_edit?: boolean; notes?: string | null }) => ({
         id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         workspace_id: assignment.workspace_id,
         user_id: user.id,
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get team details for response
-    const { data: team, error: teamError } = await supabase
+    const { data: team, error: _teamError } = await supabase
       .from('teams')
       .select('id, name')
       .eq('id', invitation.team_id)

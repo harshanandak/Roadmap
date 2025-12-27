@@ -140,10 +140,11 @@ export function FeedbackConvertDialog({
       router.refresh()
       onOpenChange(false)
       onSuccess?.(data.work_item.id)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to convert feedback'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to convert feedback',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -298,7 +299,7 @@ export function FeedbackConvertDialog({
             <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
               <p className="text-xs text-blue-900 dark:text-blue-100">
                 <strong>Note:</strong> After conversion, the feedback will be marked as
-                "implemented" and linked to this new work item. You can add more details
+                &quot;implemented&quot; and linked to this new work item. You can add more details
                 (acceptance criteria, timeline, etc.) after creation.
               </p>
             </div>

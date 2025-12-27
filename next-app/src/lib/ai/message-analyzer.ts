@@ -16,7 +16,6 @@ import {
   getVisionModel,
   getBestModelForCapability,
   getLargeContextModel,
-  getChatModels,
   getModelByKey,
 } from './models-config'
 import { getTaskComplexity } from './task-planner'

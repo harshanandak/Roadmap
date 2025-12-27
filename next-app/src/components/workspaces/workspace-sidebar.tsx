@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+// cn removed - not currently used
 import {
   BarChart3,
   Bot,
@@ -40,14 +40,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface Workspace {
-  id: string;
-  name: string;
-  team_id: string;
-  teams?: {
-    subscription_plan: 'free' | 'pro' | 'enterprise';
-  };
-}
+// Workspace type removed - not currently used
 
 interface WorkspaceSidebarProps {
   workspaceId: string;
@@ -76,7 +69,7 @@ interface NavItem {
 
 export function WorkspaceSidebar({
   workspaceId,
-  workspaceName,
+  workspaceName: _workspaceName,
   teamPlan,
   enabledModules,
   currentView = 'dashboard',

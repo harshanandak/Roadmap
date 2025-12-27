@@ -62,7 +62,7 @@ export async function PATCH(
     const { data: membership } = await supabase
       .from('team_members')
       .select('role')
-      .eq('team_id', (workItem.workspaces as any).team_id)
+      .eq('team_id', (workItem.workspaces as { team_id: string }).team_id)
       .eq('user_id', user.id)
       .single()
 
@@ -91,10 +91,11 @@ export async function PATCH(
     }
 
     return NextResponse.json(updatedItem)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in PATCH /api/work-items/[id]/dates:', error)
+    const message = error instanceof Error ? error.message : 'Internal server error'
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     )
   }

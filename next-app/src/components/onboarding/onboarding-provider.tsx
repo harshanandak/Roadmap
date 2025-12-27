@@ -43,28 +43,58 @@ export function OnboardingProvider({
   userName,
   userId,
 }: OnboardingProviderProps) {
-  const [state, setState] = useState<OnboardingState>({
-    hasSeenWelcome: false,
-    hasCompletedTour: false,
-    checklistItems: {},
+  // Initialize state from localStorage synchronously to avoid flicker
+  const [state, setState] = useState<OnboardingState>(() => {
+    if (typeof window === 'undefined') {
+      return {
+        hasSeenWelcome: false,
+        hasCompletedTour: false,
+        checklistItems: {},
+      }
+    }
+    const stored = localStorage.getItem(`${STORAGE_KEY}_${userId || 'default'}`)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch (error) {
+        console.error('Failed to parse onboarding state:', error)
+      }
+    }
+    return {
+      hasSeenWelcome: false,
+      hasCompletedTour: false,
+      checklistItems: {},
+    }
   })
 
-  const [showWelcome, setShowWelcome] = useState(false)
+  // Show welcome for first-time users
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const stored = localStorage.getItem(`${STORAGE_KEY}_${userId || 'default'}`)
+    return !stored
+  })
   const [showTour, setShowTour] = useState(false)
 
-  // Load state from localStorage
+  // Update state when userId changes
   useEffect(() => {
     if (typeof window === 'undefined') return
 
     const stored = localStorage.getItem(`${STORAGE_KEY}_${userId || 'default'}`)
     if (stored) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional localStorage sync on userId change
         setState(JSON.parse(stored))
+        setShowWelcome(false)
       } catch (error) {
         console.error('Failed to parse onboarding state:', error)
       }
     } else {
       // First time user - show welcome
+      setState({
+        hasSeenWelcome: false,
+        hasCompletedTour: false,
+        checklistItems: {},
+      })
       setShowWelcome(true)
     }
   }, [userId])
@@ -79,7 +109,7 @@ export function OnboardingProvider({
     setShowTour(true)
   }
 
-  const completeTourStep = (stepIndex: number) => {
+  const completeTourStep = (_stepIndex: number) => {
     // Optional: Track individual step completion
   }
 

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { Eye, Trash2, Calendar, Target } from 'lucide-react'
+import { Eye, Trash2, Target } from 'lucide-react'
 import { getItemIcon, getItemLabel, getLifecycleStatusLabel, getLifecycleStatusBgColor } from '@/lib/constants/work-item-types'
 import type { WorkItem, TimelineItem } from '@/lib/types/work-items'
 

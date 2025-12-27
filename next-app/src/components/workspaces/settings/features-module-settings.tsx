@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+// useState removed - not currently used
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ interface FeaturesModuleSettingsProps {
   workspaceId: string
 }
 
-export function FeaturesModuleSettings({ workspaceId }: FeaturesModuleSettingsProps) {
+export function FeaturesModuleSettings({ workspaceId: _workspaceId }: FeaturesModuleSettingsProps) {
   return (
     <div className="space-y-6">
       <Card>
@@ -85,7 +85,7 @@ export function FeaturesModuleSettings({ workspaceId }: FeaturesModuleSettingsPr
           {/* Info Box */}
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
             <p className="text-sm text-blue-900">
-              <strong>💡 Tip:</strong> These settings will allow you to customize the Features module to match your team's workflow and naming conventions.
+              <strong>Tip:</strong> These settings will allow you to customize the Features module to match your team&apos;s workflow and naming conventions.
             </p>
           </div>
         </CardContent>

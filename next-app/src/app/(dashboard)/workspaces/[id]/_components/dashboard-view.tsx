@@ -7,21 +7,42 @@ import { ActivityFeed } from '@/components/workspaces/activity-feed';
 import { ContextualOnboarding } from './contextual-onboarding';
 import { ModeAwareDashboard } from '@/components/dashboard/mode-aware-dashboard';
 import { type WorkspaceMode } from '@/lib/types/workspace-mode';
+import type { WorkItem } from '@/lib/types/work-items';
+import type { Team } from '@/lib/types/team';
+import type { Database } from '@/lib/supabase/types';
+
+/** Workspace row from the database */
+type Workspace = Database['public']['Tables']['workspaces']['Row'];
+
+/** Phase distribution for dashboard display */
+interface PhaseDistribution {
+  research: number;
+  planning: number;
+  execution: number;
+  review: number;
+  complete: number;
+}
+
+/** Onboarding state structure */
+interface OnboardingState {
+  isComplete: boolean;
+  completedSteps?: string[];
+  currentStep?: string;
+}
 
 interface DashboardViewProps {
-  workspace: any;
-  team: any;
-  workItems: any[];
+  workspace: Workspace;
+  team: Team;
+  workItems: WorkItem[];
   teamSize: number;
-  phaseDistribution: any;
-  onboardingState: any;
+  phaseDistribution: PhaseDistribution;
+  onboardingState: OnboardingState;
   /** Enable mode-aware dashboard widgets */
   useModeAwareDashboard?: boolean;
 }
 
 export function DashboardView({
   workspace,
-  team,
   workItems,
   teamSize,
   phaseDistribution,

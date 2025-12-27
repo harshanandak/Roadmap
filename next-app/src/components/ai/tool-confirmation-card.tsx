@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Card,
   CardContent,
   CardFooter,
   CardHeader,
@@ -163,10 +162,6 @@ const toolIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   createInsight: Lightbulb,
 }
 
-function getToolIcon(toolName: string) {
-  return toolIcons[toolName] || FileText
-}
-
 function formatParamLabel(key: string): string {
   return key
     .replace(/([A-Z])/g, ' $1')
@@ -199,7 +194,7 @@ function hasRichPreview(toolName: string): boolean {
 export function ToolConfirmationCard({
   data,
   onConfirm,
-  onEdit,
+  onEdit: _onEdit,
   onCancel,
   isLoading = false,
   className,
@@ -209,7 +204,7 @@ export function ToolConfirmationCard({
   const [showRawParams, setShowRawParams] = useState(false)
 
   const styles = categoryConfig[data.category]
-  const IconComponent = getToolIcon(data.toolName)
+  const IconComponent = toolIcons[data.toolName] ?? FileText
   const hasPreview = hasRichPreview(data.toolName)
 
   // Filter out internal params that shouldn't be displayed
@@ -426,14 +421,14 @@ export function CompletedActionCard({
   displayName,
   category,
   params,
-  result,
+  result: _result,
   status,
   error,
   actionId,
   className,
 }: CompletedActionCardProps) {
   const styles = categoryConfig[category]
-  const IconComponent = getToolIcon(toolName)
+  const IconComponent = toolIcons[toolName] ?? FileText
   const hasPreview = hasRichPreview(toolName)
 
   const displayParams = Object.entries(params).filter(

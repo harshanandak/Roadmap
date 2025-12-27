@@ -34,7 +34,7 @@ const navigation = [
   { name: 'Analytics', href: '/analytics', icon: BarChart3, shortcut: 'G A' },
 ]
 
-export function AppSidebar({ workspaceId, workspaceName, teamId }: AppSidebarProps) {
+export function AppSidebar({ workspaceId, workspaceName, teamId: _teamId }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 

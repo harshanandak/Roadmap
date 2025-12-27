@@ -123,7 +123,7 @@ interface WorkBoardContextValue {
   // Cross-view navigation
   navigationState: NavigationState
   navigateToWorkItem: (workItemId: string) => void
-  navigateToTasksForWorkItem: (workItemId: string, workItemName?: string) => void
+  navigateToTasksForWorkItem: (workItemId: string, _workItemName?: string) => void
   clearNavigation: () => void
 }
 
@@ -170,6 +170,7 @@ export function WorkBoardProvider({
 
   // Load preferences from localStorage AFTER mount (client-only)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- necessary for hydration
     setHasMounted(true)
     try {
       const stored = localStorage.getItem(getStorageKey(workspaceId))
@@ -279,7 +280,7 @@ export function WorkBoardProvider({
     }, 3000)
   }, [])
 
-  const navigateToTasksForWorkItem = useCallback((workItemId: string, workItemName?: string) => {
+  const navigateToTasksForWorkItem = useCallback((workItemId: string, _workItemName?: string) => {
     // Switch to Tasks tab with workItemId filter active
     setPreferencesState(prev => ({ ...prev, primaryTab: 'tasks' }))
     setFiltersState({ ...defaultFilters, workItemId })

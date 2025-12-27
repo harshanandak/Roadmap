@@ -156,7 +156,7 @@ export function OnboardingChecklist({
               <div className="text-4xl mb-2">🎉</div>
               <p className="font-semibold text-sm mb-1">All set!</p>
               <p className="text-xs text-muted-foreground">
-                You've completed the onboarding checklist. Start building amazing products!
+                You&apos;ve completed the onboarding checklist. Start building amazing products!
               </p>
             </div>
           )}

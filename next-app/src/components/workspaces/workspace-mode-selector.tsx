@@ -72,6 +72,7 @@ export function WorkspaceModeSelector({
 
   // Prevent hydration mismatch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard pattern
     setMounted(true);
   }, []);
 

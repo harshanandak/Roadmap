@@ -39,12 +39,11 @@ import {
 import { cn } from '@/lib/utils'
 import { useWorkspaceAnalysis } from '@/hooks/use-workspace-analysis'
 import {
-  type WorkspaceAnalysis,
   type HealthBreakdown,
   type UpgradeOpportunity,
   getHealthStatus,
 } from '@/lib/workspace/analyzer-types'
-import { PHASE_CONFIG, getTypePhaseConfig, type WorkspacePhase, type WorkItemType } from '@/lib/constants/workspace-phases'
+import { PHASE_CONFIG, getTypePhaseConfig } from '@/lib/constants/workspace-phases'
 
 // ============================================================================
 // TYPE DEFINITIONS

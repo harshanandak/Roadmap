@@ -45,7 +45,7 @@ export interface ParallelExtractResponse {
   url: string
   content: string
   title?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface ParallelChatMessage {
@@ -220,7 +220,7 @@ export interface ChatOptions {
 export async function parallelChat(options: ChatOptions): Promise<ParallelChatResponse> {
   const { model = 'speed', messages, temperature, maxTokens, stream = false } = options
 
-  const body: Record<string, any> = {
+  const body: Record<string, unknown> = {
     model,
     messages,
     stream,
@@ -236,7 +236,7 @@ export async function parallelChat(options: ChatOptions): Promise<ParallelChatRe
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({ message: '' })) as { message?: string }
     throw new Error(error.message || `Parallel Chat failed: ${response.statusText}`)
   }
 
@@ -251,7 +251,7 @@ export async function parallelChatStream(
 ): Promise<ReadableStream<Uint8Array>> {
   const { model = 'speed', messages, temperature, maxTokens } = options
 
-  const body: Record<string, any> = {
+  const body: Record<string, unknown> = {
     model,
     messages,
     stream: true,
@@ -267,7 +267,7 @@ export async function parallelChatStream(
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const error = await response.json().catch(() => ({ message: '' })) as { message?: string }
     throw new Error(error.message || `Parallel Chat stream failed: ${response.statusText}`)
   }
 

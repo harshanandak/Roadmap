@@ -71,10 +71,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'file-text': FileText,
 }
 
-function getIcon(iconName: string): LucideIcon {
-  return ICON_MAP[iconName] || LayoutTemplate
-}
-
 // ============================================================================
 // COMPONENT
 // ============================================================================
@@ -94,7 +90,8 @@ export function TemplateCard({
   selected = false,
   className,
 }: TemplateCardProps) {
-  const Icon = getIcon(template.icon)
+   
+  const Icon = ICON_MAP[template.icon] ?? LayoutTemplate
   const modeConfig = WORKSPACE_MODE_CONFIG[template.mode as WorkspaceMode]
   const { departments, workItems, tags } = template.template_data
 

@@ -87,7 +87,7 @@ export function useGanttLayout(
   items: GanttItem[],
   options: UseGanttLayoutOptions
 ): UseGanttLayoutResult {
-  const { zoomLevel, paddingDays = 7, minBarWidth = 40 } = options;
+  const { zoomLevel, paddingDays = 7, minBarWidth: _minBarWidth = 40 } = options;
 
   // Calculate date range from items
   const dateRange = useMemo(

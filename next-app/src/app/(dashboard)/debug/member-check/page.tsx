@@ -7,10 +7,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Loader2, Search } from 'lucide-react'
 
+/** Invitation record from the API */
+interface InvitationRecord {
+  accepted_at: string | null
+  role: string
+  created_at: string
+  expires_at: string
+}
+
+/** User record from the API */
+interface UserRecord {
+  id: string
+  email: string
+}
+
+/** Team member record with nested user info */
+interface TeamMemberRecord {
+  id: string
+  user_id: string
+  role: string
+  joined_at: string
+  users?: {
+    name: string | null
+    email: string
+  }
+}
+
+/** Member check API response */
+interface MemberCheckResult {
+  email: string
+  teamId: string
+  currentUserRole: string
+  invitations?: InvitationRecord[]
+  existingUsers?: UserRecord[]
+  memberWithEmail?: TeamMemberRecord
+  teamMembers?: TeamMemberRecord[]
+  errors?: Record<string, unknown>
+}
+
 export default function MemberCheckPage() {
   const [email, setEmail] = useState('nitin@befach.com')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<MemberCheckResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const checkMemberStatus = async () => {
@@ -29,9 +67,10 @@ export default function MemberCheckPage() {
         return
       }
 
-      setResult(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to check member status')
+      setResult(data as MemberCheckResult)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to check member status'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -98,7 +137,7 @@ export default function MemberCheckPage() {
                 </h3>
                 {result.invitations && result.invitations.length > 0 ? (
                   <div className="space-y-2">
-                    {result.invitations.map((inv: any, idx: number) => (
+                    {result.invitations.map((inv, idx) => (
                       <div key={idx} className="p-3 bg-white rounded border">
                         <p><strong>Status:</strong> {inv.accepted_at ? 'Accepted' : 'Pending'}</p>
                         <p><strong>Role:</strong> {inv.role}</p>
@@ -124,7 +163,7 @@ export default function MemberCheckPage() {
                 </h3>
                 {result.existingUsers && result.existingUsers.length > 0 ? (
                   <div className="space-y-2">
-                    {result.existingUsers.map((user: any, idx: number) => (
+                    {result.existingUsers.map((user, idx) => (
                       <div key={idx} className="p-3 bg-white rounded border">
                         <p><strong>User ID:</strong> {user.id}</p>
                         <p><strong>Email:</strong> {user.email}</p>
@@ -166,7 +205,7 @@ export default function MemberCheckPage() {
                 </h3>
                 {result.teamMembers && result.teamMembers.length > 0 ? (
                   <div className="space-y-1 max-h-60 overflow-y-auto">
-                    {result.teamMembers.map((member: any, idx: number) => (
+                    {result.teamMembers.map((member, idx) => (
                       <div key={idx} className="p-2 bg-white rounded border text-sm">
                         <p>
                           <strong>{member.users?.email || 'Unknown'}</strong> ({member.role})

@@ -15,7 +15,7 @@
  * @see https://www.assistant-ui.com/docs
  */
 
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import {
   AssistantRuntimeProvider,
   ThreadPrimitive,
@@ -39,13 +39,14 @@ import { Reasoning, ReasoningTrigger, ReasoningContent } from '@/components/ai-e
 import type { BundledLanguage } from 'shiki'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+// Select components available but not currently used
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select'
 import {
   Tooltip,
   TooltipContent,
@@ -61,14 +62,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Settings,
   Sparkles,
-  Zap,
   Square,
+  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToolShortcutBar } from './tool-shortcut-bar'
-import { getModelOptionsForUI, isDevMode, getChatModels } from '@/lib/ai/models-config'
+import { isDevMode } from '@/lib/ai/models-config'
 import { ToolExecutionProvider } from '@/lib/ai/tool-execution-context'
 import { DevDebugPanel } from './dev-debug-panel'
 import type { RoutingDebugInfo } from '@/lib/ai/message-analyzer'
@@ -172,7 +172,7 @@ const markdownComponents = {
   li: ({ children }: { children: React.ReactNode }) => <li className="my-0.5">{children}</li>,
   strong: ({ children }: { children: React.ReactNode }) => <strong className="font-semibold">{children}</strong>,
   em: ({ children }: { children: React.ReactNode }) => <em className="italic">{children}</em>,
-  code: ({ className, children, ...props }: { className?: string; children: React.ReactNode }) => {
+  code: ({ className, children }: { className?: string; children: React.ReactNode }) => {
     const match = /language-(\w+)/.exec(className || '')
     const isInline = !className
 
@@ -472,7 +472,7 @@ function ThreadDebug() {
         partTypes: (msg as any).parts?.map((p: { type: string }) => p.type) || [],
       })
     })
-  }, [thread.messages])
+  }, [thread.messages, thread.isRunning])
   return null // This component only logs, doesn't render anything
 }
 
@@ -695,7 +695,7 @@ function extractTextContent(msg: { parts?: unknown; content?: unknown }): string
  * Handles both AI SDK v5 format (parts array) and assistant-ui format (content array)
  * Saves both text content (for search) and full parts array (for complete reconstruction)
  */
-function convertThreadMessageToChatMessage(
+function _convertThreadMessageToChatMessage(
   msg: { role: string; parts?: unknown; content?: unknown }
 ): Omit<ChatMessage, 'id' | 'thread_id' | 'created_at'> {
   const textContent = extractTextContent(msg)
@@ -1228,7 +1228,7 @@ function ChatRuntime({
     } finally {
       setIsRunning(false)
     }
-  }, [messages, teamId, workspaceId, threadId, onSaveMessage, onCreateThread, onThreadCreated])
+  }, [messages, teamId, workspaceId, threadId, onSaveMessage, onCreateThread, onThreadCreated, onImageAnalyzed, onRagUsed, onRoutingInfo, onSlowModel])
 
   // Handle reload (regenerate last assistant message)
   const onReload = useCallback(async () => {
@@ -1471,7 +1471,7 @@ function ChatRuntime({
     } finally {
       setIsRunning(false)
     }
-  }, [messages, teamId, workspaceId, threadId, onSaveMessage])
+  }, [messages, teamId, workspaceId, threadId, onSaveMessage, onRoutingInfo, onSlowModel])
 
   // ─────────────────────────────────────────────────────────────────────────
   // PLAN HANDLERS
@@ -1595,7 +1595,7 @@ function ChatRuntime({
       clearInterval(timerInterval)
       setExecutingPlan(null)
     }
-  }, [pendingPlan, threadId, executionProgress, onSaveMessage])
+  }, [pendingPlan, threadId, executionProgress, executionElapsedTime, onSaveMessage])
 
   // Handle plan step-by-step execution
   const handlePlanStepByStep = useCallback(() => {
@@ -1722,7 +1722,7 @@ export function ChatInterfaceV2({
   const [ragItemCount, setRagItemCount] = useState(0)
   const [imageAnalyzed, setImageAnalyzed] = useState(false)
   const [isSlowModel, setIsSlowModel] = useState(false)
-  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false)
+  const [isAnalyzingImage, _setIsAnalyzingImage] = useState(false)
 
   // Check if user is dev mode
   const userIsDevMode = isDevMode(userEmail)
@@ -1757,9 +1757,9 @@ export function ChatInterfaceV2({
   // Message persistence - load messages for selected thread
   const {
     messages: loadedMessages,
-    isLoading: messagesLoading,
+    isLoading: _messagesLoading,
     hasLoaded: messagesHasLoaded,
-    addMessage,
+    addMessage: _addMessage,
   } = useMessages({
     threadId: currentThreadId,
     enabled: !!currentThreadId,

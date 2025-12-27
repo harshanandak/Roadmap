@@ -86,10 +86,10 @@ export async function GET(
       feedback: feedback || [],
       summary,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch feedback' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch feedback' },
       { status: 500 }
     )
   }

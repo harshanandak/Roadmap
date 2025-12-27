@@ -40,9 +40,11 @@ export function PhaseSelect({
   showWorkload = true,
   className,
 }: PhaseSelectProps) {
+  // Initialize mounted state synchronously to avoid render cycle issues
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard pattern
     setMounted(true);
   }, []);
 

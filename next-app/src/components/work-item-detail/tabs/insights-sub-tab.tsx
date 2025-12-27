@@ -9,13 +9,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Lightbulb,
   Plus,
   Link2,
-  Loader2,
-  Inbox,
+  
+  
   Unlink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useWorkItemDetailContext } from '../shared/detail-context'
 import { InsightCard } from '@/components/insights/insight-card'
 import { InsightFormDialog } from '@/components/insights/insight-form'
-import { InsightLinkDialog } from '@/components/insights/insight-link-dialog'
+
 import type { CustomerInsightWithMeta, VoteType } from '@/lib/types/customer-insight'
 
 // Animation variants
@@ -61,7 +61,7 @@ function EmptyState({ onCreateNew, onLinkExisting }: EmptyStateProps) {
         </div>
         <h3 className="text-lg font-medium mb-2">No Insights Linked</h3>
         <p className="text-sm text-muted-foreground text-center max-w-sm mb-4">
-          Customer insights help you understand the "why" behind this work item.
+          Customer insights help you understand the &quot;why&quot; behind this work item.
           Link existing insights or create new ones from customer feedback.
         </p>
         <div className="flex items-center gap-2">
@@ -228,8 +228,8 @@ export function InsightsSubTab() {
   const [userVotes, setUserVotes] = useState<Record<string, VoteType | null>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [selectedInsight, setSelectedInsight] = useState<CustomerInsightWithMeta | null>(null)
+  const [_linkDialogOpen, setLinkDialogOpen] = useState(false)
+  const [_selectedInsight, setSelectedInsight] = useState<CustomerInsightWithMeta | null>(null)
 
   // Fetch linked insights for this work item
   const fetchLinkedInsights = useCallback(async () => {
@@ -290,10 +290,11 @@ export function InsightsSubTab() {
       }))
 
       fetchLinkedInsights()
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to record vote'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to record vote',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -321,10 +322,11 @@ export function InsightsSubTab() {
 
       fetchLinkedInsights()
       router.refresh()
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to unlink insight'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to unlink insight',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -338,7 +340,7 @@ export function InsightsSubTab() {
   }
 
   // Handle link success
-  const handleLinkSuccess = () => {
+  const _handleLinkSuccess = () => {
     setLinkDialogOpen(false)
     fetchLinkedInsights()
     router.refresh()

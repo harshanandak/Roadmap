@@ -9,7 +9,7 @@
  * - Fallback when database is unavailable
  */
 
-import { SystemTemplate, TemplateData } from './template-types'
+import type { SystemTemplate } from './template-types'
 
 // ============================================================================
 // SYSTEM TEMPLATE IDS

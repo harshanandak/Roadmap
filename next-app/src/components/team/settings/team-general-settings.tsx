@@ -53,9 +53,10 @@ export function TeamGeneralSettings({ team, currentUserRole }: TeamGeneralSettin
             setSaved(true)
             router.refresh()
             setTimeout(() => setSaved(false), 3000)
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error updating team name:', error)
-            alert(error.message || 'Failed to update team name')
+            const message = error instanceof Error ? error.message : 'Failed to update team name'
+            alert(message)
         } finally {
             setLoading(false)
         }
@@ -73,9 +74,10 @@ export function TeamGeneralSettings({ team, currentUserRole }: TeamGeneralSettin
 
             router.push('/dashboard')
             router.refresh()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error deleting team:', error)
-            alert(error.message || 'Failed to delete team')
+            const message = error instanceof Error ? error.message : 'Failed to delete team'
+            alert(message)
             setLoading(false)
         }
     }

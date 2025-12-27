@@ -12,10 +12,35 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import Link from 'next/link'
+import type { User } from '@supabase/supabase-js'
+
+/** Invitation data structure from the database */
+interface InvitationData {
+  id: string
+  token: string
+  email: string
+  role: string
+  team_id: string
+  expires_at: string
+  accepted_at: string | null
+  invited_by: string
+  phase_assignments?: PhaseAssignment[]
+  teams: {
+    name: string
+    plan: string
+  }
+}
+
+/** Phase assignment structure */
+interface PhaseAssignment {
+  workspace_id: string
+  phase: string
+  can_edit: boolean
+}
 
 export default function AcceptInvitePage() {
   const [loading, setLoading] = useState(true)
-  const [invitation, setInvitation] = useState<any>(null)
+  const [invitation, setInvitation] = useState<InvitationData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [accepting, setAccepting] = useState(false)
 
@@ -32,6 +57,7 @@ export default function AcceptInvitePage() {
     }
 
     loadInvitation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   const loadInvitation = async () => {
@@ -64,7 +90,7 @@ export default function AcceptInvitePage() {
         return
       }
 
-      setInvitation(data)
+      setInvitation(data as InvitationData)
       setLoading(false)
 
       // Auto-accept if user is already authenticated
@@ -74,16 +100,17 @@ export default function AcceptInvitePage() {
 
       if (user && user.email === data.email) {
         // User is authenticated and email matches, auto-accept
-        await acceptInvitation(user, data)
+        await acceptInvitation(user, data as InvitationData)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading invitation:', err)
-      setError(err.message || 'Failed to load invitation')
+      const message = err instanceof Error ? err.message : 'Failed to load invitation'
+      setError(message)
       setLoading(false)
     }
   }
 
-  const acceptInvitation = async (user: any, invitationData: any) => {
+  const acceptInvitation = async (user: User, invitationData: InvitationData) => {
     setAccepting(true)
 
     try {
@@ -110,7 +137,7 @@ export default function AcceptInvitePage() {
 
       // Create phase assignments if provided
       if (invitationData.phase_assignments && Array.isArray(invitationData.phase_assignments)) {
-        const phaseAssignments = invitationData.phase_assignments.map((assignment: any) => ({
+        const phaseAssignments = invitationData.phase_assignments.map((assignment) => ({
           id: `assignment_${Date.now()}_${Math.random().toString(36).substring(7)}`,
           team_id: invitationData.team_id,
           workspace_id: assignment.workspace_id,
@@ -144,14 +171,20 @@ export default function AcceptInvitePage() {
 
       // Redirect to dashboard
       router.push('/dashboard')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accepting invitation:', error)
-      setError(error.message || 'Failed to accept invitation')
+      const message = error instanceof Error ? error.message : 'Failed to accept invitation'
+      setError(message)
       setAccepting(false)
     }
   }
 
   const handleAccept = async () => {
+    if (!invitation) {
+      setError('Invitation not found')
+      return
+    }
+
     setAccepting(true)
 
     try {
@@ -177,9 +210,10 @@ export default function AcceptInvitePage() {
       }
 
       await acceptInvitation(user, invitation)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in handleAccept:', error)
-      setError(error.message || 'Failed to accept invitation')
+      const message = error instanceof Error ? error.message : 'Failed to accept invitation'
+      setError(message)
       setAccepting(false)
     }
   }
@@ -199,13 +233,13 @@ export default function AcceptInvitePage() {
     )
   }
 
-  if (error) {
+  if (error || !invitation) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-red-600">Invalid Invitation</CardTitle>
-            <CardDescription>{error}</CardDescription>
+            <CardDescription>{error || 'Invitation not found'}</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/">

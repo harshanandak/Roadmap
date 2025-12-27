@@ -49,11 +49,12 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
       });
 
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating profile:', error);
+      const message = error instanceof Error ? error.message : 'Failed to update profile. Please try again.';
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update profile. Please try again.',
+        description: message,
         variant: 'destructive',
       });
     } finally {
@@ -121,11 +122,12 @@ export function UserProfileForm({ user }: UserProfileFormProps) {
       });
 
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading avatar:', error);
+      const message = error instanceof Error ? error.message : 'Failed to upload avatar. Please try again.';
       toast({
         title: 'Upload failed',
-        description: error.message || 'Failed to upload avatar. Please try again.',
+        description: message,
         variant: 'destructive',
       });
     } finally {

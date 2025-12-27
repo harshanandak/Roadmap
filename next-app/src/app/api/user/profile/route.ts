@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -32,10 +32,11 @@ export async function GET(request: NextRequest) {
       created_at: userProfile?.created_at,
       updated_at: userProfile?.updated_at,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/user/profile:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }
@@ -65,7 +66,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Build update object
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -97,10 +98,11 @@ export async function PUT(request: NextRequest) {
       created_at: data.created_at,
       updated_at: data.updated_at,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in PUT /api/user/profile:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }

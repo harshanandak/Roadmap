@@ -12,7 +12,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type {
   KnowledgeGraph,
   CompressedContext,
-  KnowledgeTopic,
   CompressionJob,
   CompressionJobType,
   CompressionJobStatus,

@@ -45,6 +45,8 @@ interface ColumnVisibilityMenuProps {
 export function ColumnVisibilityMenu({ onVisibilityChange }: ColumnVisibilityMenuProps) {
   const [visibility, setVisibility] = useState<ColumnVisibility>(DEFAULT_VISIBILITY)
 
+   
+   
   useEffect(() => {
     // Load from localStorage
     const saved = localStorage.getItem('table-column-visibility')
@@ -53,12 +55,13 @@ export function ColumnVisibilityMenu({ onVisibilityChange }: ColumnVisibilityMen
         const parsed = JSON.parse(saved)
         setVisibility({ ...DEFAULT_VISIBILITY, ...parsed })
         onVisibilityChange({ ...DEFAULT_VISIBILITY, ...parsed })
-      } catch (e) {
+      } catch (_e) {
         console.error('Failed to parse column visibility from localStorage')
       }
     } else {
       onVisibilityChange(DEFAULT_VISIBILITY)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const toggleColumn = (column: keyof ColumnVisibility) => {

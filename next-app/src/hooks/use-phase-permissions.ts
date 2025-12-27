@@ -75,6 +75,10 @@ export function usePhasePermissions({
   // Try to use context first (optimized path - no duplicate subscriptions)
   const contextPermissions = usePermissionsOptional()
 
+  // Always call the direct hook to comply with rules of hooks
+  // We'll use its result only if context is not available
+  const directResult = usePhasePermissionsDirect({ workspaceId, teamId })
+
   // Check if context matches our workspace/team
   const useContext =
     contextPermissions &&
@@ -95,7 +99,7 @@ export function usePhasePermissions({
   }
 
   // Fallback: Direct subscription (for backward compatibility)
-  return usePhasePermissionsDirect({ workspaceId, teamId })
+  return directResult
 }
 
 /**
@@ -234,6 +238,10 @@ export function useCanEditPhase({
   // Try to use context first
   const contextPermissions = usePermissionsOptional()
 
+  // Always call the direct hook to comply with rules of hooks
+  // We'll use its result only if context is not available
+  const directResult = useCanEditPhaseDirect({ workspaceId, teamId, phase })
+
   const useContext =
     contextPermissions &&
     contextPermissions.workspaceId === workspaceId &&
@@ -249,7 +257,7 @@ export function useCanEditPhase({
   }
 
   // Fallback: Direct check
-  return useCanEditPhaseDirect({ workspaceId, teamId, phase })
+  return directResult
 }
 
 /**

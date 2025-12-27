@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, FormEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -96,10 +96,11 @@ export default function SignupPage() {
           }
         }, 2000)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to create account'
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to create account',
+        text: message,
       })
     } finally {
       setLoading(false)
@@ -125,10 +126,11 @@ export default function SignupPage() {
       })
 
       if (error) throw error
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to sign in with Google'
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to sign in with Google',
+        text: message,
       })
       setLoading(false)
     }

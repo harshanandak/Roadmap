@@ -13,7 +13,7 @@
  * Visual feedback and real-time edge filtering
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Panel } from '@xyflow/react'
 import { cn } from '@/lib/utils'
 import {
@@ -252,7 +252,13 @@ export function RelationshipTogglePanel({
  * @param filters - Active relationship filters
  * @returns Filtered edges
  */
-export function filterEdgesByRelationships(edges: any[], filters: RelationshipFilters): any[] {
+interface EdgeWithData {
+  id: string
+  data?: { linkType?: string }
+  label?: string
+}
+
+export function filterEdgesByRelationships<T extends EdgeWithData>(edges: T[], filters: RelationshipFilters): T[] {
   // If all filters are active or no filters are active, show all edges
   if (filters.all) {
     return edges

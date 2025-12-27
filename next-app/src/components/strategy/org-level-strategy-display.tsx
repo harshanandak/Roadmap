@@ -30,7 +30,6 @@ import {
   Flag,
   Target,
   TrendingUp,
-  Lightbulb,
   Users,
   BookOpen,
   FileText,
@@ -40,7 +39,6 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { StrategyTree } from './strategy-tree'
-import { StrategyProgressCompact } from './strategy-progress'
 import {
   getStrategyTypeLabel,
   STRATEGY_TYPE_COLORS,

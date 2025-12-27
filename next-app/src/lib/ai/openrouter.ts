@@ -6,7 +6,7 @@
  * Handles streaming responses, token tracking, cost calculation, and provider exclusions.
  */
 
-import { AIModel, getModelById, calculateCost } from './models'
+import { AIModel, calculateCost } from './models'
 
 /**
  * OpenRouter API configuration
@@ -100,7 +100,17 @@ export async function callOpenRouter(
 
   try {
     // Build request body
-    const requestBody: any = {
+    const requestBody: {
+      model: string;
+      messages: ChatMessage[];
+      temperature: number;
+      max_tokens: number;
+      top_p: number;
+      frequency_penalty: number;
+      presence_penalty: number;
+      stream: boolean;
+      provider?: { ignore: string[] };
+    } = {
       model: model.id, // Already includes :nitro suffix for throughput optimization
       messages,
       temperature,
@@ -136,7 +146,19 @@ export async function callOpenRouter(
       )
     }
 
-    const data = await response.json()
+    const data = await response.json() as {
+      id: string;
+      model: string;
+      choices: Array<{
+        message: ChatMessage;
+        finish_reason: string;
+      }>;
+      usage: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+      };
+    }
 
     // Calculate cost
     const costUsd = calculateCost(
@@ -148,7 +170,7 @@ export async function callOpenRouter(
     return {
       id: data.id,
       model: data.model,
-      choices: data.choices.map((choice: any) => ({
+      choices: data.choices.map((choice) => ({
         message: choice.message,
         finishReason: choice.finish_reason,
       })),
@@ -159,9 +181,10 @@ export async function callOpenRouter(
       },
       costUsd,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('OpenRouter API error:', error)
-    throw new Error(`Failed to call OpenRouter API: ${error.message}`)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Failed to call OpenRouter API: ${message}`)
   }
 }
 
@@ -187,7 +210,17 @@ export async function streamOpenRouter(
 
   try {
     // Build request body
-    const requestBody: any = {
+    const requestBody: {
+      model: string;
+      messages: ChatMessage[];
+      temperature: number;
+      max_tokens: number;
+      top_p: number;
+      frequency_penalty: number;
+      presence_penalty: number;
+      stream: boolean;
+      provider?: { ignore: string[] };
+    } = {
       model: model.id, // Already includes :nitro suffix for throughput optimization
       messages,
       temperature,
@@ -228,9 +261,10 @@ export async function streamOpenRouter(
     }
 
     return response.body
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('OpenRouter streaming error:', error)
-    throw new Error(`Failed to stream from OpenRouter API: ${error.message}`)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Failed to stream from OpenRouter API: ${message}`)
   }
 }
 
@@ -265,7 +299,7 @@ export async function* parseSSEStream(
           try {
             const chunk = JSON.parse(data)
             yield chunk
-          } catch (e) {
+          } catch {
             console.warn('Failed to parse SSE chunk:', data)
           }
         }
@@ -276,14 +310,21 @@ export async function* parseSSEStream(
   }
 }
 
+/** Usage data from streaming response */
+interface StreamUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 /**
  * Extract text content from streaming response
  */
 export async function extractStreamText(
   stream: ReadableStream<Uint8Array>
-): Promise<{ text: string; usage?: any }> {
+): Promise<{ text: string; usage?: StreamUsage }> {
   let fullText = ''
-  let usage: any = null
+  let usage: StreamUsage | null = null
 
   for await (const chunk of parseSSEStream(stream)) {
     const delta = chunk.choices[0]?.delta
@@ -291,11 +332,15 @@ export async function extractStreamText(
       fullText += delta.content
     }
     if (chunk.usage) {
-      usage = chunk.usage
+      usage = {
+        promptTokens: chunk.usage.promptTokens,
+        completionTokens: chunk.usage.completionTokens,
+        totalTokens: chunk.usage.totalTokens,
+      }
     }
   }
 
-  return { text: fullText, usage }
+  return { text: fullText, usage: usage ?? undefined }
 }
 
 /**
@@ -354,17 +399,26 @@ Only include dependencies with confidence >= 0.6. Be conservative - it's better 
       throw new Error('Response is not an array')
     }
 
+    // Type for parsed dependency objects
+    interface ParsedDependency {
+      sourceId?: string;
+      targetId?: string;
+      reason?: string;
+      confidence?: number;
+    }
+
     return dependencies.filter(
-      (dep: any) =>
-        dep.sourceId &&
-        dep.targetId &&
-        dep.reason &&
+      (dep: ParsedDependency): dep is { sourceId: string; targetId: string; reason: string; confidence: number } =>
+        typeof dep.sourceId === 'string' &&
+        typeof dep.targetId === 'string' &&
+        typeof dep.reason === 'string' &&
         typeof dep.confidence === 'number' &&
         dep.confidence >= 0.6
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to parse AI response:', error)
-    throw new Error(`Invalid AI response format: ${error.message}`)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    throw new Error(`Invalid AI response format: ${message}`)
   }
 }
 

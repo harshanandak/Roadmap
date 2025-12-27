@@ -15,10 +15,8 @@ import { createClient } from '@/lib/supabase/server'
 import {
   validatePhasePermission,
   handlePermissionError,
-  logPermissionDenial,
 } from '@/lib/middleware/permission-middleware'
 import { calculateWorkItemPhase } from '@/lib/constants/workspace-phases'
-import type { WorkspacePhase } from '@/lib/types/team'
 
 /**
  * GET /api/work-items

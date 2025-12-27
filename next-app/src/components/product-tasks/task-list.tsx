@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Search, Filter, LayoutGrid, List, RefreshCw, MoreHorizontal, Clock, AlertTriangle, CheckCircle2, Circle, Link2, ExternalLink } from 'lucide-react'

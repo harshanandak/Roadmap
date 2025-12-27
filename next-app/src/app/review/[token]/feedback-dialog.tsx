@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -84,25 +84,45 @@ function StarRating({
   )
 }
 
+// Pre-generate confetti positions to avoid calling Math.random during render
+interface ConfettiParticle {
+  left: number
+  delay: number
+  duration: number
+  size: number
+}
+
+function generateConfettiParticles(count: number): ConfettiParticle[] {
+  return Array.from({ length: count }, () => ({
+    left: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    duration: 2 + Math.random() * 2,
+    size: 10 + Math.random() * 20,
+  }))
+}
+
 function SuccessConfetti() {
+  // Generate random values once and memoize them
+  const particles = useMemo(() => generateConfettiParticles(20), [])
+
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {[...Array(20)].map((_, i) => (
+      {particles.map((particle: ConfettiParticle, i: number) => (
         <div
           key={i}
           className="absolute animate-confetti"
           style={{
-            left: `${Math.random() * 100}%`,
+            left: `${particle.left}%`,
             top: '-10px',
-            animationDelay: `${Math.random() * 0.5}s`,
-            animationDuration: `${2 + Math.random() * 2}s`,
+            animationDelay: `${particle.delay}s`,
+            animationDuration: `${particle.duration}s`,
           }}
         >
           <Sparkles
             className="text-yellow-400"
             style={{
-              width: `${10 + Math.random() * 20}px`,
-              height: `${10 + Math.random() * 20}px`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
             }}
           />
         </div>
@@ -170,10 +190,11 @@ export function FeedbackDialog({
         onOpenChange(false)
         form.reset()
       }, 2000)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to submit feedback'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to submit feedback',
+        description: message,
         variant: 'destructive',
       })
     } finally {

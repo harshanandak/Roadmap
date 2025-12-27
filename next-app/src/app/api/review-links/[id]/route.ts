@@ -50,10 +50,11 @@ export async function GET(
     }
 
     return NextResponse.json(reviewLink)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching review link:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch review link'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch review link' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -111,7 +112,7 @@ export async function PUT(
     }
 
     // Update review link
-    const updates: any = {}
+    const updates: Record<string, unknown> = {}
     if (is_active !== undefined) updates.is_active = is_active
     if (expires_at !== undefined) updates.expires_at = expires_at
     if (name !== undefined) updates.name = name
@@ -128,10 +129,11 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedLink)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating review link:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update review link'
     return NextResponse.json(
-      { error: error.message || 'Failed to update review link' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -198,10 +200,11 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true, link: deletedLink })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting review link:', error)
+    const message = error instanceof Error ? error.message : 'Failed to delete review link'
     return NextResponse.json(
-      { error: error.message || 'Failed to delete review link' },
+      { error: message },
       { status: 500 }
     )
   }

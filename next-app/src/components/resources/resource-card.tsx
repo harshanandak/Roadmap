@@ -108,6 +108,7 @@ export function ResourceCard({
             )}
           >
             {displayImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={resource.image_url || resource.favicon_url || ''}
                 alt=""
@@ -278,6 +279,7 @@ export function ResourceItem({
       {/* Favicon */}
       <div className="h-8 w-8 rounded bg-muted flex items-center justify-center shrink-0 overflow-hidden">
         {!imageError && resource.favicon_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={resource.favicon_url}
             alt=""

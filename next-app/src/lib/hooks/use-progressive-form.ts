@@ -221,6 +221,7 @@ export function useProgressiveForm({
     if (persistPreference && initialExpanded === undefined) {
       const stored = loadPreference(formId, userId)
       if (stored !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional localStorage sync
         setIsExpandedState(stored)
       }
     }

@@ -18,8 +18,13 @@ import {
 import { Loader2, Rocket, Users, Layers, Check, Plus, X, Mail } from 'lucide-react'
 import { PHASE_ORDER } from '@/lib/constants/workspace-phases'
 
+interface UserInfo {
+  id: string
+  email?: string
+}
+
 interface OnboardingFlowProps {
-  user: any
+  user: UserInfo
 }
 
 export function OnboardingFlow({ user }: OnboardingFlowProps) {
@@ -128,9 +133,10 @@ export function OnboardingFlow({ user }: OnboardingFlowProps) {
       // Redirect to the new workspace
       router.push(`/workspaces/${workspaceId}`)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating team and workspace:', error)
-      alert(error.message || 'Failed to create team and workspace')
+      const message = error instanceof Error ? error.message : 'Failed to create team and workspace'
+      alert(message)
     } finally {
       setLoading(false)
     }

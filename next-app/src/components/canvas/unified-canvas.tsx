@@ -25,8 +25,6 @@ import {
   useNodesState,
   useEdgesState,
   OnConnect,
-  OnNodesChange,
-  OnEdgesChange,
   Panel,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -214,7 +212,7 @@ function linkedItemsToEdges(linkedItems: LinkedItem[]): Edge[] {
 /**
  * Edge color based on link type
  */
-const edgeColors: Record<string, string> = {
+const _edgeColors: Record<string, string> = {
   blocks: '#ef4444', // red
   depends_on: '#f59e0b', // amber
   enables: '#10b981', // green
@@ -226,13 +224,13 @@ const edgeColors: Record<string, string> = {
 }
 
 export function UnifiedCanvas({
-  workspaceId,
-  teamId,
+  workspaceId: _workspaceId,
+  teamId: _teamId,
   workItems,
   linkedItems,
   onWorkItemUpdate,
   onLinkCreate,
-  onLinkDelete,
+  onLinkDelete: _onLinkDelete,
   className,
 }: UnifiedCanvasProps) {
   // Fullscreen state
@@ -277,7 +275,7 @@ export function UnifiedCanvas({
   const [layoutApplied, setLayoutApplied] = useState(false)
 
   // ELK.js layout - only compute for initial nodes, not manual changes
-  const { nodes: layoutedNodes, edges: layoutedEdges, layoutTime, isLayouting } = useElkLayout(
+  const { nodes: layoutedNodes, edges: layoutedEdges, layoutTime: _layoutTime, isLayouting } = useElkLayout(
     initialNodes, // Use initial nodes, not the mutable ones from useNodesState
     viewModeFilteredEdges, // Use view mode filtered edges
     {
@@ -355,6 +353,7 @@ export function UnifiedCanvas({
       monitor.cleanup()
       clearInterval(metricsInterval)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Update graph size when nodes/edges change
@@ -391,7 +390,7 @@ export function UnifiedCanvas({
             target_item_id: connection.target,
             link_type: 'relates_to',
           })
-        } catch (error) {
+        } catch (_error) {
           console.error('[UnifiedCanvas] Failed to create link:', error)
           // Rollback optimistic update
           setEdges((eds) => eds.filter((e) => e.id !== newEdge.id))
@@ -403,16 +402,17 @@ export function UnifiedCanvas({
 
   // Handle node drag end (save position)
   const onNodeDragStop = useCallback(
-    async (_: any, node: Node) => {
+    async (_event: React.MouseEvent, node: Node) => {
       // TODO: Re-enable position saving once RLS policies are configured
       // Temporarily disabled to avoid console errors during testing
       if (false && onWorkItemUpdate) {
         try {
           await onWorkItemUpdate?.({
             id: node.id,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- database schema accepts JSON
             canvas_position: node.position as any,
           })
-        } catch (error) {
+        } catch (_error) {
           // Silently fail - RLS policy needs adjustment
         }
       }

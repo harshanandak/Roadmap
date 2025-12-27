@@ -38,7 +38,6 @@ import {
 import {
   Plus,
   Pencil,
-  Trash2,
   Search,
   CheckCircle2,
   XCircle,

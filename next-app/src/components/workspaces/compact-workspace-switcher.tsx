@@ -19,7 +19,8 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
+// cn removed - not currently used
+// import { cn } from '@/lib/utils';
 
 interface Workspace {
   id: string;
@@ -40,7 +41,7 @@ interface CompactWorkspaceSwitcherProps {
 export function CompactWorkspaceSwitcher({
   currentWorkspaceId,
   currentWorkspaceName,
-  teamPlan,
+  teamPlan: _teamPlan,
   workspaces,
 }: CompactWorkspaceSwitcherProps) {
   const router = useRouter();

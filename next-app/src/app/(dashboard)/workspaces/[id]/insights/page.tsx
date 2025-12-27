@@ -61,9 +61,10 @@ export default async function InsightsPage({
 
   // Validate tab parameter
   const validTabs = ['all', 'triage', 'linked'] as const
-  const initialTab = validTabs.includes(tab as any)
-    ? (tab as (typeof validTabs)[number])
-    : 'all'
+  type ValidTab = typeof validTabs[number]
+  const isValidTab = (value: string | undefined): value is ValidTab =>
+    validTabs.includes(value as ValidTab)
+  const initialTab: ValidTab = isValidTab(tab) ? tab : 'all'
 
   return (
     <div className="container max-w-7xl py-6">

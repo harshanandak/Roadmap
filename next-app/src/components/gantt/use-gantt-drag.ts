@@ -200,7 +200,7 @@ export function useGanttDrag<T extends GanttItem>(
         onDragError?.(item, error instanceof Error ? error : new Error('Unknown error'));
       }
     },
-    [items, zoomLevel, onItemsChange, apiEndpoint, onDragSuccess, onDragError, calculateNewDatesFromDelta]
+    [items, onItemsChange, apiEndpoint, onDragSuccess, onDragError, calculateNewDatesFromDelta]
   );
 
   return {
@@ -237,7 +237,7 @@ export interface UseSwimlaneDropOptions<T extends GanttItem> {
  * @param options - Drop options
  * @returns Handler for swimlane item moves
  */
-export function useSwimlaneItemMove<T extends GanttItem & Record<string, any>>(
+export function useSwimlaneItemMove<T extends GanttItem & Record<string, unknown>>(
   items: T[],
   options: UseSwimlaneDropOptions<T>
 ) {

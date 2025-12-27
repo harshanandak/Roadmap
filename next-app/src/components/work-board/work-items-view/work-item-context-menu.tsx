@@ -34,7 +34,7 @@ interface WorkItemContextMenuProps {
 }
 
 export function WorkItemContextMenu({
-  workItem,
+  _workItem,
   hasTimelines,
   onEdit,
   onDelete,

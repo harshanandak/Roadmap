@@ -19,7 +19,7 @@ import { TemplateSelectorDialog } from '@/components/mind-map/template-selector-
 import { Button } from '@/components/ui/button'
 import { NodeType, MindMapNode, MindMapReactFlowNode, MindMapReactFlowEdge } from '@/lib/types/mind-map'
 import { MindMapTemplate } from '@/lib/templates/mind-map-templates'
-import { ArrowLeft, Loader2, Save, Check, Sparkles } from 'lucide-react'
+import { ArrowLeft, Loader2, Check, Sparkles } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import { useReactFlow, ReactFlowProvider } from '@xyflow/react'
 
@@ -34,7 +34,7 @@ function MindMapCanvasPageContent() {
   const updateNode = useUpdateNode()
   const deleteNode = useDeleteNode()
   const createEdge = useCreateEdge()
-  const deleteEdge = useDeleteEdge()
+  const _deleteEdge = useDeleteEdge()
   const convertNode = useConvertNodeToWorkItem()
   const applyTemplate = useApplyTemplate()
 
@@ -68,6 +68,7 @@ function MindMapCanvasPageContent() {
         onConvert: (nodeId: string) => handleConvertNode(nodeId),
       },
     }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleDeleteNode and handleConvertNode are stable callbacks defined below
   }, [data?.nodes])
 
   // Convert database edges to ReactFlow format
@@ -111,7 +112,7 @@ function MindMapCanvasPageContent() {
 
   // Handle node updates (position, data)
   const handleNodesChange = useCallback(
-    async (changes: any[]) => {
+    async (changes: Array<{ type: string; id: string; position?: { x: number; y: number }; dragging?: boolean }>) => {
       for (const change of changes) {
         if (change.type === 'position' && change.position && !change.dragging) {
           setSaveStatus('saving')
@@ -133,7 +134,7 @@ function MindMapCanvasPageContent() {
 
   // Handle edge creation
   const handleEdgesChange = useCallback(
-    async (connection: any) => {
+    async (connection: { source?: string; target?: string }) => {
       if (connection.source && connection.target) {
         try {
           await createEdge.mutateAsync({
@@ -197,9 +198,10 @@ function MindMapCanvasPageContent() {
           node_id: nodeId,
         })
         alert('Node converted to feature successfully!')
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to convert node:', error)
-        alert(error.message || 'Failed to convert node')
+        const message = error instanceof Error ? error.message : 'Failed to convert node'
+        alert(message)
       }
     },
     [mindMapId, convertNode]

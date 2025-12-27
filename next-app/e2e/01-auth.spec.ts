@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { loginUser, logoutUser, isUserAuthenticated } from '../tests/helpers/auth';
-import { TEST_USERS, TEST_PATHS } from '../tests/fixtures/test-data';
+import { isUserAuthenticated } from '../tests/helpers/auth';
+import { TEST_PATHS } from '../tests/fixtures/test-data';
 
 /**
  * Authentication Flow E2E Tests
@@ -133,7 +133,7 @@ test.describe('Authentication', () => {
     await expect(page).toHaveURL(/login|auth/, { timeout: 10000 });
   });
 
-  test('should persist authentication across page refreshes', async ({ page, context }) => {
+  test('should persist authentication across page refreshes', async ({ page }) => {
     // Note: This test requires a way to authenticate
     // In a real scenario with working auth, this would:
     // 1. Login user

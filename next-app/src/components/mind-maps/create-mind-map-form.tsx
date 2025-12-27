@@ -26,7 +26,7 @@ export interface CreateMindMapFormProps {
   userId: string
 }
 
-export function CreateMindMapForm({ workspaceId, teamId, userId }: CreateMindMapFormProps) {
+export function CreateMindMapForm({ workspaceId, teamId: _teamId, userId: _userId }: CreateMindMapFormProps) {
   const router = useRouter()
   const [canvasType, setCanvasType] = useState<CanvasType>('freeform')
   const [name, setName] = useState('')

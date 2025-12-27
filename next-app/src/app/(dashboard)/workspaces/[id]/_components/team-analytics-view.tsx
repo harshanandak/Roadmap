@@ -3,7 +3,11 @@
 import { PhaseLeadDashboard } from '@/components/team/phase-lead-dashboard'
 
 interface TeamAnalyticsViewProps {
-  workspace: any
+  workspace: {
+    id: string
+    name: string
+    team_id: string
+  }
 }
 
 export function TeamAnalyticsView({ workspace }: TeamAnalyticsViewProps) {

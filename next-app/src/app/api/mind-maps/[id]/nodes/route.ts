@@ -76,8 +76,9 @@ export async function POST(
       .eq('id', mindMapId)
 
     return NextResponse.json({ node })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in POST /api/mind-maps/[id]/nodes:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

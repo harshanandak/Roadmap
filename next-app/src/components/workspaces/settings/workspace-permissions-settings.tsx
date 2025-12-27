@@ -26,7 +26,19 @@ interface WorkspacePermissionsSettingsProps {
 }
 
 export function WorkspacePermissionsSettings({ workspace, currentUserId }: WorkspacePermissionsSettingsProps) {
-    const [teamMembers, setTeamMembers] = useState<any[]>([])
+    interface TeamMember {
+    id: string
+    user_id: string
+    role: string
+    joined_at: string
+    users: {
+      id: string
+      email: string
+      name: string | null
+      avatar_url: string | null
+    } | null
+  }
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
     const [loadingMembers, setLoadingMembers] = useState(true)
     const [currentUserRole, setCurrentUserRole] = useState<'owner' | 'admin' | 'member'>('member')
     const [phaseMatrixOpen, setPhaseMatrixOpen] = useState(false)

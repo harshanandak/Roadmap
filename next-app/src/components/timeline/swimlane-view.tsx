@@ -2,17 +2,14 @@
 
 import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { format, addDays } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { DraggableTimelineBar } from './draggable-timeline-bar'
 import { ZoomLevel, TimelineWorkItem } from './timeline-view'
 import type { Department } from '@/lib/types/department'
 import { getDepartmentColorClasses } from '@/lib/types/department'
-import * as LucideIcons from 'lucide-react'
 
 interface SwimlaneViewProps {
   workItems: TimelineWorkItem[]
@@ -40,7 +37,7 @@ export function SwimlaneView({
   workItems,
   groupBy,
   departments = [],
-  zoomLevel,
+  zoomLevel: _zoomLevel,
   timeIntervals,
   totalWidth,
   onItemMove,

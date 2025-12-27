@@ -12,16 +12,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
-  ProductStrategy,
-  ProductStrategyWithOwner,
-  StrategyWithChildren,
   StrategyTreeResponse,
   StrategyDetailResponse,
   CreateStrategyRequest,
   UpdateStrategyRequest,
-  AlignWorkItemRequest,
-  RemoveAlignmentRequest,
-  WorkItemStrategyWithWorkItem,
   AlignmentStrength,
 } from '@/lib/types/strategy'
 
@@ -201,7 +195,7 @@ export function useCreateStrategy() {
       }
       return response.json()
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate tree queries for this team/workspace
       queryClient.invalidateQueries({
         queryKey: strategyKeys.trees(),
@@ -270,7 +264,7 @@ export function useDeleteStrategy() {
       }
       return response.json()
     },
-    onMutate: async (variables) => {
+    onMutate: async () => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: strategyKeys.trees(),
@@ -287,7 +281,7 @@ export function useDeleteStrategy() {
 
       return { previousTrees }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousTrees) {
         context.previousTrees.forEach(([queryKey, data]) => {
@@ -433,7 +427,7 @@ export function useReorderStrategy() {
       }
       return response.json()
     },
-    onMutate: async (variables) => {
+    onMutate: async () => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: strategyKeys.trees(),
@@ -449,7 +443,7 @@ export function useReorderStrategy() {
 
       return { previousTrees }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousTrees) {
         context.previousTrees.forEach(([queryKey, data]) => {
@@ -491,8 +485,6 @@ export interface AIAlignmentResponse {
  * Get AI alignment suggestions
  */
 export function useAISuggestions() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (params: {
       teamId: string

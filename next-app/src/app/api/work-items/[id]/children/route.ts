@@ -65,10 +65,10 @@ export async function GET(
       children: children || [],
       count: children?.length || 0,
     }, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching work item children:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch work item children' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch work item children' },
       { status: 500 }
     )
   }

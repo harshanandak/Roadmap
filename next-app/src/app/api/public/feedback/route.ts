@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       data: { id: insight.id },
       message: 'Feedback submitted successfully',
     }, { headers: rateLimitHeaders })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Public feedback error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -37,7 +37,7 @@ export function KnowledgeDashboard({ workspaceId }: KnowledgeDashboardProps) {
   const { data: graphData, isLoading: graphLoading } = useKnowledgeGraph(workspaceId)
   const { data: topicsData, isLoading: topicsLoading } = useTopics(workspaceId, true)
   const { data: jobsData, isLoading: jobsLoading, refetch: refetchJobs } = useCompressionJobs(workspaceId)
-  const { runningJobs, hasRunningJobs } = useActiveJobs(workspaceId)
+  const { runningJobs: _runningJobs, hasRunningJobs } = useActiveJobs(workspaceId)
   const triggerMutation = useTriggerCompression()
 
   const graph = graphData?.graph

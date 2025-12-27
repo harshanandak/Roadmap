@@ -9,7 +9,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle, ArrowLeft, RefreshCcw } from 'lucide-react'
+import { CheckCircle, RefreshCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface WorkspaceInfo {

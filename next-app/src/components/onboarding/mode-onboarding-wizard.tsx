@@ -10,7 +10,7 @@
  * 4. Get started with their workspace
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronRight,
@@ -32,11 +32,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { WorkspaceMode, WORKSPACE_MODE_CONFIG } from '@/lib/types/workspace-mode'
 import { MODE_EXTENDED_CONFIG, getModeSuggestedActions } from '@/lib/workspace-modes/mode-config'
-import { SYSTEM_TEMPLATES, getSystemTemplatesByMode } from '@/lib/templates/system-templates'
+import { getSystemTemplatesByMode } from '@/lib/templates/system-templates'
 import type { SystemTemplate } from '@/lib/templates/template-types'
 
 // ============================================================================
@@ -226,7 +225,7 @@ function TemplateStep({
       {/* Skip Option */}
       <div className="text-center">
         <Button variant="ghost" onClick={() => onSelectTemplate(null)}>
-          Skip - I'll start from scratch
+          Skip - I&apos;ll start from scratch
         </Button>
       </div>
     </div>
@@ -260,7 +259,7 @@ function TipsStep({ mode }: { mode: WorkspaceMode }) {
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Quick Start Tips</h2>
         <p className="text-muted-foreground">
-          Here's how to get the most out of {config.name} mode
+          Here&apos;s how to get the most out of {config.name} mode
         </p>
       </div>
 
@@ -307,7 +306,6 @@ function CompleteStep({
   templateApplied: boolean
 }) {
   const config = WORKSPACE_MODE_CONFIG[mode]
-  const Icon = MODE_ICONS[mode]
 
   return (
     <div className="space-y-8 text-center">
@@ -319,7 +317,7 @@ function CompleteStep({
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold">You're All Set!</h2>
+        <h2 className="text-3xl font-bold">You&apos;re All Set!</h2>
         <p className="text-lg text-muted-foreground">
           {workspaceName} is ready in {config.name} mode
         </p>
@@ -350,7 +348,7 @@ export function ModeOnboardingWizard({
   workspaceId,
   workspaceName,
   mode,
-  teamId,
+  teamId: _teamId,
   onComplete,
   onApplyTemplate,
 }: ModeOnboardingWizardProps) {

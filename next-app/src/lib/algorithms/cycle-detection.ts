@@ -66,7 +66,7 @@ export function detectCycles(
 
     const neighbors = graph.get(nodeId) || []
 
-    for (const { targetId, connection } of neighbors) {
+    for (const { targetId, connection: _connection } of neighbors) {
       if (!visited.has(targetId)) {
         dfs(targetId)
       } else if (recursionStack.has(targetId)) {
@@ -159,7 +159,7 @@ function getCycleConnections(
  */
 function calculateCycleSeverity(
   workItems: WorkItem[],
-  connections: WorkItemConnection[]
+  _connections: WorkItemConnection[]
 ): 'high' | 'medium' | 'low' {
   // High severity if:
   // - Cycle includes critical/high priority items
@@ -168,7 +168,7 @@ function calculateCycleSeverity(
 
   const hasCriticalItems = workItems.some((item) => item.priority === 'critical')
   const hasBlockedItems = workItems.some((item) => {
-    const blockers = item.blockers as any
+    const blockers = item.blockers as unknown[]
     return Array.isArray(blockers) && blockers.length > 0
   })
   const hasInProgressItems = workItems.some((item) => {

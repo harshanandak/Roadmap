@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
       .eq('team_id', teamId)
 
     const memberMap: Record<string, string> = {}
-    members?.forEach((m: any) => {
+    members?.forEach((m: { user_id: string; users: { name: string | null; email: string } | null }) => {
       if (m.users && m.user_id) {
         memberMap[m.user_id] = m.users.name || m.users.email || 'Unknown'
       }

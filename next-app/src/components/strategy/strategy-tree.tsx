@@ -55,7 +55,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { StrategyProgressCompact } from './strategy-progress'
 import {
-  getStrategyTypeLabel,
   STRATEGY_TYPE_COLORS,
 } from '@/lib/types/strategy'
 import type { StrategyWithChildren, StrategyType } from '@/lib/types/strategy'
@@ -394,9 +393,9 @@ function StrategyTreeNode({
   depth,
   isExpanded,
   isSelected,
-  isDragging,
-  isOver,
-  isValidDrop,
+  isDragging: _isDragging,
+  isOver: _isOver,
+  isValidDrop: _isValidDrop,
   onToggle,
   onSelect,
   onEdit,
@@ -424,7 +423,7 @@ function StrategyTreeNode({
     disabled: !enableDragDrop,
   })
 
-  const { setNodeRef: setDroppableRef, isOver: isNodeOver } = useDroppable({
+  const { setNodeRef: setDroppableRef, isOver: _isNodeOver } = useDroppable({
     id: strategy.id,
     disabled: !enableDragDrop,
   })

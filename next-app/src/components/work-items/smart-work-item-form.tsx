@@ -7,11 +7,10 @@
  * Automatically adapts field visibility and defaults based on workspace mode.
  */
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sparkles,
   Bug,
-  Zap,
   Lightbulb,
   AlertCircle,
 } from 'lucide-react'
@@ -34,9 +33,7 @@ import { ProgressiveFieldGroup } from '@/components/forms/progressive-field-grou
 import { WorkspaceMode, WORKSPACE_MODE_CONFIG } from '@/lib/types/workspace-mode'
 import {
   getModeDefaultWorkItemType,
-  getModeSuggestedActions,
   WorkItemType,
-  WorkItemField,
 } from '@/lib/workspace-modes/mode-config'
 
 // ============================================================================
@@ -202,7 +199,7 @@ function ModeHint({ mode }: { mode: WorkspaceMode }) {
 // ============================================================================
 
 function FormFields() {
-  const { mode, isFieldVisible, isExpanded } = useProgressiveFormContext()
+  const { isFieldVisible } = useProgressiveFormContext()
 
   return (
     <>
@@ -332,7 +329,7 @@ function FormFields() {
 export function SmartWorkItemForm({
   mode,
   workspaceId,
-  teamId,
+  teamId: _teamId,
   userId,
   initialValues,
   onSubmit,
@@ -351,6 +348,7 @@ export function SmartWorkItemForm({
   // Reset type when mode changes
   useEffect(() => {
     if (!initialValues?.type) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional mode change sync
       setType(getModeDefaultWorkItemType(mode))
     }
   }, [mode, initialValues?.type])

@@ -21,7 +21,6 @@ import type {
   DocumentSummaryInsert,
   DocumentType,
   Sentiment,
-  COMPRESSION_CONFIG,
 } from '@/lib/types/collective-intelligence'
 
 // =============================================================================
@@ -68,7 +67,7 @@ const DocumentSummarySchema = z.object({
     .describe('Complexity score from 0 (simple) to 1 (very complex/technical)'),
 })
 
-type GeneratedSummary = z.infer<typeof DocumentSummarySchema>
+type _GeneratedSummary = z.infer<typeof DocumentSummarySchema>
 
 // =============================================================================
 // SUMMARIZER

@@ -14,11 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
 import { useRouter } from 'next/navigation'
 import { Trash2, Check, Clock, Target, ChevronDown, ChevronRight, ListTodo } from 'lucide-react'
 import { getLifecycleStatusLabel, getLifecycleStatusBgColor } from '@/lib/constants/work-item-types'
@@ -45,7 +40,7 @@ interface TimelineItemsListProps {
   teamId?: string
 }
 
-export function TimelineItemsList({ items, workItemId, workspaceId, teamId }: TimelineItemsListProps) {
+export function TimelineItemsList({ items, workItemId: _workItemId, workspaceId, teamId }: TimelineItemsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
@@ -79,9 +74,10 @@ export function TimelineItemsList({ items, workItemId, workspaceId, teamId }: Ti
 
       setDeletingId(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting timeline item:', error)
-      alert(error.message || 'Failed to delete timeline item')
+      const message = error instanceof Error ? error.message : 'Failed to delete timeline item'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -100,9 +96,10 @@ export function TimelineItemsList({ items, workItemId, workspaceId, teamId }: Ti
       if (error) throw error
 
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating timeline item:', error)
-      alert(error.message || 'Failed to update timeline item')
+      const message = error instanceof Error ? error.message : 'Failed to update timeline item'
+      alert(message)
     } finally {
       setLoading(false)
     }

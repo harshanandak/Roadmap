@@ -12,7 +12,6 @@ import type {
   UserPhaseAssignment,
   PhasePermission,
   UserPhasePermissions,
-  TeamRole,
   PhasePermissionBadge,
 } from '@/lib/types/team'
 

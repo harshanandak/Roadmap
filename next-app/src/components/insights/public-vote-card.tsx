@@ -107,8 +107,9 @@ export function PublicVoteCard({
         setVotedType(voteType)
         onVoteSuccess?.(voteType)
       }
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to vote'
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -145,7 +146,7 @@ export function PublicVoteCard({
           </div>
           <h3 className="text-lg font-semibold mb-2">Check your email</h3>
           <p className="text-sm text-muted-foreground">
-            We've sent a verification link to <strong>{email}</strong>.
+            We&apos;ve sent a verification link to <strong>{email}</strong>.
             Click the link to confirm your vote.
           </p>
         </CardContent>
@@ -168,7 +169,7 @@ export function PublicVoteCard({
           <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
             <Quote className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-sm text-muted-foreground italic">
-              "{insight.quote_preview}"
+              &quot;{insight.quote_preview}&quot;
             </p>
           </div>
         )}
@@ -211,7 +212,7 @@ export function PublicVoteCard({
             />
             {votingSettings.requireEmailVerification && (
               <p className="text-xs text-muted-foreground">
-                We'll send a verification link to confirm your vote.
+                We&apos;ll send a verification link to confirm your vote.
               </p>
             )}
           </div>
@@ -255,7 +256,7 @@ export function PublicVoteCard({
         {/* Anonymous voting note */}
         {votingSettings.allowAnonymous && !email && (
           <p className="text-xs text-muted-foreground text-center">
-            Voting anonymously. Add your email if you'd like to be notified of updates.
+            Voting anonymously. Add your email if you&apos;d like to be notified of updates.
           </p>
         )}
       </CardContent>

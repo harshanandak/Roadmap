@@ -378,9 +378,10 @@ export function CreateWorkItemDialog({
 
       // Refresh the page
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error creating ${getItemLabel(formData.type).toLowerCase()}:`, error)
-      alert(error.message || `Failed to create ${getItemLabel(formData.type).toLowerCase()}`)
+      const message = error instanceof Error ? error.message : `Failed to create ${getItemLabel(formData.type).toLowerCase()}`
+      alert(message)
     } finally {
       setLoading(false)
     }

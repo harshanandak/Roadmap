@@ -79,10 +79,11 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(feedback, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch feedback'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch feedback' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -219,10 +220,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(newFeedback, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating feedback:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create feedback'
     return NextResponse.json(
-      { error: error.message || 'Failed to create feedback' },
+      { error: message },
       { status: 500 }
     )
   }

@@ -23,7 +23,7 @@ interface CommandPaletteProps {
   teamId?: string
 }
 
-export function CommandPalette({ workspaceId, teamId }: CommandPaletteProps) {
+export function CommandPalette({ workspaceId, teamId: _teamId }: CommandPaletteProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 

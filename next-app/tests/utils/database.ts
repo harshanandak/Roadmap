@@ -251,7 +251,7 @@ export async function createWorkItemInDatabase(
   workItemData: {
     title: string;
     description?: string;
-    type: 'feature' | 'bug' | 'concept';
+    type: 'feature' | 'bug' | 'concept' | 'enhancement';
     phase: string;
     priority: string;
     workspaceId: string;

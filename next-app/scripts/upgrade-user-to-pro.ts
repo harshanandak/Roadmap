@@ -82,7 +82,7 @@ async function upgradeUserToPro(userEmail: string) {
     // Upgrade each team to pro
     let successCount = 0;
     for (const member of teamMembers) {
-      const team = member.teams as any;
+      const team = member.teams as { name: string; plan: string; member_count: number; id: string };
 
       console.log(`  • ${team.name}`);
       console.log(`    - Current plan: ${team.plan}`);

@@ -14,7 +14,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { summarizeDocument, batchSummarizeDocuments } from './l2-summarizer'
+import { batchSummarizeDocuments } from './l2-summarizer'
 import { clusterTopics } from './l3-topic-clustering'
 import { batchExtractConcepts } from './l4-concept-extractor'
 import type {
@@ -22,7 +22,6 @@ import type {
   CompressionJobType,
   CompressionJobStatus,
   CompressionJobResult,
-  CompressionJobInsert,
 } from '@/lib/types/collective-intelligence'
 
 // =============================================================================

@@ -186,7 +186,7 @@ export function calculateCriticalPath(
 export function getCriticalPathItems(workItems: WorkItem[]): string[] {
   const criticalPath = calculateCriticalPath(workItems)
   return Array.from(criticalPath.entries())
-    .filter(([_, node]) => node.isCritical)
+    .filter(([, node]) => node.isCritical)
     .map(([id]) => id)
 }
 

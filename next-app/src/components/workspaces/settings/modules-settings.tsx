@@ -142,9 +142,10 @@ export function ModulesSettings({ workspace, teamPlan }: ModulesSettingsProps) {
 
       // Hide success message after 3 seconds
       setTimeout(() => setSaved(false), 3000)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating modules:', error)
-      alert(error.message || 'Failed to update modules')
+      const message = error instanceof Error ? error.message : 'Failed to update modules'
+      alert(message)
     } finally {
       setLoading(false)
     }

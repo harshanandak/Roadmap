@@ -15,7 +15,7 @@
  */
 
 import { cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -38,7 +38,6 @@ import {
 import { AlignmentStrengthIndicator } from './alignment-strength-indicator'
 import {
   getStrategyTypeLabel,
-  getStrategyTypeShortLabel,
   STRATEGY_TYPE_COLORS,
   getDisplayProgress,
 } from '@/lib/types/strategy'
@@ -48,8 +47,17 @@ import type {
   StrategyType,
 } from '@/lib/types/strategy'
 
+// Type icon mapping - defined outside component to avoid recreation during render
+const STRATEGY_TYPE_ICONS: Record<StrategyType, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  pillar: Flag,
+  objective: Target,
+  key_result: TrendingUp,
+  initiative: Lightbulb,
+}
+
 interface WorkItemStrategyAlignmentProps {
-  workItemId: string
+  /** Work item ID - reserved for future use with strategy linking APIs */
+  _workItemId?: string
   primaryStrategy: ProductStrategy | null
   additionalAlignments: WorkItemStrategyWithDetails[]
   onAddAlignment?: () => void
@@ -61,7 +69,7 @@ interface WorkItemStrategyAlignmentProps {
 }
 
 export function WorkItemStrategyAlignment({
-  workItemId,
+  _workItemId,
   primaryStrategy,
   additionalAlignments,
   onAddAlignment,
@@ -73,17 +81,6 @@ export function WorkItemStrategyAlignment({
 }: WorkItemStrategyAlignmentProps) {
   const hasAnyAlignment = primaryStrategy || additionalAlignments.length > 0
   const totalAlignments = (primaryStrategy ? 1 : 0) + additionalAlignments.length
-
-  // Type icon mapping
-  const TypeIcon = (type: StrategyType) => {
-    const icons = {
-      pillar: Flag,
-      objective: Target,
-      key_result: TrendingUp,
-      initiative: Lightbulb,
-    }
-    return icons[type]
-  }
 
   if (!hasAnyAlignment && readonly) {
     return (
@@ -136,7 +133,6 @@ export function WorkItemStrategyAlignment({
           isPrimary
           onView={onViewStrategy}
           onRemove={!readonly ? onRemovePrimary : undefined}
-          TypeIcon={TypeIcon}
         />
       )}
 
@@ -155,7 +151,6 @@ export function WorkItemStrategyAlignment({
               notes={alignment.notes}
               onView={onViewStrategy}
               onRemove={!readonly ? () => onRemoveAlignment?.(alignment.id) : undefined}
-              TypeIcon={TypeIcon}
             />
           ))}
         </div>
@@ -175,7 +170,6 @@ interface StrategyAlignmentCardProps {
   notes?: string | null
   onView?: (strategyId: string) => void
   onRemove?: () => void
-  TypeIcon: (type: StrategyType) => React.ComponentType<{ className?: string; style?: React.CSSProperties }>
 }
 
 function StrategyAlignmentCard({
@@ -185,9 +179,8 @@ function StrategyAlignmentCard({
   notes,
   onView,
   onRemove,
-  TypeIcon,
 }: StrategyAlignmentCardProps) {
-  const Icon = TypeIcon(strategy.type)
+  const Icon = STRATEGY_TYPE_ICONS[strategy.type]
   const progress = getDisplayProgress(strategy)
 
   return (

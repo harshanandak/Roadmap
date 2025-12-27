@@ -345,7 +345,7 @@ export type FeedbackStatus = typeof FEEDBACK_STATUSES[keyof typeof FEEDBACK_STAT
  * Get the appropriate item types for a given workspace phase
  * All 4 types are available in all phases - phase affects field visibility, not types
  */
-export function getPhaseItemTypes(phase: WorkspacePhase): WorkItemType[] {
+export function getPhaseItemTypes(_phase: WorkspacePhase): WorkItemType[] {
   return Object.values(WORK_ITEM_TYPES)
 }
 

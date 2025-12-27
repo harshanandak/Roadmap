@@ -12,7 +12,7 @@
  * - Actions (edit, delete, link)
  */
 
-import { useState } from 'react'
+import React from 'react'
 import {
   MoreHorizontal,
   Pencil,
@@ -242,7 +242,7 @@ export function InsightCard({
           {/* Quote (if exists) */}
           {insight.quote && !isCompact && (
             <blockquote className="text-sm text-muted-foreground italic border-l-2 border-primary/30 pl-3 py-1">
-              "{insight.quote}"
+              &quot;{insight.quote}&quot;
             </blockquote>
           )}
 

@@ -19,7 +19,6 @@ import {
   Loader2,
   Sparkles,
   Bug,
-  Zap,
   LucideIcon,
 } from 'lucide-react'
 import {
@@ -39,13 +38,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
 import { useConnectionSearch } from '@/lib/hooks/use-connection-search'
 import type {
   ConnectionMenuProps,
   ConnectionEntityType,
   AnyConnectionEntity,
-  ENTITY_TYPE_CONFIG,
 } from './connection-menu-types'
 
 // ============================================================================
@@ -281,9 +278,10 @@ export function ConnectionMenu({
     return () => clearTimeout(timeoutId)
   }, [searchQuery, activeFilter, teamId, workspaceId, open, enabledTypes, search])
 
-  // Clear results when closing
+  // Clear results when menu opens (reset state on open)
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional state reset on menu open
       setSearchQuery('')
       setActiveFilter('all')
       clearResults()
@@ -362,7 +360,7 @@ export function ConnectionMenu({
                 {error ? (
                   <span className="text-destructive">{error}</span>
                 ) : searchQuery ? (
-                  <span>No results for "{searchQuery}"</span>
+                  <span>No results for &quot;{searchQuery}&quot;</span>
                 ) : (
                   <span>Type to search...</span>
                 )}

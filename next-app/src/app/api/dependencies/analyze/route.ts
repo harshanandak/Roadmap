@@ -121,8 +121,8 @@ export async function POST(request: Request) {
       healthScore: criticalPathResult.healthScore,
       warnings: criticalPathResult.warnings,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in POST /api/dependencies/analyze:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 })
   }
 }

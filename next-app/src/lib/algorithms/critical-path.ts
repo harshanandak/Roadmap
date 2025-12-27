@@ -130,7 +130,6 @@ export function calculateCriticalPath(
   const workItemMap = new Map(workItems.map((item) => [item.id, item]))
 
   topologicalOrder.forEach((itemId) => {
-    const item = workItemMap.get(itemId)!
     const dependencies = reverseGraph.get(itemId) || []
 
     if (dependencies.length === 0) {
@@ -164,7 +163,6 @@ export function calculateCriticalPath(
     const dependents = graph.get(itemId) || []
 
     if (dependents.length === 0) {
-      const earliest = earliestStart.get(itemId)!
       const duration = getWorkItemDuration(item)
       latestStart.set(itemId, projectDuration - duration)
     } else {

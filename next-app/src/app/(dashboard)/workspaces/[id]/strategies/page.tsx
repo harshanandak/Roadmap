@@ -155,10 +155,11 @@ export default function StrategiesPage() {
         title: 'Strategy created',
         description: 'Your strategy has been created successfully.',
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create strategy'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to create strategy',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -179,10 +180,11 @@ export default function StrategiesPage() {
         title: 'Strategy updated',
         description: 'Your changes have been saved.',
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update strategy'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to update strategy',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -206,10 +208,11 @@ export default function StrategiesPage() {
         title: 'Strategy deleted',
         description: 'The strategy and its children have been deleted.',
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete strategy'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to delete strategy',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -268,10 +271,11 @@ export default function StrategiesPage() {
           title: 'Strategy reordered',
           description: 'The strategy has been moved successfully.',
         })
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to reorder strategy'
         toast({
           title: 'Error',
-          description: err.message || 'Failed to reorder strategy',
+          description: message,
           variant: 'destructive',
         })
       }

@@ -47,7 +47,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
 import { WorkspaceMode, WORKSPACE_MODE_CONFIG } from '@/lib/types/workspace-mode'
-import { CreateTemplateInput, TEMPLATE_ICONS } from '@/lib/templates/template-types'
+import { CreateTemplateInput } from '@/lib/templates/template-types'
 
 // ============================================================================
 // ICON COMPONENTS

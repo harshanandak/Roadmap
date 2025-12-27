@@ -136,7 +136,7 @@ function fileExists(filePath: string): boolean {
     }
 
     return false;
-  } catch {
+  } catch (_error) {
     return false;
   }
 }
@@ -158,7 +158,7 @@ function getAllMdFiles(dir: string, projectRoot: string): string[] {
         files.push(fullPath);
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Directory doesn't exist or not accessible
   }
 

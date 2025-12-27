@@ -24,7 +24,6 @@ import type {
   TimeInterval,
   BarStyle,
   GanttItem,
-  ZOOM_CONFIG,
 } from './types';
 
 // ============================================================================

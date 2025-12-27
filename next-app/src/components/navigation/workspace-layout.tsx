@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useRouter } from 'next/navigation'
 import { AppSidebar } from './app-sidebar'
-import { cn } from '@/lib/utils'
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode

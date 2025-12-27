@@ -60,60 +60,61 @@ export function EditMemberPhasesDialog({
 
   // Load existing phase assignments and lead counts
   useEffect(() => {
+    const loadPhaseData = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        // Get all phase assignments for this user in this workspace
+        const { data: assignments, error: assignmentsError } = await supabase
+          .from('user_phase_assignments')
+          .select('*')
+          .eq('user_id', member.user_id)
+          .eq('workspace_id', workspaceId)
+
+        if (assignmentsError) throw assignmentsError
+
+        // Initialize phase states
+        const states: PhaseAssignments = {} as PhaseAssignments
+        PHASES.forEach(phase => {
+          const assignment = assignments?.find(a => a.phase === phase)
+          states[phase] = {
+            assigned: !!assignment,
+            can_edit: assignment?.can_edit ?? false,
+            is_lead: assignment?.is_lead ?? false,
+            assignment_id: assignment?.id
+          }
+        })
+        setPhaseStates(states)
+
+        // Get lead counts for each phase
+        const { data: allAssignments, error: countError } = await supabase
+          .from('user_phase_assignments')
+          .select('phase, is_lead')
+          .eq('workspace_id', workspaceId)
+          .eq('is_lead', true)
+
+        if (countError) throw countError
+
+        const counts: Record<WorkspacePhase, number> = {} as Record<WorkspacePhase, number>
+        PHASES.forEach(phase => {
+          counts[phase] = allAssignments?.filter(a => a.phase === phase).length ?? 0
+        })
+        setLeadCounts(counts)
+
+      } catch (err: unknown) {
+        console.error('Error loading phase data:', err)
+        const message = err instanceof Error ? err.message : 'Failed to load phase assignments'
+        setError(message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (open) {
       loadPhaseData()
     }
-  }, [open, member.user_id, workspaceId])
-
-  const loadPhaseData = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      // Get all phase assignments for this user in this workspace
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('user_phase_assignments')
-        .select('*')
-        .eq('user_id', member.user_id)
-        .eq('workspace_id', workspaceId)
-
-      if (assignmentsError) throw assignmentsError
-
-      // Initialize phase states
-      const states: PhaseAssignments = {} as PhaseAssignments
-      PHASES.forEach(phase => {
-        const assignment = assignments?.find(a => a.phase === phase)
-        states[phase] = {
-          assigned: !!assignment,
-          can_edit: assignment?.can_edit ?? false,
-          is_lead: assignment?.is_lead ?? false,
-          assignment_id: assignment?.id
-        }
-      })
-      setPhaseStates(states)
-
-      // Get lead counts for each phase
-      const { data: allAssignments, error: countError } = await supabase
-        .from('user_phase_assignments')
-        .select('phase, is_lead')
-        .eq('workspace_id', workspaceId)
-        .eq('is_lead', true)
-
-      if (countError) throw countError
-
-      const counts: Record<WorkspacePhase, number> = {} as Record<WorkspacePhase, number>
-      PHASES.forEach(phase => {
-        counts[phase] = allAssignments?.filter(a => a.phase === phase).length ?? 0
-      })
-      setLeadCounts(counts)
-
-    } catch (err: any) {
-      console.error('Error loading phase data:', err)
-      setError(err.message || 'Failed to load phase assignments')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [open, member.user_id, workspaceId, supabase])
 
   const handlePhaseChange = (phase: WorkspacePhase, value: string) => {
     setPhaseStates(prev => ({
@@ -202,9 +203,10 @@ export function EditMemberPhasesDialog({
       onSuccess?.()
       onOpenChange(false)
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving phase assignments:', err)
-      setError(err.message || 'Failed to save phase assignments')
+      const message = err instanceof Error ? err.message : 'Failed to save phase assignments'
+      setError(message)
     } finally {
       setSaving(false)
     }
@@ -264,7 +266,8 @@ export function EditMemberPhasesDialog({
                 const phaseConfig = PHASE_CONFIG[phase]
                 const currentValue = getPhaseValue(phase)
                 const currentLeadCount = leadCounts[phase]
-                const wouldBe3rdLead = currentValue === 'lead' && currentLeadCount >= 2 && !phaseStates[phase]?.assignment_id
+                // Check if this would be the 3rd lead (used for validation in handleSave)
+                const _wouldBe3rdLead = currentValue === 'lead' && currentLeadCount >= 2 && !phaseStates[phase]?.assignment_id
 
                 return (
                   <div key={phase} className="border rounded-lg p-4 space-y-3">

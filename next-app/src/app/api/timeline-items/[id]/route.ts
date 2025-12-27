@@ -53,10 +53,11 @@ export async function GET(
     }
 
     return NextResponse.json(timelineItem, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching timeline item:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch timeline item'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch timeline item' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -131,7 +132,7 @@ export async function PATCH(
     } = body
 
     // Build update object (only include provided fields)
-    const updates: any = { updated_at: new Date().toISOString() }
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
 
     if (description !== undefined) updates.description = description
     if (timeline !== undefined) {
@@ -221,10 +222,11 @@ export async function PATCH(
     }
 
     return NextResponse.json(updatedItem, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating timeline item:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update timeline item'
     return NextResponse.json(
-      { error: error.message || 'Failed to update timeline item' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -274,10 +276,11 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true }, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting timeline item:', error)
+    const message = error instanceof Error ? error.message : 'Failed to delete timeline item'
     return NextResponse.json(
-      { error: error.message || 'Failed to delete timeline item' },
+      { error: message },
       { status: 500 }
     )
   }

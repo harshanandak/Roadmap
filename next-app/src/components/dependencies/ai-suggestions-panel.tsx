@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Check, X, ArrowRight, Sparkles, DollarSign, Zap } from 'lucide-react'
+import { Loader2, Check, ArrowRight, Sparkles, DollarSign, Zap } from 'lucide-react'
 import { ModelSelector } from '@/components/ai/model-selector'
-import { getDefaultModel, formatCost, type AIModel } from '@/lib/ai/models'
+import { getDefaultModel, formatCost } from '@/lib/ai/models'
 import { toast } from 'sonner'
 
 interface AISuggestion {
@@ -96,10 +96,11 @@ export function AISuggestionsPanel({
           description: `Analyzed ${data.analyzedWorkItems} work items using ${data.model.name}`,
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error generating AI suggestions:', error)
+      const message = error instanceof Error ? error.message : 'Unknown error'
       toast.error('Failed to generate suggestions', {
-        description: error.message,
+        description: message,
       })
     } finally {
       setLoading(false)
@@ -143,10 +144,11 @@ export function AISuggestionsPanel({
       setSelectedSuggestions(new Set())
 
       toast.success(`Added ${approvedSuggestions.length} dependency connection${approvedSuggestions.length > 1 ? 's' : ''}`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error approving suggestions:', error)
+      const message = error instanceof Error ? error.message : 'Unknown error'
       toast.error('Failed to add connections', {
-        description: error.message,
+        description: message,
       })
     }
   }

@@ -80,10 +80,11 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(timelineItems, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching timeline items:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch timeline items'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch timeline items' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -222,10 +223,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(newTimelineItem, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating timeline item:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create timeline item'
     return NextResponse.json(
-      { error: error.message || 'Failed to create timeline item' },
+      { error: message },
       { status: 500 }
     )
   }

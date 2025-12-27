@@ -120,10 +120,10 @@ export async function POST(
       },
       { status: 201 }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error converting feedback:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to convert feedback' },
+      { error: error instanceof Error ? error.message : 'Failed to convert feedback' },
       { status: 500 }
     )
   }

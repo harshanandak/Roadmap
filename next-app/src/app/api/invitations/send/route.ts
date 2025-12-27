@@ -211,17 +211,19 @@ export async function POST(request: NextRequest) {
         success: true,
         messageId: emailInfo.messageId,
       })
-    } catch (emailError: any) {
+    } catch (emailError: unknown) {
       console.error('Failed to send email:', emailError)
+      const message = emailError instanceof Error ? emailError.message : 'Unknown error'
       return NextResponse.json(
-        { error: `Failed to send invitation email: ${emailError.message}` },
+        { error: `Failed to send invitation email: ${message}` },
         { status: 500 }
       )
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending invitation:', error)
+    const message = error instanceof Error ? error.message : 'Internal server error'
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     )
   }

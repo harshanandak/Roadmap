@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -19,7 +18,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Info, Zap, DollarSign, Clock } from 'lucide-react'
-import { AIModel, getAllModels, formatCost, AI_MODELS } from '@/lib/ai/models'
+import { getAllModels, formatCost } from '@/lib/ai/models'
 
 interface ModelSelectorProps {
   selectedModel: string // Model ID (e.g., 'anthropic/claude-3.5-haiku')

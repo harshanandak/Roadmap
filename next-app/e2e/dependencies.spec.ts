@@ -60,8 +60,6 @@ test.describe('Dependency Management', () => {
     // Verify different edge types exist with correct styling
     const blocksEdges = page.locator('[data-relationship="blocks"]');
     const dependsEdges = page.locator('[data-relationship="depends_on"]');
-    const complementsEdges = page.locator('[data-relationship="complements"]');
-    const conflictsEdges = page.locator('[data-relationship="conflicts"]');
 
     // At least one of each type should exist in test data
     await expect(blocksEdges).toHaveCount(await blocksEdges.count());

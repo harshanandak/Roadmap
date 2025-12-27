@@ -6,7 +6,7 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize,
-  Download,
+  
   FileJson,
   Image,
   Sparkles,
@@ -109,7 +109,7 @@ export function MindMapToolbar({
           className="gap-2"
           title="Export as PNG Image"
         >
-          <Image className="h-4 w-4" />
+          <Image className="h-4 w-4" alt="Export PNG" />
           <span className="hidden sm:inline">PNG</span>
         </Button>
         <Button

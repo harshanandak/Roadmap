@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, ArrowRight, Lightbulb, Zap, Bug, Sparkles } from 'lucide-react'
+import { Loader2, ArrowRight, Lightbulb, Zap, Bug } from 'lucide-react'
 import type { ProductTaskWithRelations } from '@/lib/types/product-tasks'
 
 type WorkItemType = 'concept' | 'feature' | 'bug'
@@ -81,7 +81,7 @@ export function ConvertTaskDialog({
         throw new Error(error.error || 'Failed to convert task')
       }
 
-      const data = await response.json()
+      const _data = await response.json()
 
       toast({
         title: 'Task converted',

@@ -28,7 +28,7 @@ async function sendDebug(payload: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-  } catch (err) {
+  } catch (_err) {
     try {
       await fs.appendFile(DEBUG_LOG_PATH, `${JSON.stringify(body)}\n`)
     } catch {

@@ -5,10 +5,9 @@
  * This prevents orphaned data from accumulating in the test database.
  */
 
-import { FullConfig } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown() {
   console.log('\n🧹 Running global test teardown...\n');
 
   // Only cleanup if service role key is available
@@ -27,7 +26,7 @@ async function globalTeardown(config: FullConfig) {
     });
 
     // 1. Clean up test teams (by name pattern)
-    const { data: testTeams, error: teamsError } = await supabase
+    const { data: testTeams } = await supabase
       .from('teams')
       .select('id, name')
       .or('name.like.%Test Team%,name.like.%test_%,name.like.%Team-%');
@@ -74,7 +73,7 @@ async function globalTeardown(config: FullConfig) {
           console.log('✅ No test users found to clean up');
         }
       }
-    } catch (e) {
+    } catch {
       // Auth admin operations may not be available
       console.log('⚠️  Could not clean up test users (auth admin not available)');
     }

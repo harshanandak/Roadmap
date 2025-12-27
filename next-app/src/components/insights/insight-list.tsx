@@ -8,7 +8,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,11 +22,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import {
   Search,
-  Filter,
   SlidersHorizontal,
   Plus,
   RefreshCcw,
-  Loader2,
   Lightbulb,
   ChevronLeft,
   ChevronRight,
@@ -80,7 +77,6 @@ export function InsightList({
   onView,
   className,
 }: InsightListProps) {
-  const router = useRouter()
   const { toast } = useToast()
 
   // State
@@ -149,8 +145,9 @@ export function InsightList({
         votes[insight.id] = null // Will be populated by individual vote checks if needed
       })
       setUserVotes(votes)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load insights')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load insights'
+      setError(message)
       console.error('Error fetching insights:', err)
     } finally {
       setIsLoading(false)
@@ -192,10 +189,11 @@ export function InsightList({
 
       // Refresh to get updated counts
       fetchInsights(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to record vote'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to record vote',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -224,10 +222,11 @@ export function InsightList({
 
       fetchInsights(true)
       onDelete?.(insight)
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete insight'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to delete insight',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -393,7 +392,7 @@ export function InsightList({
           <span className="text-sm text-muted-foreground">Filters:</span>
           {search && (
             <Badge variant="secondary" className="gap-1">
-              Search: "{search}"
+              Search: &quot;{search}&quot;
             </Badge>
           )}
           {sourceFilter !== 'all' && (

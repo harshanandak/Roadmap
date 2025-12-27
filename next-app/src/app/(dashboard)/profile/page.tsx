@@ -85,7 +85,7 @@ export default async function ProfilePage() {
           <CardContent>
             {teamMemberships && teamMemberships.length > 0 ? (
               <div className="space-y-4">
-                {teamMemberships.map((membership: any) => (
+                {teamMemberships.map((membership: { id: string; role: string; joined_at: string; teams: { id: string; name: string } | null }) => (
                   <div
                     key={membership.id}
                     className="flex items-center justify-between p-4 border rounded-lg"

@@ -24,7 +24,6 @@ import {
   Archive,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { InsightSentiment, InsightStatus } from '@/lib/types/customer-insight'
 
 interface InsightStats {
   total: number

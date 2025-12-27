@@ -16,7 +16,7 @@
 
 import { generateText } from 'ai'
 import type { CoreMessage } from 'ai'
-import { openrouter, aiModels } from './ai-sdk-client'
+import { openrouter } from './ai-sdk-client'
 import type { ModelConfig } from './models-config'
 import { getModelByCapability } from './models-config'
 

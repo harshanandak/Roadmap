@@ -66,10 +66,11 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(reviewLinks || [])
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching review links:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch review links'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch review links' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -192,10 +193,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(newLink, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating review link:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create review link'
     return NextResponse.json(
-      { error: error.message || 'Failed to create review link' },
+      { error: message },
       { status: 500 }
     )
   }

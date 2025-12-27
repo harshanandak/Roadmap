@@ -42,7 +42,6 @@ import {
   TrendingUp,
   Server,
   Shield,
-  X,
   Bug,
   Lightbulb,
 } from 'lucide-react'
@@ -57,7 +56,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
 import {
   WorkspaceTemplate,
   TemplateDepartment,
@@ -111,24 +109,13 @@ const WORK_ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   bug: Bug,
 }
 
-function getTemplateIcon(iconName: string): LucideIcon {
-  return TEMPLATE_ICON_MAP[iconName] || LayoutTemplate
-}
-
-function getDeptIcon(iconName: string): LucideIcon {
-  return DEPT_ICON_MAP[iconName] || Building2
-}
-
-function getWorkItemIcon(type: string): LucideIcon {
-  return WORK_ITEM_TYPE_ICONS[type] || ListTodo
-}
-
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
 
 function DepartmentItem({ dept }: { dept: TemplateDepartment }) {
-  const Icon = getDeptIcon(dept.icon)
+   
+  const Icon = DEPT_ICON_MAP[dept.icon] ?? Building2
   return (
     <div className="flex items-center gap-3 rounded-lg border p-3">
       <div
@@ -143,7 +130,8 @@ function DepartmentItem({ dept }: { dept: TemplateDepartment }) {
 }
 
 function WorkItemItem({ item }: { item: TemplateWorkItem }) {
-  const Icon = getWorkItemIcon(item.type)
+   
+  const Icon = WORK_ITEM_TYPE_ICONS[item.type] ?? ListTodo
   return (
     <div className="rounded-lg border p-3">
       <div className="flex items-start gap-3">
@@ -181,7 +169,8 @@ export function TemplatePreview({
 }: TemplatePreviewProps) {
   if (!template) return null
 
-  const Icon = getTemplateIcon(template.icon)
+   
+  const Icon = TEMPLATE_ICON_MAP[template.icon] ?? LayoutTemplate
   const modeConfig = WORKSPACE_MODE_CONFIG[template.mode as WorkspaceMode]
   const { departments, workItems, tags } = template.template_data
 

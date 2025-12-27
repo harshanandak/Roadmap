@@ -25,7 +25,6 @@ import {
   MoreHorizontal,
   Sparkles,
   Bug,
-  Zap,
   Lightbulb,
   StickyNote,
   // Priority icons
@@ -46,12 +45,10 @@ import {
 import { cn } from '@/lib/utils'
 import {
   statusDisplayMap,
-  typeDisplayMap,
   priorityDisplayMap,
   timelineDisplayMap,
   type TimelineType,
   type WorkItemStatus,
-  TIMELINE_TYPES,
 } from '../shared/filter-context'
 import { WorkItemContextMenu } from './work-item-context-menu'
 import { WorkItemsEmptyState } from '../shared/empty-state'
@@ -149,12 +146,12 @@ export function NestedWorkItemsTable({
   timelineItems,
   workspaceId,
   columnVisibility = DEFAULT_COLUMNS,
-  onStatusChange,
+  _onStatusChange,
   onEditWorkItem,
   onDeleteWorkItem,
   onConvertToTimeline,
   onEditTimelineItem,
-  onDeleteTimelineItem,
+  _onDeleteTimelineItem,
   onAddItem,
   onClearFilters,
   hasActiveFilters = false,
@@ -187,7 +184,7 @@ export function NestedWorkItemsTable({
     })
 
     return grouped
-  }, [timelineItems, workItems])
+  }, [timelineItems])
 
   // Check if column is visible
   const isVisible = (col: string) => columnVisibility[col] !== false

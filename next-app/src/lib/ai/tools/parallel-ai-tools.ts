@@ -62,8 +62,7 @@ export const webSearchTool = tool({
       .describe('Maximum number of results to return (1-20, default: 5)'),
   }),
   execute: async (
-    { query, maxResults },
-    { toolCallId, abortSignal }
+    { query, maxResults }
   ): Promise<{
     success: boolean
     results: ParallelSearchResult[]
@@ -118,7 +117,7 @@ export const extractContentTool = tool({
       .default('markdown')
       .describe('Output format for extracted content'),
   }),
-  execute: async ({ urls, objective, format }, { toolCallId, abortSignal }) => {
+  execute: async ({ urls, objective, format }) => {
     try {
       const results = await parallelExtract({
         urls,
@@ -174,7 +173,7 @@ export const deepResearchTool = tool({
       .default(true)
       .describe('Whether to wait for the research to complete or return immediately with a task ID'),
   }),
-  execute: async ({ topic, depth, waitForCompletion }, { toolCallId, abortSignal }) => {
+  execute: async ({ topic, depth, waitForCompletion }) => {
     try {
       const processor = (depth || 'base') as TaskProcessor
       const task = await parallelTask({
@@ -231,7 +230,7 @@ export const researchStatusTool = tool({
   inputSchema: z.object({
     runId: z.string().describe('The run_id returned when starting the research task'),
   }),
-  execute: async ({ runId }, { toolCallId, abortSignal }) => {
+  execute: async ({ runId }) => {
     try {
       const status = await parallelTaskStatus(runId)
 
@@ -270,7 +269,7 @@ export const quickAnswerTool = tool({
       .optional()
       .describe('Optional context or system instructions to guide the answer'),
   }),
-  execute: async ({ question, context }, { toolCallId, abortSignal }) => {
+  execute: async ({ question, context }) => {
     try {
       const answer = await quickChat(question, context)
 

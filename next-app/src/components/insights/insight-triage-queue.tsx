@@ -30,7 +30,6 @@ import {
   Keyboard,
   RefreshCcw,
   Loader2,
-  Lightbulb,
   CheckCircle,
   Target,
   Archive,
@@ -41,7 +40,6 @@ import { cn } from '@/lib/utils'
 import type {
   CustomerInsightWithMeta,
   InsightStatus,
-  VoteType,
 } from '@/lib/types/customer-insight'
 import { InsightCard } from './insight-card'
 import { useInsightShortcuts, INSIGHT_KEYBOARD_SHORTCUTS } from './hooks/use-insight-shortcuts'
@@ -59,7 +57,7 @@ export function InsightTriageQueue({
   teamId,
   workspaceId,
   onOpenDetail,
-  onEdit,
+  onEdit: _onEdit,
   onLink,
   className,
 }: InsightTriageQueueProps) {
@@ -111,8 +109,9 @@ export function InsightTriageQueue({
       if (data.data?.length > 0 && !selectedId) {
         setSelectedId(data.data[0].id)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load insights')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load insights'
+      setError(message)
       console.error('Error fetching triage insights:', err)
     } finally {
       setIsLoading(false)
@@ -164,10 +163,11 @@ export function InsightTriageQueue({
       } else {
         setSelectedId(null)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update insight'
       toast({
         title: 'Error',
-        description: err.message || 'Failed to update insight',
+        description: message,
         variant: 'destructive',
       })
     } finally {

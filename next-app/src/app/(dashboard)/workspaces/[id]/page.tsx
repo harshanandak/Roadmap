@@ -29,7 +29,7 @@ async function sendDebug(payload: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-  } catch (err) {
+  } catch (_err) {
     // Fallback to file append if the ingest endpoint is unreachable
     try {
       await fs.appendFile(DEBUG_LOG_PATH, `${JSON.stringify(body)}\n`)
@@ -63,21 +63,7 @@ export default async function WorkspacePage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  // #region agent log
-  await fetch('http://127.0.0.1:7242/ingest/ebdf2fd5-9696-479e-b2f1-d72537069b93', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'pre-fix',
-      hypothesisId: 'H2',
-      location: 'workspaces/[id]/page.tsx:getUser',
-      message: 'Fetched auth user',
-      data: { hasUser: !!user },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
+  // Debug logging removed for React Compiler compatibility
 
   // #region agent log
   await sendDebug({
@@ -99,21 +85,7 @@ export default async function WorkspacePage({
     .eq('id', id)
     .single()
 
-  // #region agent log
-  await fetch('http://127.0.0.1:7242/ingest/ebdf2fd5-9696-479e-b2f1-d72537069b93', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'pre-fix',
-      hypothesisId: 'H1',
-      location: 'workspaces/[id]/page.tsx:getWorkspace',
-      message: 'Workspace fetch result',
-      data: { hasWorkspace: !!workspace, teamId: workspace?.team_id, error: !!error },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
+  // Debug logging removed for React Compiler compatibility
 
   // #region agent log
   await sendDebug({
@@ -136,21 +108,7 @@ export default async function WorkspacePage({
     .eq('user_id', user.id)
     .single()
 
-  // #region agent log
-  await fetch('http://127.0.0.1:7242/ingest/ebdf2fd5-9696-479e-b2f1-d72537069b93', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'pre-fix',
-      hypothesisId: 'H3',
-      location: 'workspaces/[id]/page.tsx:getMembership',
-      message: 'Team membership fetch result',
-      data: { hasMember: !!teamMember, role: teamMember?.role },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
+  // Debug logging removed for React Compiler compatibility
 
   // #region agent log
   await sendDebug({
@@ -168,12 +126,12 @@ export default async function WorkspacePage({
   // Parallel data fetching (consolidated)
   const [
     { data: team },
-    { data: workspaces },
+    { data: _workspaces },
     { data: workItems },
     { data: timelineItems },
     { data: linkedItems },
     { data: mindMaps },
-    { data: workItemTagRels },
+    { data: _workItemTagRels },
     { data: tags },
     { data: departments },
     { count: teamSize },
@@ -253,46 +211,7 @@ export default async function WorkspacePage({
       .single(),
   ])
 
-  // #region agent log
-  await fetch('http://127.0.0.1:7242/ingest/ebdf2fd5-9696-479e-b2f1-d72537069b93', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'pre-fix',
-      hypothesisId: 'H4',
-      location: 'workspaces/[id]/page.tsx:dataFetch',
-      message: 'Parallel data fetch summary',
-      data: {
-        workItems: workItems?.length ?? null,
-        timelineItems: timelineItems?.length ?? null,
-        linkedItems: linkedItems?.length ?? null,
-        mindMaps: mindMaps?.length ?? null,
-        tags: tags?.length ?? null,
-        departments: departments?.length ?? null,
-        teamSize: teamSize ?? null,
-      },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
-
-  // #region agent log
-  await sendDebug({
-    hypothesisId: 'H4',
-    location: 'workspaces/[id]/page.tsx:dataFetch',
-    message: 'Parallel data fetch summary (fallback logger)',
-    data: {
-      workItems: workItems?.length ?? null,
-      timelineItems: timelineItems?.length ?? null,
-      linkedItems: linkedItems?.length ?? null,
-      mindMaps: mindMaps?.length ?? null,
-      tags: tags?.length ?? null,
-      departments: departments?.length ?? null,
-      teamSize: teamSize ?? null,
-    },
-  })
-  // #endregion
+  // Debug logging removed for React Compiler compatibility
 
   // Calculate phase distribution and stats
   const phaseDistribution = calculatePhaseDistribution(workItems || [])

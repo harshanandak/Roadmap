@@ -27,7 +27,6 @@ import { createClient } from '@/lib/supabase/server'
 import { toolRegistry, type AgenticTool } from './tools/tool-registry'
 import type {
   ActionStatus,
-  ExecutionResult,
   ActionPreview,
 } from './schemas/agentic-schemas'
 
@@ -460,7 +459,7 @@ export class AgentExecutor {
    * Only works for reversible actions that have rollback_data stored.
    * Creates appropriate reverse operations based on action type.
    */
-  async rollback(actionId: string, context: ExecutionContext): Promise<boolean> {
+  async rollback(actionId: string, _context: ExecutionContext): Promise<boolean> {
     const supabase = await createClient()
 
     // Get action

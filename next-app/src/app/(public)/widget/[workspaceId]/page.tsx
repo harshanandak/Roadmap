@@ -20,13 +20,11 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import {
@@ -101,8 +99,9 @@ export default function WidgetPage() {
         }
 
         setWorkspace(data.data)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'An error occurred'
+        setError(message)
       } finally {
         setIsLoading(false)
       }
@@ -135,7 +134,7 @@ export default function WidgetPage() {
   }
 
   // Notify parent of resize and other events
-  const notifyParent = (type: string, data?: any) => {
+  const notifyParent = (type: string, data?: Record<string, unknown>) => {
     if (window.parent !== window) {
       const targetOrigin = getParentOrigin()
       window.parent.postMessage(
@@ -176,8 +175,9 @@ export default function WidgetPage() {
 
       setSubmitted(true)
       notifyParent('submitted', { id: result.data.id })
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }

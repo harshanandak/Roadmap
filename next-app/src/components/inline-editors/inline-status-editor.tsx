@@ -9,7 +9,6 @@
 
 import { Circle, Clock, CheckCircle, PauseCircle } from 'lucide-react'
 import { InlineSelect, SelectOption } from './inline-select'
-import { cn } from '@/lib/utils'
 
 // ============================================================================
 // STATUS OPTIONS

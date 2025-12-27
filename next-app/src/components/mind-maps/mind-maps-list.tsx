@@ -48,7 +48,7 @@ export interface MindMapsListProps {
   teamId: string
 }
 
-export function MindMapsList({ mindMaps, workspaceId, teamId }: MindMapsListProps) {
+export function MindMapsList({ mindMaps, workspaceId, teamId: _teamId }: MindMapsListProps) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
@@ -243,7 +243,7 @@ export function MindMapsList({ mindMaps, workspaceId, teamId }: MindMapsListProp
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Mind Map?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedMindMap?.name}"? This action cannot be
+              Are you sure you want to delete &quot;{selectedMindMap?.name}&quot;? This action cannot be
               undone. All nodes and connections will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>

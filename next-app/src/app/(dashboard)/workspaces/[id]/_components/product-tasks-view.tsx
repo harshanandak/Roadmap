@@ -32,7 +32,7 @@ export function ProductTasksView({ workspace }: ProductTasksViewProps) {
         <AlertTitle>Two-Track Task System</AlertTitle>
         <AlertDescription>
           <ul className="list-disc list-inside mt-1 space-y-1 text-sm">
-            <li><strong>Standalone tasks</strong>: Quick to-dos not tied to any work item (e.g., "Update screenshots", "Review competitor")</li>
+            <li><strong>Standalone tasks</strong>: Quick to-dos not tied to any work item (e.g., &quot;Update screenshots&quot;, &quot;Review competitor&quot;)</li>
             <li><strong>Linked tasks</strong>: Tasks connected to a work item for tracking and organization</li>
             <li>Tasks can be promoted to full work items if they grow in scope</li>
           </ul>

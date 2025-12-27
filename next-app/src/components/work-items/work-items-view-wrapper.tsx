@@ -59,7 +59,7 @@ export function WorkItemsViewWrapper({
   initialWorkItems,
   timelineItems,
   workspaceId,
-  currentUserId,
+  currentUserId: _currentUserId,
   selectedPhase,
   showFilters = true,
   showCount = true,
@@ -137,9 +137,10 @@ export function WorkItemsViewWrapper({
 
       setDeletingId(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting work item:', error)
-      alert(error.message || 'Failed to delete work item')
+      const message = error instanceof Error ? error.message : 'Failed to delete work item'
+      alert(message)
     } finally {
       setLoading(false)
     }

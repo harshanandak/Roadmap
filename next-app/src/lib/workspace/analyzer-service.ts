@@ -22,7 +22,6 @@ import type { WorkspacePhase } from '@/lib/constants/workspace-phases'
 import { calculatePhaseDistribution, PHASE_ORDER } from '@/lib/constants/workspace-phases'
 import {
   calculatePhaseReadiness,
-  getPhaseTransitionConfig,
   type WorkItemForReadiness,
 } from '@/lib/phase/readiness-calculator'
 import {

@@ -11,7 +11,6 @@
 
 import { useMemo } from 'react'
 import type { WorkspacePhase, WorkItemType } from '@/lib/constants/workspace-phases'
-import { getTypePhaseConfig } from '@/lib/constants/workspace-phases'
 import {
   calculatePhaseReadiness,
   type PhaseReadiness,

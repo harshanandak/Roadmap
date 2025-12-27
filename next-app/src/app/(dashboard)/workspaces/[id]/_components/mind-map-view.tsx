@@ -11,16 +11,29 @@ import { Map, Plus, Calendar, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+interface WorkspaceInfo {
+  id: string;
+  name: string;
+  team_id: string;
+}
+
+interface MindMapInfo {
+  id: string;
+  name: string;
+  description?: string;
+  updated_at: string;
+}
+
 interface MindMapViewProps {
-  workspace: any;
-  mindMaps: any[];
+  workspace: WorkspaceInfo;
+  mindMaps: MindMapInfo[];
   currentUserId: string;
 }
 
 export function MindMapView({
   workspace,
   mindMaps,
-  currentUserId,
+  currentUserId: _currentUserId,
 }: MindMapViewProps) {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -54,10 +54,11 @@ export default function LoginPage() {
         text: 'Check your email for the magic link!',
       })
       setEmail('')
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to send magic link'
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to send magic link',
+        text: message,
       })
     } finally {
       setLoading(false)
@@ -83,10 +84,11 @@ export default function LoginPage() {
       })
 
       if (error) throw error
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to sign in with Google'
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to sign in with Google',
+        text: message,
       })
       setLoading(false)
     }

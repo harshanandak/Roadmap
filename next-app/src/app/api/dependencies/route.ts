@@ -66,9 +66,10 @@ export async function GET(request: Request) {
       connections: connections || [],
       totalCount: connections?.length || 0,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/dependencies:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -228,8 +229,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ connection }, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in POST /api/dependencies:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

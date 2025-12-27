@@ -1,5 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { PublicReviewPageClient } from './review-client'
 
 export default async function PublicReviewPage({
@@ -8,7 +6,6 @@ export default async function PublicReviewPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
-  const supabase = await createClient()
 
   // Fetch review link by token (no auth required - public access)
   const response = await fetch(

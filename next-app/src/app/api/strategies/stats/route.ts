@@ -15,7 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import type { StrategyType, StrategyStatus } from '@/lib/types/strategy'
+import type { StrategyType } from '@/lib/types/strategy'
 
 interface ProgressByType {
   type: StrategyType

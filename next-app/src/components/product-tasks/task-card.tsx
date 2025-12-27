@@ -65,7 +65,7 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange, onWorkItemCli
   const [isUpdating, setIsUpdating] = useState(false)
 
   const typeConfig = TASK_TYPE_CONFIG[task.task_type]
-  const statusConfig = TASK_STATUS_CONFIG[task.status]
+  const _statusConfig = TASK_STATUS_CONFIG[task.status]
   const priorityConfig = TASK_PRIORITY_CONFIG[task.priority]
   const StatusIcon = statusIcons[task.status]
   const PriorityIcon = priorityIcons[task.priority]
@@ -93,7 +93,7 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange, onWorkItemCli
       })
 
       onStatusChange?.(task.id, newStatus)
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to update task status',
@@ -122,7 +122,7 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange, onWorkItemCli
       })
 
       onDelete?.(task.id)
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to delete task',

@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Loader2, UserPlus, Users, Info } from 'lucide-react'
 import { InviteMemberDialog } from '@/components/team/invite-member-dialog'
 import { TeamMemberRow } from '@/components/team/team-member-row'
@@ -127,7 +126,7 @@ export default function TeamMembersPage() {
 
   const canManage = currentUserRole === 'owner' || currentUserRole === 'admin'
 
-  const handlePhaseAccessClick = (member: TeamMember) => {
+  const handlePhaseAccessClick = (_member: TeamMember) => {
     if (workspaces && workspaces.length > 0) {
       setSelectedWorkspace(workspaces[0])
       setPhaseMatrixOpen(true)

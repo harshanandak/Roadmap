@@ -30,7 +30,7 @@ interface InsightVoteButtonProps {
 }
 
 export function InsightVoteButton({
-  insightId,
+  insightId: _insightId,
   voteType,
   currentVote,
   count,

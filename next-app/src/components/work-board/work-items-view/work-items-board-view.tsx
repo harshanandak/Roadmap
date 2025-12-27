@@ -17,8 +17,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Progress } from '@/components/ui/progress'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   GripVertical,
@@ -26,14 +25,12 @@ import {
   CheckSquare,
   Sparkles,
   Bug,
-  Zap,
   Lightbulb,
   StickyNote,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   WORK_ITEM_STATUSES,
-  statusDisplayMap,
   typeDisplayMap,
   priorityDisplayMap,
   type WorkItemStatus,
@@ -259,7 +256,7 @@ interface BoardColumnProps {
 function BoardColumn({
   status,
   items,
-  timelineItems,
+  timelineItems: _timelineItems,
   workspaceId,
   getTimelineProgress,
   onItemClick,

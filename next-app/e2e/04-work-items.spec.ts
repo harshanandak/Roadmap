@@ -4,10 +4,9 @@ import {
   createWorkspaceInDatabase,
   createWorkItemInDatabase,
   cleanupTeamData,
-  getWorkItemIdByTitle,
   hasAdminClient,
 } from '../tests/utils/database';
-import { TEST_TEAMS, TEST_WORKSPACES, TEST_WORK_ITEMS, TEST_PATHS } from '../tests/fixtures/test-data';
+import { TEST_PATHS } from '../tests/fixtures/test-data';
 
 // Skip all tests if SUPABASE_SERVICE_ROLE_KEY is not configured
 const skipTests = !hasAdminClient();

@@ -7,7 +7,7 @@
  * @module lib/workspace/analyzer-types
  */
 
-import type { WorkspacePhase } from '@/lib/constants/workspace-phases'
+import type { WorkspacePhase as _WorkspacePhase } from '@/lib/constants/workspace-phases'
 
 // ============================================================================
 // ANALYSIS RESULT TYPES

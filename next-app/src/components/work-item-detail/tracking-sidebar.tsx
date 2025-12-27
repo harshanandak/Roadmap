@@ -19,13 +19,9 @@ import {
   ChevronRight,
   Calendar,
   User,
-  CheckCircle2,
-  Clock,
   Target,
-  AlertCircle,
   TrendingUp,
   Loader2,
-  UserPlus,
   CheckCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'

@@ -16,7 +16,7 @@
  */
 
 import { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ChevronDown,
   ChevronRight,
@@ -26,16 +26,13 @@ import {
   Users,
   Sparkles,
   Loader2,
-  ExternalLink,
   Building2,
   Target,
   CheckCircle2,
-  AlertCircle,
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,7 +43,6 @@ import { useToast } from '@/hooks/use-toast'
 import type { WorkspacePhase } from '@/lib/constants/workspace-phases'
 import {
   getMethodologyGuidance,
-  type MethodologyGuidance,
   type DesignThinkingTool,
   type DesignThinkingFramework,
   type CaseStudy,

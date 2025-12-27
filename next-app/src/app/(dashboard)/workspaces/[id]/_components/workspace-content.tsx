@@ -3,29 +3,57 @@
 import { DashboardView } from './dashboard-view';
 import { WorkItemsView } from './work-items-view';
 import { TimelineView } from './timeline-view';
-import { MindMapView } from './mind-map-view';
-import { DependenciesView } from './dependencies-view';
 import { CanvasView } from './canvas-view';
 import { SettingsView } from './settings-view';
 import { TeamAnalyticsView } from './team-analytics-view';
 import { ProductTasksView } from './product-tasks-view';
 import { PermissionsProvider } from '@/providers/permissions-provider';
 import type { Department } from '@/lib/types/department';
+import type { WorkItem, TimelineItem, LinkedItem } from '@/lib/types/work-items';
+import type { MindMap } from '@/lib/types/mind-map';
+import type { Team } from '@/lib/types/team';
+import type { Database } from '@/lib/supabase/types';
 import { useEffect } from 'react';
+
+/** Workspace row from the database */
+type Workspace = Database['public']['Tables']['workspaces']['Row'];
+
+/** Tag type for workspace content */
+interface Tag {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+/** Phase distribution for dashboard display */
+interface PhaseDistribution {
+  research: number;
+  planning: number;
+  execution: number;
+  review: number;
+  complete: number;
+}
+
+/** Onboarding state structure */
+interface OnboardingState {
+  isComplete: boolean;
+  completedSteps?: string[];
+  currentStep?: string;
+}
 
 interface WorkspaceContentProps {
   view: string;
-  workspace: any;
-  team: any;
-  workItems: any[];
-  timelineItems: any[];
-  linkedItems: any[];
-  mindMaps: any[];
-  tags: any[];
+  workspace: Workspace;
+  team: Team;
+  workItems: WorkItem[];
+  timelineItems: TimelineItem[];
+  linkedItems: LinkedItem[];
+  mindMaps: MindMap[];
+  tags: Tag[];
   departments: Department[];
   teamSize: number;
-  phaseDistribution: any;
-  onboardingState: any;
+  phaseDistribution: PhaseDistribution;
+  onboardingState: OnboardingState;
   currentUserId: string;
   userEmail?: string;
   userName?: string;

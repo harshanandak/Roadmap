@@ -26,10 +26,29 @@ const CanvasViewWrapper = dynamic(
   }
 )
 
+interface WorkspaceData {
+  id: string
+  team_id: string
+}
+
+interface WorkItemData {
+  id: string
+  name?: string
+  type?: string
+  [key: string]: unknown
+}
+
+interface LinkedItemData {
+  id: string
+  source_id: string
+  target_id: string
+  [key: string]: unknown
+}
+
 interface CanvasViewProps {
-  workspace: any
-  workItems: any[]
-  linkedItems: any[]
+  workspace: WorkspaceData
+  workItems: WorkItemData[]
+  linkedItems: LinkedItemData[]
 }
 
 export function CanvasView({ workspace, workItems, linkedItems }: CanvasViewProps) {

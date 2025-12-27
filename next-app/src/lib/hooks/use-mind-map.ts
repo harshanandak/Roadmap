@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useRef } from 'react'
 import { MindMap, MindMapNode, MindMapEdge, NodeType } from '@/lib/types/mind-map'
 
 // Types for API responses
@@ -22,7 +23,10 @@ interface UpdateMindMapParams {
   id: string
   name?: string
   description?: string
-  canvas_data?: any
+  canvas_data?: {
+    zoom: number
+    position: [number, number]
+  }
 }
 
 interface CreateNodeParams {
@@ -40,8 +44,8 @@ interface UpdateNodeParams {
   title?: string
   description?: string
   position?: { x: number; y: number }
-  data?: Record<string, any>
-  style?: Record<string, any>
+  data?: Record<string, unknown>
+  style?: Record<string, unknown>
 }
 
 interface CreateEdgeParams {
@@ -50,7 +54,7 @@ interface CreateEdgeParams {
   target_node_id: string
   edge_type?: string
   label?: string
-  style?: Record<string, any>
+  style?: Record<string, unknown>
 }
 
 // Query keys
@@ -295,13 +299,13 @@ export function useDeleteNode() {
       // Optimistically update to remove the node
       queryClient.setQueryData(
         mindMapKeys.detail(variables.mind_map_id),
-        (old: any) => {
+        (old: MindMapDetailResponse | undefined) => {
           if (!old) return old
           return {
             ...old,
-            nodes: old.nodes.filter((node: any) => node.id !== variables.node_id),
+            nodes: old.nodes.filter((node) => node.id !== variables.node_id),
             edges: old.edges.filter(
-              (edge: any) =>
+              (edge) =>
                 edge.source_node_id !== variables.node_id &&
                 edge.target_node_id !== variables.node_id
             ),
@@ -467,23 +471,29 @@ export function useApplyTemplate() {
   })
 }
 
+/** Canvas data type for auto-save */
+type CanvasData = {
+  zoom: number
+  position: [number, number]
+}
+
 /**
  * Debounced auto-save hook for canvas changes
  */
 export function useAutoSaveMindMap(mindMapId: string, delay = 2000) {
   const updateMindMap = useUpdateMindMap()
-  let timeoutId: NodeJS.Timeout | null = null
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const debouncedSave = (canvas_data: any) => {
-    if (timeoutId) clearTimeout(timeoutId)
+  const debouncedSave = useCallback((canvas_data: CanvasData) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
 
-    timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       updateMindMap.mutate({
         id: mindMapId,
         canvas_data,
       })
     }, delay)
-  }
+  }, [mindMapId, delay, updateMindMap])
 
   return {
     save: debouncedSave,

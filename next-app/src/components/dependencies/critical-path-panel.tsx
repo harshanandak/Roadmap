@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   AlertCircle,
   TrendingUp,
-  Clock,
   Activity,
   X,
   ChevronRight,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react'
 import type { CriticalPathNode } from '@/lib/algorithms/critical-path'
 import type { Cycle, CycleFix } from '@/lib/algorithms/cycle-detection'
-import type { WorkItem } from '@/lib/types/work-items'
 import { getItemIcon } from '@/lib/constants/work-item-types'
 
 interface CriticalPathPanelProps {
@@ -76,7 +74,7 @@ export function CriticalPathPanel({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Click "Analyze" to calculate the critical path and detect cycles.
+              Click &quot;Analyze&quot; to calculate the critical path and detect cycles.
             </AlertDescription>
           </Alert>
         )}

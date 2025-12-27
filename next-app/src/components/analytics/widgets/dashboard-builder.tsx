@@ -13,15 +13,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -34,8 +25,6 @@ import {
   Trash2,
   Copy,
   Edit2,
-  Maximize2,
-  Minimize2,
   GripVertical,
   Sparkles,
   Lock,
@@ -66,10 +55,10 @@ const GRID_ROW_HEIGHT = 120
 const GRID_MARGIN: [number, number] = [16, 16]
 
 export function DashboardBuilder({
-  workspaceId,
-  teamId,
+  workspaceId: _workspaceId,
+  teamId: _teamId,
   initialWidgets = [],
-  dashboardId,
+  dashboardId: _dashboardId,
   dashboardName = 'Custom Dashboard',
   onSave,
   isPro = false,
@@ -314,7 +303,7 @@ interface WidgetCardProps {
   onDuplicate: () => void
 }
 
-function WidgetCard({ widget, widgetDef, onRemove, onDuplicate }: WidgetCardProps) {
+function WidgetCard({ widget: _widget, widgetDef, onRemove, onDuplicate }: WidgetCardProps) {
   return (
     <Card className="h-full overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-3 px-4">

@@ -16,11 +16,18 @@ import { useRouter } from 'next/navigation'
 
 type WorkItem = Tables<'work_items'>
 
+interface LinkedItem {
+  id: string
+  source_item_id: string
+  target_item_id: string
+  relationship_type: string
+}
+
 interface CanvasViewWrapperProps {
   workspaceId: string
   teamId: string
   initialWorkItems: WorkItem[]
-  initialLinkedItems: any[]
+  initialLinkedItems: LinkedItem[]
 }
 
 export function CanvasViewWrapper({
@@ -33,7 +40,7 @@ export function CanvasViewWrapper({
   const supabase = createClient()
 
   const [convertNoteDialogOpen, setConvertNoteDialogOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState<WorkItem | null>(null)
+  const [selectedNote, _setSelectedNote] = useState<WorkItem | null>(null)
 
   // Update work item position
   const handleWorkItemUpdate = useCallback(

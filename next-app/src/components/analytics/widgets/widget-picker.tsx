@@ -43,7 +43,7 @@ import {
   GitBranch,
   Link2Off,
 } from 'lucide-react'
-import { getWidgetCategories, WIDGET_REGISTRY, type WidgetId } from './widget-registry'
+import { getWidgetCategories, type WidgetId } from './widget-registry'
 import type { WidgetCategory } from '@/lib/types/analytics'
 import { cn } from '@/lib/utils'
 

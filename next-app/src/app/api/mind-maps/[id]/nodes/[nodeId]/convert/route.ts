@@ -133,8 +133,9 @@ export async function POST(
         converted_to_work_item_id: workItemId,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in POST /api/mind-maps/[id]/nodes/[nodeId]/convert:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

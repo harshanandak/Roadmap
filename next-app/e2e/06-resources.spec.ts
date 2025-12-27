@@ -8,7 +8,6 @@ import {
   cleanupTeamData,
   cleanupResourcesData,
   getResourceAuditLog,
-  searchResources,
   hasAdminClient,
 } from '../tests/utils/database';
 import { TEST_RESOURCES } from '../tests/fixtures/test-data';
@@ -356,7 +355,7 @@ test.describe('Resources - Sharing (Many-to-Many)', () => {
     });
 
     // Now unlink from second work item
-    const unlinkResponse = await request.delete(
+    await request.delete(
       `/api/work-items/${workItemId2}/resources?resource_id=${sharedResourceId}`
     );
 
@@ -501,7 +500,7 @@ test.describe('Resources - Audit Trail', () => {
     }
   });
 
-  test('should log "linked" action when resource is linked to work item', async ({ request }) => {
+  test('should log "linked" action when resource is linked to work item', async () => {
     if (!resourceId) {
       test.skip();
       return;
@@ -700,7 +699,7 @@ test.describe('Resources - Soft Delete', () => {
     }
   });
 
-  test('should log "deleted" action in audit trail', async ({ request }) => {
+  test('should log "deleted" action in audit trail', async () => {
     const auditLog = await getResourceAuditLog(resourceId);
     const hasDeletedAction = auditLog.some((entry) => entry.action === 'deleted');
 

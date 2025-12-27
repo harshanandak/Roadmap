@@ -244,7 +244,7 @@ export function TaskPlanCard({
   plan,
   onApproveAll,
   onStepByStep,
-  onEditPlan,
+  onEditPlan: _onEditPlan,
   onCancel,
   isExecuting = false,
   className,

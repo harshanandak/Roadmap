@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       messages: convertToCoreMessages(messages),
       tools,
       // Optional: Handle tool execution errors gracefully
-      onStepFinish({ text, toolCalls, toolResults, finishReason, usage }) {
+      onStepFinish({ toolCalls }) {
         // Log tool usage for debugging (can be removed in production)
         if (toolCalls && toolCalls.length > 0) {
           console.log('[AI SDK Chat] Tool calls:', toolCalls.map((t) => t.toolName))

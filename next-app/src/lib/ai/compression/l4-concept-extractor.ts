@@ -18,14 +18,10 @@ import { createClient } from '@/lib/supabase/server'
 import { embedQuery, formatEmbeddingForPgvector, cosineSimilarity } from '../embeddings/embedding-service'
 import type {
   KnowledgeConcept,
-  KnowledgeConceptInsert,
-  ConceptRelationship,
   ConceptRelationshipInsert,
   ConceptType,
   RelationshipType,
   KnowledgeGraph,
-  KnowledgeGraphNode,
-  KnowledgeGraphEdge,
 } from '@/lib/types/collective-intelligence'
 
 // =============================================================================
@@ -84,7 +80,7 @@ const ExtractionResultSchema = z.object({
 })
 
 type ExtractedConcept = z.infer<typeof ConceptSchema>
-type ExtractedRelationship = z.infer<typeof RelationshipSchema>
+type _ExtractedRelationship = z.infer<typeof RelationshipSchema>
 
 // =============================================================================
 // CONCEPT EXTRACTION

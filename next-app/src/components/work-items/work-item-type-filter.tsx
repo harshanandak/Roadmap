@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+// useState removed - not currently used
+// import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -16,7 +17,6 @@ import {
   getItemLabel,
   getItemIcon,
   getPhaseHelperText,
-  type WorkItemType,
   type WorkspacePhase,
 } from '@/lib/constants/work-item-types'
 

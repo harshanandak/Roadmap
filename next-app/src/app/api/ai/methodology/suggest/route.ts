@@ -25,7 +25,7 @@ import { NextResponse } from 'next/server'
 import { generateObject } from 'ai'
 import { getDefaultModel, getModelByKey, type AIModel } from '@/lib/ai/models'
 import { getModelFromConfig } from '@/lib/ai/ai-sdk-client'
-import { MethodologySuggestionSchema, type MethodologySuggestion } from '@/lib/ai/schemas'
+import { MethodologySuggestionSchema } from '@/lib/ai/schemas'
 import {
   METHODOLOGY_SYSTEM_PROMPT,
   generateMethodologyPrompt,
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
     })
 
     // Validate and enhance suggestions
-    const validToolIds = getValidToolIds()
+    const _validToolIds = getValidToolIds()
     const validCaseStudyIds = getValidCaseStudyIds()
 
     // Filter suggested methods to valid tool IDs where possible

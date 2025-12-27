@@ -28,10 +28,9 @@ test.describe('Security & Multi-Tenant Isolation', () => {
     await expect(page).toHaveURL(/.*login/);
   });
 
-  test.skip('Team A user cannot access Team B workspace', async ({ page, context }) => {
+  test.skip('Team A user cannot access Team B workspace', async ({ page }) => {
     // Login as Team A user
     // (This requires implementing auth helper - see test setup notes)
-    const teamAUserId = 'user_a_id';
     const teamBWorkspaceId = 'team_b_workspace_id';
 
     // After login, try to access Team B's workspace
@@ -46,7 +45,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('Team A user cannot see Team B features via API', async ({ page, request }) => {
     // Login as Team A user
-    const teamAUserId = 'user_a_id';
     const teamBWorkspaceId = 'team_b_workspace_id';
 
     // Get auth cookie/token from logged-in page
@@ -71,8 +69,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('User can only see workspaces from their teams', async ({ page }) => {
     // Login as user who belongs to Team A only
-    const userId = 'user_a_id';
-
     await page.goto('/dashboard');
 
     // Should only see Team A's workspaces
@@ -91,7 +87,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('Mind map isolation - Team A cannot access Team B mind maps', async ({ page }) => {
     // Login as Team A user
-    const teamAUserId = 'user_a_id';
     const teamBMindMapId = 'team_b_mind_map_id';
     const teamBWorkspaceId = 'team_b_workspace_id';
 
@@ -105,7 +100,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('Dependency links respect team isolation', async ({ page, request }) => {
     // Login as Team A user
-    const teamAUserId = 'user_a_id';
     const teamBTimelineItemId = 'team_b_timeline_item_id';
 
     // Get auth cookie
@@ -130,7 +124,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('Timeline items isolation - cannot modify other teams data', async ({ page, request }) => {
     // Login as Team A user
-    const teamAUserId = 'user_a_id';
     const teamBTimelineItemId = 'team_b_timeline_item_id';
 
     // Get auth cookie
@@ -154,7 +147,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('Work items isolation - Team A cannot delete Team B features', async ({ page, request }) => {
     // Login as Team A user
-    const teamAUserId = 'user_a_id';
     const teamBWorkItemId = 'team_b_work_item_id';
 
     // Get auth cookie
@@ -190,8 +182,6 @@ test.describe('Security & Multi-Tenant Isolation', () => {
 
   test.skip('SQL injection attempts should be blocked', async ({ page, request }) => {
     // Login as user
-    const userId = 'user_id';
-
     // Get auth cookie
     const cookies = await page.context().cookies();
     const authCookie = cookies.find(c => c.name.includes('auth'));

@@ -11,7 +11,7 @@
  * - Auto-save to database
  */
 
-import { useCallback, useState, useMemo, useRef, useEffect } from 'react'
+import { useCallback, useState, useRef, useEffect } from 'react'
 import {
   ReactFlow,
   Node,
@@ -26,6 +26,7 @@ import {
   Panel,
   NodeTypes,
   ConnectionMode,
+  ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { Button } from '@/components/ui/button'
@@ -39,7 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Save, Loader2, Plus, Trash2 } from 'lucide-react'
+import { Save, Loader2, Trash2 } from 'lucide-react'
 import { ShapeToolbar } from './shape-toolbar'
 import { WorkItemSearchDialog } from './work-item-search-dialog'
 import { RectangleNode } from './nodes/shapes/rectangle-node'
@@ -50,6 +51,7 @@ import { TextNode } from './nodes/shapes/text-node'
 import { ArrowNode } from './nodes/shapes/arrow-node'
 import { WorkItemReferenceNode } from './nodes/shapes/work-item-reference-node'
 import { ShapeType, SHAPE_TYPE_CONFIGS, NodeType } from '@/lib/types/mind-map'
+import type { WorkItem } from '@/lib/types/work-items'
 import { cn } from '@/lib/utils'
 
 export interface FreeformCanvasProps {
@@ -103,7 +105,7 @@ export function FreeformCanvas({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
-  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -120,6 +122,7 @@ export function FreeformCanvas({
         clearTimeout(autoSaveTimerRef.current)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges])
 
   const onConnect = useCallback(
@@ -194,7 +197,7 @@ export function FreeformCanvas({
   ])
 
   const handleAddWorkItemReference = useCallback(
-    (workItem: any) => {
+    (workItem: WorkItem) => {
       if (!pendingNodePosition) return
 
       const config = SHAPE_TYPE_CONFIGS['work_item_reference']

@@ -50,9 +50,10 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(mindMaps)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/mind-maps:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { workspace_id, name, description, canvas_type = 'freeform', template } = body
+    const { workspace_id, name, description, canvas_type = 'freeform', template: _template } = body
 
     if (!workspace_id || !name) {
       return NextResponse.json(
@@ -139,8 +140,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(mindMap)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in POST /api/mind-maps:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

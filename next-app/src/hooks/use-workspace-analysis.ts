@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import type { WorkspaceAnalysis } from '@/lib/workspace/analyzer-types'
@@ -146,8 +146,8 @@ export function useWorkspaceAnalysis(
   const supabase = createClient()
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Query key for this workspace's analysis
-  const queryKey = ['workspace-analysis', workspaceId]
+  // Query key for this workspace's analysis (memoized to prevent useCallback dependency changes)
+  const queryKey = useMemo(() => ['workspace-analysis', workspaceId], [workspaceId])
 
   // React Query for data fetching
   const {

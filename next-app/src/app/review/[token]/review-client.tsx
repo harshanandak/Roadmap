@@ -19,8 +19,19 @@ interface WorkItem {
   created_at: string
 }
 
+interface ReviewLink {
+  id: string
+  token: string
+  workspace_id: string
+  is_active: boolean
+  expires_at: string | null
+  allow_anonymous: boolean
+  require_email: boolean
+  created_at: string
+}
+
 interface PublicReviewPageClientProps {
-  reviewLink: any
+  reviewLink: ReviewLink
   workItems: WorkItem[]
   workspace: {
     id: string

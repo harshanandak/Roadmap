@@ -58,12 +58,13 @@ export function InlineEditText({
         title: 'Saved',
         description: 'Changes saved successfully',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save:', error)
       setTempValue(value) // Rollback on error
+      const message = error instanceof Error ? error.message : 'Failed to save changes'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to save changes',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -196,12 +197,13 @@ export function InlineEditSelect({
         title: 'Saved',
         description: 'Changes saved successfully',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save:', error)
       setTempValue(value)
+      const message = error instanceof Error ? error.message : 'Failed to save changes'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to save changes',
+        description: message,
         variant: 'destructive',
       })
     } finally {

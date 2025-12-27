@@ -28,7 +28,6 @@ import {
   Check,
   Code,
   Eye,
-  MessageSquare,
   ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -168,7 +167,7 @@ export function FeedbackWidgetEmbed({
         description: 'Embed code copied to clipboard',
       })
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: 'Failed to copy',
         description: 'Please copy the code manually',
@@ -263,7 +262,7 @@ export function FeedbackWidgetEmbed({
         </div>
 
         {/* Preview / Code Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'preview' | 'code')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="preview" className="gap-1.5">
               <Eye className="h-4 w-4" />

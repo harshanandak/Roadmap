@@ -92,8 +92,10 @@ export function useSharedSubscription({
   const callbackRef = useRef(onMessage)
   const supabase = createClient()
 
-  // Keep callback ref up to date
-  callbackRef.current = onMessage
+  // Keep callback ref up to date using useEffect to avoid ref access during render
+  useEffect(() => {
+    callbackRef.current = onMessage
+  }, [onMessage])
 
   useEffect(() => {
     let isActive = true
@@ -199,6 +201,7 @@ export function useSharedSubscription({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onMessage is intentionally tracked via callbackRef to avoid re-creating subscriptions
   }, [channelName, table, filter, schema, event, supabase])
 
   const unsubscribe = () => {

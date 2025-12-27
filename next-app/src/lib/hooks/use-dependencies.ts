@@ -92,7 +92,7 @@ export function useUpdateDependency() {
   return useMutation({
     mutationFn: async ({
       id,
-      workspace_id,
+      workspace_id: _workspace_id,
       ...updates
     }: UpdateConnectionRequest & { id: string; workspace_id: string }) => {
       const response = await fetch(`/api/dependencies/${id}`, {
@@ -183,7 +183,7 @@ export function useBatchDeleteDependencies() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ ids, workspace_id }: { ids: string[]; workspace_id: string }) => {
+    mutationFn: async ({ ids, workspace_id: _workspace_id }: { ids: string[]; workspace_id: string }) => {
       const results = await Promise.allSettled(
         ids.map((id) =>
           fetch(`/api/dependencies/${id}`, {

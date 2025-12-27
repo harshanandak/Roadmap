@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ teams: teamMemberships || [] });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/user/teams:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

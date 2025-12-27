@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import type { VoteInsightRequest, VoteType } from '@/lib/types/customer-insight';
+import type { VoteInsightRequest } from '@/lib/types/customer-insight';
 
 /**
  * POST /api/insights/[id]/vote

@@ -82,7 +82,7 @@ export function ComingSoonModule({
                   Development in Progress
                 </h3>
                 <p className="text-sm text-blue-700">
-                  We're actively working on this module. It will be available in a future update.
+                  We&apos;re actively working on this module. It will be available in a future update.
                 </p>
                 <Button variant="outline" className="gap-2" disabled>
                   <Bell className="h-4 w-4" />

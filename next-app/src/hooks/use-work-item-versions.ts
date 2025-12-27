@@ -64,7 +64,7 @@ export function canEnhance(phase: string, type: string): boolean {
  */
 export function useWorkItemVersions({
   workItemId,
-  currentVersion,
+  currentVersion: _currentVersion,
   enhancesWorkItemId,
 }: UseWorkItemVersionsOptions): UseWorkItemVersionsReturn {
   const [versionChain, setVersionChain] = useState<VersionChain | null>(null)

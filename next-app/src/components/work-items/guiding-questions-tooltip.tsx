@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, Lightbulb, BookOpen } from 'lucide-react'
 import type { WorkspacePhase, WorkItemType } from '@/lib/constants/workspace-phases'
-import { getTypePhaseGuidance, getPhaseGuidance, type GuidingQuestion } from '@/lib/phase/guiding-questions'
+import { getTypePhaseGuidance } from '@/lib/phase/guiding-questions'
 import { getFrameworkForPhase } from '@/lib/design-thinking'
 import { cn } from '@/lib/utils'
 

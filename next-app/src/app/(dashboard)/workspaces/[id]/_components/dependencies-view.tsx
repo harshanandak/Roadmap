@@ -2,19 +2,24 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GitBranch } from 'lucide-react';
+import type { WorkItem, TimelineItem, LinkedItem } from '@/lib/types/work-items';
+import type { Database } from '@/lib/supabase/types';
+
+/** Workspace row from the database */
+type Workspace = Database['public']['Tables']['workspaces']['Row'];
 
 interface DependenciesViewProps {
-  workspace: any;
-  workItems: any[];
-  timelineItems: any[];
-  linkedItems: any[];
+  workspace: Workspace;
+  workItems: WorkItem[];
+  timelineItems: TimelineItem[];
+  linkedItems: LinkedItem[];
 }
 
 export function DependenciesView({
-  workspace,
-  workItems,
-  timelineItems,
-  linkedItems,
+  workspace: _workspace,
+  workItems: _workItems,
+  timelineItems: _timelineItems,
+  linkedItems: _linkedItems,
 }: DependenciesViewProps) {
   return (
     <div className="space-y-6">

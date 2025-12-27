@@ -59,9 +59,10 @@ export async function GET(
       nodes: nodes || [],
       edges: edges || [],
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/mind-maps/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -87,7 +88,7 @@ export async function PATCH(
     }
 
     // Update mind map
-    const updates: any = {}
+    const updates: Record<string, unknown> = {}
     if (name !== undefined) updates.name = name
     if (description !== undefined) updates.description = description
     if (canvas_data !== undefined) updates.canvas_data = canvas_data
@@ -105,9 +106,10 @@ export async function PATCH(
     }
 
     return NextResponse.json({ mindMap })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in PATCH /api/mind-maps/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -138,8 +140,9 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in DELETE /api/mind-maps/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

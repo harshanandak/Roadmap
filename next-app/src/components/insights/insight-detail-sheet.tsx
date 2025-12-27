@@ -58,7 +58,6 @@ import {
   Loader2,
   Rocket,
   Bug,
-  Zap,
   Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -191,10 +190,11 @@ export function InsightDetailSheet({
         title: 'Status updated',
         description: `Insight marked as "${statusLabels[newStatus]}"`,
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update status'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update status',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -212,10 +212,11 @@ export function InsightDetailSheet({
         title: 'Unlinked',
         description: 'Work item unlinked from insight',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to unlink'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to unlink',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -271,7 +272,7 @@ export function InsightDetailSheet({
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">Quote</h4>
               <blockquote className="text-sm italic border-l-2 border-primary/30 pl-3 py-1">
-                "{insight.quote}"
+                &quot;{insight.quote}&quot;
               </blockquote>
             </div>
           )}

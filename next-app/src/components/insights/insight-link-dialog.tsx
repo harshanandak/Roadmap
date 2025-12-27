@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { Slider } from '@/components/ui/slider'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -35,7 +34,6 @@ import {
   Bug,
   Rocket,
   FileText,
-  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CustomerInsight } from '@/lib/types/customer-insight'
@@ -168,10 +166,11 @@ export function InsightLinkDialog({
       router.refresh()
       onOpenChange(false)
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to link insight'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to link insight',
+        description: message,
         variant: 'destructive',
       })
     } finally {
@@ -195,7 +194,7 @@ export function InsightLinkDialog({
             Link Insight to Work Item
           </DialogTitle>
           <DialogDescription>
-            Connect "{insight.title}" to a work item
+            Connect &quot;{insight.title}&quot; to a work item
           </DialogDescription>
         </DialogHeader>
 

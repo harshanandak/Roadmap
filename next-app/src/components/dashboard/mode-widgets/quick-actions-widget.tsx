@@ -7,7 +7,6 @@
  * Actions come from the mode configuration.
  */
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles,
@@ -30,7 +29,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { WorkspaceMode } from '@/lib/types/workspace-mode'
 import { getModeSuggestedActions, SuggestedAction } from '@/lib/workspace-modes/mode-config'
 

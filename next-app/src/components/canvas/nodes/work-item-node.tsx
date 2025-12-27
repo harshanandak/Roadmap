@@ -23,6 +23,14 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 
+interface WorkItemDetails {
+  id: string
+  name: string
+  type: string
+  status?: string
+  priority?: string
+}
+
 interface WorkItemNodeData {
   label: string
   type: string
@@ -31,7 +39,7 @@ interface WorkItemNodeData {
   isNote?: boolean
   noteType?: string
   isPlaceholder?: boolean
-  workItem: any
+  workItem: WorkItemDetails
 }
 
 // Type-specific colors and icons (Figma-inspired flat design)

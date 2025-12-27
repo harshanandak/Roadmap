@@ -35,7 +35,7 @@ export async function PATCH(
     }
 
     // Build updates object
-    const updates: any = {}
+    const updates: Record<string, unknown> = {}
     if (node_type !== undefined) updates.node_type = node_type
     if (title !== undefined) updates.title = title
     if (description !== undefined) updates.description = description
@@ -65,9 +65,10 @@ export async function PATCH(
       .eq('id', mindMapId)
 
     return NextResponse.json({ node })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in PATCH /api/mind-maps/[id]/nodes/[nodeId]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -108,8 +109,9 @@ export async function DELETE(
       .eq('id', mindMapId)
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in DELETE /api/mind-maps/[id]/nodes/[nodeId]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,7 +1,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -12,7 +11,6 @@ import {
   Clock,
   Users,
   Target,
-  AlertCircle,
 } from 'lucide-react'
 
 interface WorkspaceStatsGridProps {

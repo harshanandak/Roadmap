@@ -6,7 +6,7 @@
  * Extensible architecture for future Option C (Free-Form Builder)
  */
 
-import { LayoutGrid, GitBranch, Users, Target, TrendingUp, PieChart, BarChart3, Activity, Gauge, AlertTriangle } from 'lucide-react'
+import { TrendingUp, PieChart, Activity, Gauge } from 'lucide-react'
 import type { WidgetDefinition, WidgetCategory } from '@/lib/types/analytics'
 
 // Widget IDs for type safety

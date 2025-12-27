@@ -75,9 +75,10 @@ export function TeamMembersList({
       if (error) throw error
 
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating role:', error)
-      alert(error.message || 'Failed to update role')
+      const message = error instanceof Error ? error.message : 'Failed to update role'
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -97,9 +98,10 @@ export function TeamMembersList({
 
       setRemovingMemberId(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing member:', error)
-      alert(error.message || 'Failed to remove member')
+      const message = error instanceof Error ? error.message : 'Failed to remove member'
+      alert(message)
     } finally {
       setLoading(false)
     }

@@ -54,10 +54,11 @@ export async function GET(
     }
 
     return NextResponse.json(feedback, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching feedback:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch feedback'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch feedback' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -122,7 +123,7 @@ export async function PATCH(
     } = body
 
     // Build update object (only include provided fields)
-    const updates: any = { updated_at: new Date().toISOString() }
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
 
     if (source !== undefined) {
       if (!['internal', 'customer', 'user'].includes(source)) {
@@ -167,10 +168,11 @@ export async function PATCH(
     }
 
     return NextResponse.json(updatedFeedback, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating feedback:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update feedback'
     return NextResponse.json(
-      { error: error.message || 'Failed to update feedback' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -220,10 +222,11 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true }, { status: 200 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting feedback:', error)
+    const message = error instanceof Error ? error.message : 'Failed to delete feedback'
     return NextResponse.json(
-      { error: error.message || 'Failed to delete feedback' },
+      { error: message },
       { status: 500 }
     )
   }

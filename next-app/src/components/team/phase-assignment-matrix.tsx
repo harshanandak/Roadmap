@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog,
   DialogContent,
@@ -18,11 +18,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, Eye, Lock, Unlock, Crown, Shield, Edit2, AlertTriangle } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import { Loader2, Eye, Crown, Shield, Edit2, AlertTriangle } from 'lucide-react'
 import { PHASE_CONFIG, PHASE_ORDER, type WorkspacePhase } from '@/lib/constants/workspace-phases'
 import type { TeamMember, TeamMemberWithPhases, UserPhaseAssignment } from '@/lib/types/team'
 import { EditMemberPhasesDialog } from './edit-member-phases-dialog'
@@ -47,9 +45,8 @@ export function PhaseAssignmentMatrix({
   teamId,
   open,
   onOpenChange,
-  selectedMemberId,
+  selectedMemberId: _selectedMemberId,
 }: PhaseAssignmentMatrixProps) {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const [editingMember, setEditingMember] = useState<TeamMemberWithPhases | null>(null)
 
@@ -374,7 +371,7 @@ export function PhaseAssignmentMatrix({
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Everyone can view all phases. Click <Edit2 className="h-3 w-3 inline" /> to edit a member's phase access.
+                Everyone can view all phases. Click <Edit2 className="h-3 w-3 inline" /> to edit a member&apos;s phase access.
               </p>
             </div>
           </>

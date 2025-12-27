@@ -57,7 +57,7 @@ export async function GET(
         voting_settings: workspace.voting_settings,
       }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching public workspace:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

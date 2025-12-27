@@ -15,11 +15,11 @@ import {
   type WorkspacePhase,
 } from '@/lib/constants/workspace-phases'
 import {
-  getVisibleTabs,
+  
   getVisibleTabsWithContext,
   getDefaultTab,
   isTabVisible,
-  shouldShowVersionsTab,
+  
   type DetailTab,
   type TabConfig,
   type TabVisibilityContext,
@@ -313,6 +313,7 @@ export function WorkItemDetailProvider({
 
   // Load preferences from localStorage AFTER mount (client-only)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydration guard
     setHasMounted(true)
     try {
       const stored = localStorage.getItem(getStorageKey(initialWorkItem.id))

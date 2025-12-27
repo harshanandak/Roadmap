@@ -147,6 +147,7 @@ export function InviteMemberDialog({
   }
 
   // Toggle all phases
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() is intentional
   const selectedPhases = form.watch('phases')
   const toggleAllPhases = () => {
     if (selectedPhases.length === PHASE_ORDER.length) {

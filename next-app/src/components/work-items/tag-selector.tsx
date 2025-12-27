@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Check, ChevronsUpDown, Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -39,12 +39,8 @@ export function TagSelector({ teamId, selectedTags, onTagsChange }: TagSelectorP
   const [searchValue, setSearchValue] = useState('')
   const supabase = createClient()
 
-  // Load existing tags for the team
-  useEffect(() => {
-    loadTags()
-  }, [teamId])
-
-  const loadTags = async () => {
+  // Define loadTags before useEffect to avoid reference error
+  const loadTags = useCallback(async () => {
     const { data, error } = await supabase
       .from('tags')
       .select('*')
@@ -54,11 +50,19 @@ export function TagSelector({ teamId, selectedTags, onTagsChange }: TagSelectorP
     if (!error && data) {
       setAvailableTags(data)
     }
-  }
+  }, [supabase, teamId])
+
+  // Load existing tags for the team
+   
+  useEffect(() => {
+    loadTags()
+  }, [teamId, loadTags])
 
   const createTag = async (name: string) => {
     setLoading(true)
+
     const newTag: Tag = {
+      // eslint-disable-next-line react-hooks/purity -- Date.now() is safe in event handler, not render
       id: Date.now().toString(),
       name: name.trim(),
       color: getRandomColor(),
@@ -152,7 +156,7 @@ export function TagSelector({ teamId, selectedTags, onTagsChange }: TagSelectorP
                       disabled={loading}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Create "{searchValue}"
+                      Create &quot;{searchValue}&quot;
                     </Button>
                   )}
                 </CommandEmpty>

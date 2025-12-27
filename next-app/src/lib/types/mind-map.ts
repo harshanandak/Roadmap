@@ -211,8 +211,8 @@ export interface MindMapNode {
   }
   width: number // NEW: Resizable width (default: 150)
   height: number // NEW: Resizable height (default: 100)
-  data: Record<string, any>
-  style?: Record<string, any>
+  data: Record<string, unknown>
+  style?: Record<string, unknown>
   converted_to_work_item_id?: string
   referenced_work_item_id?: string // NEW: For work_item_reference nodes
   created_at: string
@@ -227,7 +227,7 @@ export interface MindMapEdge {
   target_node_id: string
   edge_type?: string
   label?: string
-  style?: Record<string, any>
+  style?: Record<string, unknown>
   created_at: string
 }
 

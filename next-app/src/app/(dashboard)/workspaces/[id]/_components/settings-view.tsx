@@ -2,15 +2,30 @@
 
 import { WorkspaceGeneralSettings } from '@/components/workspaces/settings/workspace-general-settings';
 
+interface WorkspaceInfo {
+  id: string;
+  name: string;
+  description: string | null;
+  phase: string;
+  team_id: string;
+  mode?: string | null;
+  mode_changed_at?: string | null;
+}
+
+interface TeamInfo {
+  id: string;
+  name: string;
+}
+
 interface SettingsViewProps {
-  workspace: any;
-  team: any;
+  workspace: WorkspaceInfo;
+  team: TeamInfo;
   currentUserId: string;
 }
 
 export function SettingsView({
   workspace,
-  team,
+  team: _team,
   currentUserId,
 }: SettingsViewProps) {
   return (

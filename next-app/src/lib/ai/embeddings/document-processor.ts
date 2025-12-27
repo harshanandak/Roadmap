@@ -17,9 +17,6 @@ import { chunkText, generateEmbeddings, formatEmbeddingForPgvector } from './emb
 import type {
   DocumentFileType,
   DocumentStatus,
-  KnowledgeDocument,
-  ChunkForEmbedding,
-  SUPPORTED_FILE_TYPES,
 } from '@/lib/types/knowledge'
 
 // =============================================================================
@@ -51,7 +48,7 @@ export interface ProcessingResult {
 export async function extractText(
   fileContent: ArrayBuffer,
   fileType: DocumentFileType,
-  fileName: string
+  _fileName: string
 ): Promise<string> {
   switch (fileType) {
     case 'txt':
@@ -125,7 +122,7 @@ export function extractTextFromMarkdown(markdown: string): string {
 export async function processDocument(
   options: ProcessDocumentOptions
 ): Promise<ProcessingResult> {
-  const { documentId, teamId, workspaceId, onProgress } = options
+  const { documentId, onProgress } = options
 
   const supabase = await createClient()
 
@@ -205,7 +202,7 @@ export async function processDocument(
       .eq('document_id', documentId)
 
     // Store chunks with embeddings
-    const chunkInserts = chunks.map((chunk, i) => {
+    const chunkInserts = chunks.map((chunk) => {
       const embeddingData = embeddingResult.chunks.find((e) => e.index === chunk.index)
 
       return {

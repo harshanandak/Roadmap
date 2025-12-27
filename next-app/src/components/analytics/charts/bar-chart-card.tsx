@@ -16,6 +16,31 @@ import { cn } from '@/lib/utils'
 import { CHART_COLOR_PALETTE, CHART_COLORS } from '@/lib/types/analytics'
 import type { BarChartData } from '@/lib/types/analytics'
 
+// Custom tooltip - defined outside of component to avoid recreation during render
+interface BarTooltipPayload {
+  value: number
+  name: string
+}
+interface BarTooltipProps {
+  active?: boolean
+  payload?: BarTooltipPayload[]
+  label?: string
+}
+
+function BarChartTooltip({ active, payload, label }: BarTooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <p className="font-medium">{label}</p>
+        <p className="text-sm text-muted-foreground">
+          {payload[0].value.toLocaleString()}
+        </p>
+      </div>
+    )
+  }
+  return null
+}
+
 export interface AnalyticsBarChartProps {
   title: string
   data: BarChartData[]
@@ -43,21 +68,6 @@ export function AnalyticsBarChart({
   showLegend = false,
   colorByValue = false,
 }: AnalyticsBarChartProps) {
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border bg-background p-2 shadow-sm">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-muted-foreground">
-            {payload[0].value.toLocaleString()}
-          </p>
-        </div>
-      )
-    }
-    return null
-  }
-
   return (
     <Card className={cn('hover:shadow-md transition-shadow', className)}>
       <CardHeader className="pb-2">
@@ -102,7 +112,7 @@ export function AnalyticsBarChart({
                   <YAxis />
                 </>
               )}
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<BarChartTooltip />} />
               {showLegend && <Legend />}
               <Bar
                 dataKey={dataKey}

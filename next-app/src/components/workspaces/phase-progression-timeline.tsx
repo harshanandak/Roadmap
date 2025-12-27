@@ -11,7 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Circle, Settings } from 'lucide-react'
-import { PHASE_CONFIG, PHASE_ORDER, migratePhase, type WorkspacePhase } from '@/lib/constants/workspace-phases'
+import { PHASE_CONFIG, PHASE_ORDER, migratePhase } from '@/lib/constants/workspace-phases'
 
 /**
  * Phase configuration for timeline display
@@ -93,7 +93,7 @@ export function PhaseProgressionTimeline({
           {PHASES.map((phase, index) => {
             const isCurrent = phase.value === currentPhase
             const isPast = index < currentPhaseIndex
-            const isFuture = index > currentPhaseIndex
+            const _isFuture = index > currentPhaseIndex
 
             return (
               <div

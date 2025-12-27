@@ -1,22 +1,26 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /**
  * Playwright Test Fixtures
  *
  * These fixtures provide convenient setup and teardown for tests,
  * including authenticated users, teams, workspaces, and test data.
+ *
+ * Note: ESLint is disabled for react-hooks/rules-of-hooks because Playwright's
+ * `use()` fixture API is incorrectly identified as React's use() hook.
  */
 
 import { test as baseTest, expect } from '@playwright/test';
 import { Page } from '@playwright/test';
-import { loginUser, logoutUser, getCurrentUserId } from '../helpers/auth';
+import { loginUser, logoutUser } from '../helpers/auth';
 import {
   createTeamInDatabase,
   createWorkspaceInDatabase,
   createWorkItemInDatabase,
   cleanupTeamData,
   cleanupWorkspaceData,
-  addTeamMemberInDatabase,
 } from './database';
 import { TEST_USERS, TEST_TEAMS, TEST_WORKSPACES, TEST_WORK_ITEMS } from '../fixtures/test-data';
+import type { WorkItemType } from '@/lib/types/work-items';
 
 /**
  * Extended test fixture with authentication
@@ -135,7 +139,7 @@ export const testDataFixture = baseTest.extend<TestDataFixtures>({
     const workItem = await createWorkItemInDatabase({
       title: TEST_WORK_ITEMS.authentication.title,
       description: TEST_WORK_ITEMS.authentication.description,
-      type: TEST_WORK_ITEMS.authentication.type as any,
+      type: TEST_WORK_ITEMS.authentication.type as WorkItemType,
       phase: TEST_WORK_ITEMS.authentication.phase,
       priority: TEST_WORK_ITEMS.authentication.priority,
       teamId: testTeamId,
@@ -185,7 +189,7 @@ export const authenticatedWithDataFixture = baseTest.extend<
   testWorkItemId: async ({ testTeamId, testWorkspaceId }, use) => {
     const workItem = await createWorkItemInDatabase({
       title: TEST_WORK_ITEMS.authentication.title,
-      type: TEST_WORK_ITEMS.authentication.type as any,
+      type: TEST_WORK_ITEMS.authentication.type as WorkItemType,
       phase: TEST_WORK_ITEMS.authentication.phase,
       priority: TEST_WORK_ITEMS.authentication.priority,
       teamId: testTeamId,

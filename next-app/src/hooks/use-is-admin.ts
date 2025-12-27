@@ -57,6 +57,10 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
   // Try to use context first (optimized path - no duplicate subscriptions)
   const contextPermissions = usePermissionsOptional()
 
+  // Always call the direct hook to comply with rules of hooks
+  // We'll use its result only if context is not available
+  const directResult = useIsAdminDirect({ teamId })
+
   // Check if context matches our team
   const useContext =
     contextPermissions &&
@@ -74,7 +78,7 @@ export function useIsAdmin({ teamId }: UseIsAdminParams): UseIsAdminReturn {
   }
 
   // Fallback: Direct subscription (for backward compatibility)
-  return useIsAdminDirect({ teamId })
+  return directResult
 }
 
 /**

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+
 import {
   Card,
   CardContent,
@@ -12,13 +12,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   CheckCircle2,
   Clock,
@@ -42,8 +35,8 @@ import { BugWorkflowPanel } from '@/components/work-items/bug-workflow-panel'
 import { BUG_PHASES, type BugPhase, type BugMetadata } from '@/lib/bug/workflow'
 
 export function SummaryTab() {
-  const { workItem, counts, phase, updateWorkItem } = useWorkItemDetailContext()
-  const router = useRouter()
+  const { workItem, counts, updateWorkItem } = useWorkItemDetailContext()
+  // const router = useRouter() // Prepared for future navigation
 
   // Inline editing state
   const [isEditingDescription, setIsEditingDescription] = useState(false)

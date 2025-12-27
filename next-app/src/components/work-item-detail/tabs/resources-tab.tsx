@@ -13,18 +13,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
-  FileText,
   Plus,
   Search,
-  Link2,
-  ExternalLink,
-  Loader2,
-  Inbox,
   FolderOpen,
   FileCode,
-  Video,
   Image,
   Wrench,
   Package,
@@ -38,8 +32,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useWorkItemDetailContext } from '../shared/detail-context'
 import { ResourceCard } from '@/components/resources/resource-card'
 import { AddResourceDialog } from '@/components/resources/add-resource-dialog'
-import type { ResourceWithMeta, ResourceType } from '@/lib/types/resources'
-import { cn } from '@/lib/utils'
+import type { ResourceWithMeta } from '@/lib/types/resources'
 
 // ============================================================================
 // Types & Constants

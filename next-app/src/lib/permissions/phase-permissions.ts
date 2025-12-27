@@ -7,7 +7,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import type { WorkspacePhase } from '@/lib/constants/workspace-phases'
-import type { TeamRole, UserPhaseAssignment } from '@/lib/types/team'
+import type { UserPhaseAssignment } from '@/lib/types/team'
 
 /**
  * Permission result for a single phase
@@ -128,8 +128,6 @@ export async function canManagePhaseAssignments(
   teamId: string,
   phase: WorkspacePhase
 ): Promise<boolean> {
-  const supabase = createClient()
-
   // Check if user is owner/admin
   const isAdmin = await isTeamAdminOrOwner(userId, teamId)
   if (isAdmin) {

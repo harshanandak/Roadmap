@@ -21,7 +21,7 @@ export const DependencyEdge = memo(
     targetPosition,
     data,
     selected,
-  }: EdgeProps<any>) => {
+  }: EdgeProps<DependencyEdgeData>) => {
     const { connection, isOnCriticalPath } = data || {}
 
     const [edgePath, labelX, labelY] = getBezierPath({
@@ -40,7 +40,7 @@ export const DependencyEdge = memo(
     // Determine edge style
     const edgeColor = isOnCriticalPath ? '#ef4444' : config.color
     const edgeWidth = isOnCriticalPath ? 3 : selected ? 2 : 1.5
-    const animated = isOnCriticalPath
+    const _animated = isOnCriticalPath
 
     return (
       <>

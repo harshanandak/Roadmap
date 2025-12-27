@@ -174,9 +174,17 @@ export class PerformanceMonitor {
    * Measure memory usage (if available)
    */
   private measureMemory(): void {
-    if ('memory' in performance && (performance as any).memory) {
-      const memory = (performance as any).memory
-      this.metrics.memoryUsed = memory.usedJSHeapSize / 1024 / 1024 // Convert to MB
+    interface PerformanceMemory {
+      usedJSHeapSize: number
+      totalJSHeapSize: number
+      jsHeapSizeLimit: number
+    }
+    interface PerformanceWithMemory extends Performance {
+      memory?: PerformanceMemory
+    }
+    const perfWithMemory = performance as PerformanceWithMemory
+    if (perfWithMemory.memory) {
+      this.metrics.memoryUsed = perfWithMemory.memory.usedJSHeapSize / 1024 / 1024 // Convert to MB
     }
   }
 

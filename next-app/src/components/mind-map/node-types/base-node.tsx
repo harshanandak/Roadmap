@@ -6,7 +6,7 @@ import { MindMapNodeData, NodeTypeConfig } from '@/lib/types/mind-map'
 import { Badge } from '@/components/ui/badge'
 import { Edit3 } from 'lucide-react'
 
-interface BaseNodeProps extends NodeProps<any> {
+interface BaseNodeProps extends NodeProps<MindMapNodeData> {
   config: NodeTypeConfig
   onEdit?: (nodeId: string) => void
   onDelete?: (nodeId: string) => void
@@ -19,8 +19,8 @@ export const BaseNode = memo(function BaseNode({
   config,
   selected,
   onEdit,
-  onDelete,
-  onConvert,
+  onDelete: _onDelete,
+  onConvert: _onConvert,
 }: BaseNodeProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(data.title)

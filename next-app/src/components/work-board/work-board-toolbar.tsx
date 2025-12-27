@@ -22,8 +22,6 @@ import {
   Search,
   X,
   Settings2,
-  Filter,
-  SlidersHorizontal,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -102,6 +100,7 @@ export function WorkBoardToolbar({
     if (filters.search === '' && searchInput !== '') {
       setSearchInput('')
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync when external search changes
   }, [filters.search])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

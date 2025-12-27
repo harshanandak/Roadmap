@@ -57,9 +57,10 @@ export async function GET(
     }
 
     return NextResponse.json({ connection })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/dependencies/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -99,7 +100,7 @@ export async function PATCH(
     }
 
     // Verify user has access
-    const teamId = (existingConnection.workspaces as any)?.team_id
+    const teamId = (existingConnection.workspaces as { team_id?: string } | null)?.team_id
 
     if (!teamId) {
       return NextResponse.json({ error: 'Invalid workspace' }, { status: 400 })
@@ -143,7 +144,14 @@ export async function PATCH(
     }
 
     // Build updates object
-    const updates: any = {
+    const updates: {
+      updated_at: string;
+      connection_type?: ConnectionType;
+      is_bidirectional?: boolean;
+      reason?: string;
+      strength?: number;
+      status?: string;
+    } = {
       updated_at: new Date().toISOString(),
     }
 
@@ -172,9 +180,10 @@ export async function PATCH(
     }
 
     return NextResponse.json({ connection })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in PATCH /api/dependencies/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -244,8 +253,9 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in DELETE /api/dependencies/[id]:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

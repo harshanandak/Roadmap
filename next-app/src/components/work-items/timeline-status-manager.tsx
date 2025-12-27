@@ -25,7 +25,7 @@ interface TimelineStatusManagerProps {
   timelineItems: TimelineItem[]
 }
 
-export function TimelineStatusManager({ workItemId, timelineItems }: TimelineStatusManagerProps) {
+export function TimelineStatusManager({ workItemId: _workItemId, timelineItems }: TimelineStatusManagerProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [updatingId, setUpdatingId] = useState<string | null>(null)
@@ -51,10 +51,11 @@ export function TimelineStatusManager({ workItemId, timelineItems }: TimelineSta
       })
 
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update status'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update status',
+        description: message,
         variant: 'destructive',
       })
     } finally {

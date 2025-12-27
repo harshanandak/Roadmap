@@ -145,11 +145,12 @@ export function InviteMemberDialog({ teamId }: InviteMemberDialogProps) {
         setOpen(false)
         router.refresh()
       }, 1500)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Invitation error:', error)
+      const message = error instanceof Error ? error.message : 'Failed to send invitation'
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to send invitation',
+        text: message,
       })
     } finally {
       setLoading(false)
@@ -168,7 +169,7 @@ export function InviteMemberDialog({ teamId }: InviteMemberDialogProps) {
         <DialogHeader>
           <DialogTitle>Invite Team Member</DialogTitle>
           <DialogDescription>
-            Send an invitation to join your team. They'll receive an email with
+            Send an invitation to join your team. They&apos;ll receive an email with
             instructions to accept.
           </DialogDescription>
         </DialogHeader>

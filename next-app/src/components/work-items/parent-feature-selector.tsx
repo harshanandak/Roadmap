@@ -146,7 +146,7 @@ export function ParentFeatureSelector({
   }
 
   // Handle clear selection
-  const handleClear = () => {
+  const _handleClear = () => {
     onFeatureChange(null, 1)
     setOpen(false)
   }

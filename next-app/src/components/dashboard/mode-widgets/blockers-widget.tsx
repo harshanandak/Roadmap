@@ -67,7 +67,7 @@ export function BlockersWidget({
         {blockers.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-30" />
-            <p>No blockers! You're clear for launch.</p>
+            <p>No blockers! You&apos;re clear for launch.</p>
           </div>
         ) : (
           <ScrollArea className="h-[200px]">

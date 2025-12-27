@@ -13,7 +13,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -24,7 +23,6 @@ import {
   Link2,
   Plus,
   RefreshCcw,
-  Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { InsightList } from './insight-list'
@@ -52,7 +50,6 @@ export function InsightsDashboard({
   initialTab = 'all',
   className,
 }: InsightsDashboardProps) {
-  const router = useRouter()
   const { toast } = useToast()
 
   // State
@@ -68,7 +65,7 @@ export function InsightsDashboard({
   const [selectedInsight, setSelectedInsight] = useState<CustomerInsightWithMeta | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userVote, setUserVote] = useState<VoteType | null>(null)
-  const [linkedWorkItems, setLinkedWorkItems] = useState<any[]>([])
+  const [linkedWorkItems, setLinkedWorkItems] = useState<Array<{ id: string; name: string; type?: string }>>([])
   const [isLoadingWorkItems, setIsLoadingWorkItems] = useState(false)
 
   // Dialog state
@@ -176,10 +173,11 @@ export function InsightsDashboard({
       setSheetOpen(false)
       setRefreshKey((k) => k + 1)
       fetchStats()
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete insight'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete insight',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -211,10 +209,11 @@ export function InsightsDashboard({
 
       // Refresh to update counts
       setRefreshKey((k) => k + 1)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to record vote'
       toast({
         title: 'Error',
-        description: error.message || 'Failed to record vote',
+        description: message,
         variant: 'destructive',
       })
     }
@@ -329,7 +328,7 @@ export function InsightsDashboard({
       />
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'triage' | 'linked')}>
         <TabsList>
           <TabsTrigger value="all" className="gap-1.5">
             <FolderOpen className="h-4 w-4" />

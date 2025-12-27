@@ -23,14 +23,12 @@ import {
   CheckCircle2,
   FileSearch,
   ShieldCheck,
-  Wrench,
 } from 'lucide-react'
 import {
   type BugPhase,
   type BugTriageData,
   type BugMetadata,
   getBugPhaseConfig,
-  canTransitionTo,
   getNextPhase,
   getPreviousPhase,
   isTerminalPhase,
@@ -53,7 +51,7 @@ export interface BugWorkflowPanelProps {
 }
 
 export function BugWorkflowPanel({
-  workItemId,
+  workItemId: _workItemId,
   currentPhase,
   metadata,
   reviewEnabled,
@@ -71,7 +69,7 @@ export function BugWorkflowPanel({
   const phaseConfig = getBugPhaseConfig(currentPhase)
   const nextPhase = getNextPhase(currentPhase)
   const prevPhase = getPreviousPhase(currentPhase)
-  const isTerminal = isTerminalPhase(currentPhase)
+  const _isTerminal = isTerminalPhase(currentPhase)
 
   const { canAdvance, blockers } = canAdvancePhase(
     currentPhase,

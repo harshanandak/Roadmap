@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, X, Link2, Trash2 } from 'lucide-react'
+import { Plus, Link2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -75,6 +75,7 @@ export function LinkManagementModal({
     if (open) {
       loadData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, workItemId])
 
   const loadData = async () => {
@@ -201,9 +202,9 @@ export function LinkManagementModal({
       // Reload data
       await loadData()
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating link:', error)
-      alert(error.message || 'Failed to create link')
+      alert(error instanceof Error ? error.message : 'Failed to create link')
     } finally {
       setLoading(false)
     }
@@ -218,9 +219,9 @@ export function LinkManagementModal({
 
       await loadData()
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting link:', error)
-      alert(error.message || 'Failed to delete link')
+      alert(error instanceof Error ? error.message : 'Failed to delete link')
     } finally {
       setLoading(false)
     }

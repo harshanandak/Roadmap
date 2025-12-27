@@ -23,8 +23,6 @@ import { tool } from 'ai'
 import { z } from 'zod'
 import { toolRegistry, TOOL_CATEGORIES } from './tool-registry'
 import {
-  AnalysisScopePreviewSchema,
-  AnalysisResultSchema,
   type AnalysisScopePreview,
   type AnalysisResult,
 } from '../schemas/agentic-schemas'

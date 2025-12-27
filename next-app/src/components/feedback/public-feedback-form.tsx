@@ -12,7 +12,7 @@
  * - Optional email for follow-up
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -22,13 +22,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Form,
   FormControl,
   FormDescription,
@@ -37,10 +30,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Loader2, MessageSquare, ThumbsUp, Minus, ThumbsDown, Shuffle, Send } from 'lucide-react'
+import { Loader2, ThumbsUp, Minus, ThumbsDown, Shuffle, Send, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { generateFormLoadToken } from '@/lib/security/honeypot'
-import type { InsightSentiment } from '@/lib/types/customer-insight'
+// InsightSentiment type removed - not currently used
 
 // Validation schema
 const feedbackSchema = z.object({
@@ -131,7 +124,7 @@ export function PublicFeedbackForm({
       }
 
       onSuccess?.()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Feedback submission error:', error)
       onError?.(error.message || 'Failed to submit feedback')
     } finally {
@@ -262,7 +255,7 @@ export function PublicFeedbackForm({
                     />
                   </FormControl>
                   <FormDescription>
-                    Only if you'd like us to follow up with you
+                    Only if you&apos;d like us to follow up with you
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

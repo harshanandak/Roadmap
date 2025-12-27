@@ -73,7 +73,7 @@ export function WelcomeModal({
                 Welcome{userName ? ` ${userName}` : ''}! 🎉
               </DialogTitle>
               <DialogDescription className="text-center text-base">
-                Let's take a quick tour to help you get started with your product lifecycle
+                Let&apos;s take a quick tour to help you get started with your product lifecycle
                 management platform
               </DialogDescription>
             </DialogHeader>

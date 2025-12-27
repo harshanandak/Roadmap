@@ -13,24 +13,17 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Lightbulb,
   Plus,
   Search,
-  Link2,
-  FileText,
-  ExternalLink,
-  Loader2,
-  Inbox,
   Sparkles,
   BookOpen,
-  Microscope,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
@@ -38,7 +31,6 @@ import { useWorkItemDetailContext } from '../shared/detail-context'
 import { ResourceCard } from '@/components/resources/resource-card'
 import { AddResourceDialog } from '@/components/resources/add-resource-dialog'
 import type { ResourceWithMeta } from '@/lib/types/resources'
-import { cn } from '@/lib/utils'
 
 // ============================================================================
 // Types & Constants

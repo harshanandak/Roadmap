@@ -55,24 +55,6 @@ export function TimelineMinimap({
     setIsDragging(true)
   }
 
-  const handleViewportDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !minimapRef.current) return
-
-    const rect = minimapRef.current.getBoundingClientRect()
-    const dragX = e.clientX - rect.left
-
-    // Calculate new scroll position
-    const targetScrollLeft = dragX / scale
-    const maxScroll = totalWidth - containerWidth
-    const clampedScroll = Math.max(0, Math.min(maxScroll, targetScrollLeft))
-
-    onScrollTo(clampedScroll)
-  }
-
-  const handleViewportDragEnd = () => {
-    setIsDragging(false)
-  }
-
   useEffect(() => {
     if (isDragging) {
       const handleMouseMove = (e: MouseEvent) => {

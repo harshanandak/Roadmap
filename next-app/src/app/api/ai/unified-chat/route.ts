@@ -19,13 +19,12 @@
  */
 
 import { streamText, convertToModelMessages, type UIMessage } from 'ai'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { createClient } from '@/lib/supabase/server'
 import { parallelAITools, parallelAIQuickTools } from '@/lib/ai/tools/parallel-ai-tools'
 import { chatAgenticTools } from '@/lib/ai/tools/chat-agentic-tools'
 import { toolRegistry } from '@/lib/ai/tools/tool-registry'
 import { routeRequest, formatRoutingLog, type SessionState } from '@/lib/ai/session-router'
-import { getDefaultModel, isDevMode, getModelByKey } from '@/lib/ai/models-config'
+import { getDefaultModel, isDevMode } from '@/lib/ai/models-config'
 import {
   analyzeMessage,
   getRoutingDebugInfo,
@@ -40,7 +39,7 @@ import {
   type ImageData,
 } from '@/lib/ai/image-analyzer'
 import { buildContext, buildSystemPrompt as buildContextSystemPrompt } from '@/lib/ai/context-builder'
-import { createTaskPlan, type TaskPlan } from '@/lib/ai/task-planner'
+import { createTaskPlan } from '@/lib/ai/task-planner'
 import fs from 'fs/promises'
 
 const DEBUG_ENDPOINT = 'http://127.0.0.1:7242/ingest/ebdf2fd5-9696-479e-b2f1-d72537069b93'
@@ -68,7 +67,7 @@ async function sendDebug(payload: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-  } catch (err) {
+  } catch (_err) {
     try {
       await fs.appendFile(DEBUG_LOG_PATH, `${JSON.stringify(body)}\n`)
     } catch {
@@ -562,7 +561,7 @@ export async function POST(request: Request) {
       system: fullSystemPrompt,
       messages: routingDecision.messages, // May be compacted
       tools: hasToolUse ? tools : undefined,
-      onFinish({ text, toolCalls, toolResults, finishReason, usage }) {
+      onFinish({ toolCalls, usage }) {
         if (toolCalls && toolCalls.length > 0) {
           console.log('[Unified Chat] Tool calls:', toolCalls.map((t) => t.toolName))
         }
