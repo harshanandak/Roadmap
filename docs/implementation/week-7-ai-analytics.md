@@ -1,6 +1,6 @@
 # **WEEK 7: AI Integration, Feedback & Analytics**
 
-**Last Updated:** 2025-12-28
+**Last Updated:** 2025-12-29
 **Status:** 🟢 Complete (100%) - Type-Aware Phase System + Security Sprint Complete
 
 [← Previous: Week 6](week-6-timeline-execution.md) | [Back to Plan](README.md) | [Next: Week 8 →](week-8-billing-testing.md)
@@ -1345,6 +1345,71 @@ Complete security hardening and UI consistency cleanup following the 4-type to 3
 **PRs**:
 - Closed: #24 (original Dependabot PR - superseded)
 - Merged: #27 (fix PR with all updates + breaking change fixes)
+
+---
+
+### ✅ Knowledge & Decision Intelligence System Research (2025-12-29)
+
+**What Changed**:
+- Deep research on AAIF (Agentic AI Foundation) projects for integration
+- Verified Metorial SDK integration (YC F25, $35/mo, 600+ integrations)
+- Confirmed goose is NOT embeddable (desktop/CLI architecture only)
+- Identified critical AI implementation gaps requiring P0 fixes
+- Designed pgvector-based decision tree architecture
+- Created L1-L4 hierarchical knowledge compression design
+- Planned decision auto-extraction from work items + AI chat
+
+**Why**:
+- Need decision intelligence system for team knowledge management
+- Users want to store/retrieve thousands of decisions with context
+- pgvector already 90% built - reuse existing infrastructure
+- Metorial provides 600+ integrations without building MCP Gateway
+
+**AI Implementation Gaps Identified**:
+| Component | Status | Priority |
+|-----------|--------|----------|
+| Agentic Panel UI | ❌ MISSING | P0 (1-2 days) |
+| Chat → 20+ Tools | ❌ MISSING | P1 (1 day) |
+| ai_action_history migration | ❌ MISSING | P2 (1 hour) |
+
+**Architecture Decisions**:
+- ✅ pgvector only (no Gemini File Search dependency)
+- ✅ L1-L4 compression pyramid for scaling decisions
+- ✅ Top-to-bottom retrieval for <20ms latency
+- ✅ AI auto-extraction from work items + chat history
+
+**5-Question Validation**:
+| Q | Status | Notes |
+|---|--------|-------|
+| 1. Data Dependencies | ✅ | pgvector extension, embeddings already built |
+| 2. Integration Points | ✅ | AI SDK, chat panel, work items |
+| 3. Standalone Value | ✅ | Team decision intelligence and retrieval |
+| 4. Schema Finalized | ✅ | team_decisions table designed |
+| 5. Can Test | ✅ | Semantic search, compression jobs |
+
+**Result**: ✅ RESEARCH COMPLETE - Ready to implement in ~14 days
+
+**Progress**: No change (research phase, not implementation)
+
+**Implementation Phases Planned**:
+| Phase | Days | Deliverables |
+|-------|------|--------------|
+| 1. Complete RAG | 3-4 | PDF extraction, async processing, RAG→chat |
+| 2. Decision System | 5-6 | Schema, CRUD, semantic search, capture UI |
+| 3. Compression | 3 | L2-L4 generation, background jobs, retrieval |
+| 4. Integration | 2 | Chat context injection, priority helper |
+
+**Files Created**:
+- `C:\Users\harsh\.claude\plans\distributed-drifting-quail.md` - Full architecture plan (680+ lines)
+
+**Dependencies Created**:
+- ⏳ [P0] Fix Agentic Panel gap before Knowledge System
+- ⏳ [P1] Connect chat to 20+ registered tools
+- ⏳ [Week 9-10] Knowledge & Decision System implementation
+
+**Related Documentation**:
+- [Plan File](C:\Users\harsh\.claude\plans\distributed-drifting-quail.md) - Full technical specification
+- [ARCHITECTURE_CONSOLIDATION.md](../ARCHITECTURE_CONSOLIDATION.md) - Platform architecture
 
 ---
 
