@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, FormEvent } from 'react'
 import { createClient, resetClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,12 +27,12 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('returnTo')
 
-  // Reset client on mount to ensure fresh state for new auth
-  useEffect(() => {
+  // Lazy initialization: runs synchronously BEFORE first render
+  // This ensures resetClient() happens before createClient()
+  const [supabase] = useState(() => {
     resetClient()
-  }, [])
-
-  const supabase = createClient()
+    return createClient()
+  })
 
   const handleMagicLink = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
