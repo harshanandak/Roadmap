@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-import type { SupabaseClient, Subscription } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Singleton Supabase client for client-side (browser) usage
@@ -13,7 +13,6 @@ import type { SupabaseClient, Subscription } from '@supabase/supabase-js'
  * This client automatically handles cookies and auth state.
  */
 let browserClient: SupabaseClient | null = null
-let authSubscription: Subscription | null = null
 
 export function createClient(): SupabaseClient {
   if (typeof window === 'undefined') {
@@ -30,45 +29,15 @@ export function createClient(): SupabaseClient {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-
-    // Auto-reset singleton on signout to prevent session bleed between users
-    const { data } = browserClient.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') {
-        // Immediately null references so createClient() returns fresh instance
-        // This prevents race where stale client is returned before cleanup runs
-        const subscriptionToCleanup = authSubscription
-        browserClient = null
-        authSubscription = null
-
-        // Defer only unsubscribe() to avoid deadlock - it cannot be called
-        // synchronously from within callback as it tries to acquire the same lock
-        if (subscriptionToCleanup) {
-          setTimeout(() => subscriptionToCleanup.unsubscribe(), 0)
-        }
-      }
-    })
-    authSubscription = data.subscription
   }
 
   return browserClient
 }
 
 /**
- * Clean up the singleton client and its subscriptions
- * Called internally when user signs out
- */
-function cleanupClient(): void {
-  if (authSubscription) {
-    authSubscription.unsubscribe()
-    authSubscription = null
-  }
-  browserClient = null
-}
-
-/**
- * Reset the singleton client (useful for testing or logout)
- * Call this when user logs out to ensure a fresh client on next login
+ * Reset the singleton client. Must be called explicitly on logout.
+ * Synchronous and race-free - no callbacks, no deferred operations.
  */
 export function resetClient(): void {
-  cleanupClient()
+  browserClient = null
 }
