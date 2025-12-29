@@ -27,17 +27,14 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('returnTo')
 
-  // Lazy initialization: runs synchronously BEFORE first render
-  // This ensures resetClient() happens before createClient()
-  const [supabase] = useState(() => {
-    resetClient()
-    return createClient()
-  })
-
   const handleMagicLink = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
+
+    // Reset singleton before new auth to ensure clean state
+    resetClient()
+    const freshClient = createClient()
 
     try {
       // Build callback URL with returnTo parameter if present
@@ -46,7 +43,7 @@ export default function LoginPage() {
         callbackUrl += `?returnTo=${encodeURIComponent(returnTo)}`
       }
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await freshClient.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: callbackUrl,
@@ -75,6 +72,10 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
+    // Reset singleton before new auth to ensure clean state
+    resetClient()
+    const freshClient = createClient()
+
     try {
       // Build callback URL with returnTo parameter if present
       let callbackUrl = `${window.location.origin}/auth/callback`
@@ -82,7 +83,7 @@ export default function LoginPage() {
         callbackUrl += `?returnTo=${encodeURIComponent(returnTo)}`
       }
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await freshClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: callbackUrl,
