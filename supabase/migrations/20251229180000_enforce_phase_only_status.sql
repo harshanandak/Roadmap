@@ -18,12 +18,17 @@
 -- =============================================================================
 
 -- =============================================================================
--- STEP 1: Verify data consistency before dropping column
+-- STEP 1: Log status column state before dropping (informational only)
 -- =============================================================================
--- Log any work items where status differs from phase (informational only)
+-- NOTE: The status column (if present) is a LEGACY field from the original
+-- features table. It has a completely different value domain than phase:
+--   - status: not_started, planning, in_progress, blocked, review, completed, on_hold, cancelled
+--   - phase: research, planning, execution, review, complete (or type-specific)
+-- These are NOT interchangeable - status was never used as an alternative to phase.
+-- This migration removes the legacy column to enforce the architecture.
 DO $$
 DECLARE
-  inconsistent_count INTEGER;
+  status_count INTEGER;
   has_status_column BOOLEAN;
 BEGIN
   -- Check if status column exists
@@ -35,17 +40,17 @@ BEGIN
   ) INTO has_status_column;
 
   IF has_status_column THEN
-    SELECT COUNT(*) INTO inconsistent_count
+    -- Count records with non-NULL status (informational only)
+    SELECT COUNT(*) INTO status_count
     FROM work_items
-    WHERE status IS NOT NULL
-      AND status != phase;
+    WHERE status IS NOT NULL;
 
-    IF inconsistent_count > 0 THEN
-      RAISE NOTICE 'Found % work items where status differs from phase', inconsistent_count;
-      RAISE NOTICE 'Status values will be lost when the column is dropped';
-      RAISE NOTICE 'Phase is the canonical status - migrate important data before running';
+    IF status_count > 0 THEN
+      RAISE NOTICE 'Found % work items with legacy status values', status_count;
+      RAISE NOTICE 'These values are from the legacy features table and are not used';
+      RAISE NOTICE 'Phase is the canonical lifecycle field - no data migration needed';
     ELSE
-      RAISE NOTICE 'All work items have consistent phase values (or NULL status)';
+      RAISE NOTICE 'No work items have legacy status values set';
     END IF;
   ELSE
     RAISE NOTICE 'status column does not exist on work_items - architecture already enforced';
