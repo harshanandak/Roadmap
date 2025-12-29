@@ -3709,6 +3709,7 @@ export type Database = {
           ai_created: boolean | null
           ai_generated: Json | null
           ai_modified: boolean | null
+          archived: boolean | null
           blockers: Json | null
           business_value: string | null
           canvas_metadata: Json | null
@@ -3752,6 +3753,7 @@ export type Database = {
           priority: string | null
           progress_percent: number | null
           purpose: string | null
+          rejection_reason: string | null
           review_enabled: boolean | null
           review_status: string | null
           stage_completion_percent: number | null
@@ -3782,6 +3784,7 @@ export type Database = {
           ai_created?: boolean | null
           ai_generated?: Json | null
           ai_modified?: boolean | null
+          archived?: boolean | null
           blockers?: Json | null
           business_value?: string | null
           canvas_metadata?: Json | null
@@ -3825,6 +3828,7 @@ export type Database = {
           priority?: string | null
           progress_percent?: number | null
           purpose?: string | null
+          rejection_reason?: string | null
           review_enabled?: boolean | null
           review_status?: string | null
           stage_completion_percent?: number | null
@@ -3855,6 +3859,7 @@ export type Database = {
           ai_created?: boolean | null
           ai_generated?: Json | null
           ai_modified?: boolean | null
+          archived?: boolean | null
           blockers?: Json | null
           business_value?: string | null
           canvas_metadata?: Json | null
@@ -3898,6 +3903,7 @@ export type Database = {
           priority?: string | null
           progress_percent?: number | null
           purpose?: string | null
+          rejection_reason?: string | null
           review_enabled?: boolean | null
           review_status?: string | null
           stage_completion_percent?: number | null
