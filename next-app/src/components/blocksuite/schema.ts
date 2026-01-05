@@ -132,3 +132,107 @@ export function validateEditorProps(props: unknown): ValidatedBlockSuiteEditorPr
 export function safeValidateEditorProps(props: unknown) {
   return BlockSuiteEditorPropsSchema.safeParse(props)
 }
+
+// ============================================================
+// BlockSuite MindMap Canvas Schemas (v0.18.7)
+// ============================================================
+
+/**
+ * BlockSuite MindmapStyle enum schema
+ * Maps to @blocksuite/affine-model MindmapStyle: ONE=1, TWO=2, THREE=3, FOUR=4
+ */
+export const BlockSuiteMindmapStyleSchema = z.union([
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+])
+
+/**
+ * BlockSuite LayoutType enum schema
+ * Maps to @blocksuite/affine-model LayoutType: RIGHT=0, LEFT=1, BALANCE=2
+ */
+export const BlockSuiteLayoutTypeSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+])
+
+/**
+ * BlockSuite mindmap node schema (recursive tree structure)
+ */
+export interface BlockSuiteMindmapNodeType {
+  text: string
+  children?: BlockSuiteMindmapNodeType[]
+  xywh?: string
+  layoutType?: 'left' | 'right'
+}
+
+export const BlockSuiteMindmapNodeSchema: z.ZodType<BlockSuiteMindmapNodeType> = z.lazy(() =>
+  z.object({
+    text: z.string().min(1, 'Node text is required').max(1000, 'Node text too long'),
+    children: z.array(BlockSuiteMindmapNodeSchema).optional(),
+    xywh: z.string().regex(/^-?\d+,-?\d+,\d+,\d+$/, 'Invalid xywh format').optional(),
+    layoutType: z.enum(['left', 'right']).optional(),
+  })
+)
+
+/**
+ * MindMapCanvas component props schema
+ * Validates all incoming props at runtime for security
+ */
+export const MindMapCanvasPropsSchema = z.object({
+  /** Document ID for persistence */
+  documentId: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true
+        // Allow alphanumeric, hyphens, underscores, max 100 chars
+        const idRegex = /^[a-zA-Z0-9_-]{1,100}$/
+        return idRegex.test(val)
+      },
+      { message: 'documentId must be alphanumeric with hyphens/underscores only (max 100 chars)' }
+    ),
+
+  /** Initial tree structure to render */
+  initialTree: BlockSuiteMindmapNodeSchema.optional(),
+
+  /** Visual style preset (1-4) */
+  style: BlockSuiteMindmapStyleSchema.optional().default(4),
+
+  /** Layout direction (0=RIGHT, 1=LEFT, 2=BALANCE) */
+  layout: BlockSuiteLayoutTypeSchema.optional().default(2),
+
+  /** Callback when tree structure changes */
+  onTreeChange: z.unknown().optional(),
+
+  /** Callback when a node is selected */
+  onNodeSelect: z.unknown().optional(),
+
+  /** Whether the canvas is read-only */
+  readOnly: z.boolean().optional().default(false),
+
+  /** Additional CSS classes */
+  className: z.string().optional(),
+})
+
+/**
+ * Inferred type from MindMapCanvasPropsSchema
+ */
+export type ValidatedMindMapCanvasProps = z.infer<typeof MindMapCanvasPropsSchema>
+
+/**
+ * Validate MindMapCanvas props and return parsed result or throw error
+ */
+export function validateMindMapCanvasProps(props: unknown): ValidatedMindMapCanvasProps {
+  return MindMapCanvasPropsSchema.parse(props)
+}
+
+/**
+ * Safe validation for MindMapCanvas props that returns result object instead of throwing
+ */
+export function safeValidateMindMapCanvasProps(props: unknown) {
+  return MindMapCanvasPropsSchema.safeParse(props)
+}

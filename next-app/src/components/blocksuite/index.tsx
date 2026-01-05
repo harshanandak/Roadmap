@@ -74,8 +74,39 @@ export const BlockSuiteCanvasEditor = dynamic<Omit<BlockSuiteEditorProps, 'mode'
   }
 )
 
+/**
+ * SSR-Safe MindMap Canvas
+ * Specialized for mind mapping with BlockSuite native support
+ *
+ * @example
+ * ```tsx
+ * import { MindMapCanvas } from '@/components/blocksuite'
+ *
+ * function MyMindMap() {
+ *   return (
+ *     <MindMapCanvas
+ *       initialTree={{
+ *         text: 'Central Idea',
+ *         children: [{ text: 'Branch 1' }]
+ *       }}
+ *       style={4}  // MindmapStyle.FOUR
+ *       layout={2} // LayoutType.BALANCE
+ *     />
+ *   )
+ * }
+ * ```
+ */
+export const MindMapCanvas = dynamic(
+  () => import('./mind-map-canvas').then((mod) => mod.MindMapCanvas),
+  {
+    ssr: false,
+    loading: () => <LoadingSkeleton mode="edgeless" />,
+  }
+)
+
 // Re-export types
 export type { BlockSuiteEditorProps } from './blocksuite-editor'
+export type { MindMapCanvasProps } from './mindmap-types'
 export { LoadingSkeleton } from './loading-skeleton'
 
 // Re-export validation schemas
@@ -89,8 +120,15 @@ export {
   BlockSuiteDocumentSchema,
   validateEditorProps,
   safeValidateEditorProps,
+  // MindMapCanvas validation schemas
+  BlockSuiteMindmapStyleSchema,
+  BlockSuiteLayoutTypeSchema,
+  BlockSuiteMindmapNodeSchema,
+  MindMapCanvasPropsSchema,
+  validateMindMapCanvasProps,
+  safeValidateMindMapCanvasProps,
 } from './schema'
-export type { ValidatedBlockSuiteEditorProps } from './schema'
+export type { ValidatedBlockSuiteEditorProps, ValidatedMindMapCanvasProps } from './schema'
 
 // Re-export BlockSuite types for convenience
 export type {
@@ -106,3 +144,27 @@ export type {
   NodeSelectionEvent,
   CanvasViewport,
 } from './types'
+
+// Re-export mindmap-specific types and utilities
+export {
+  BlockSuiteMindmapStyle,
+  BlockSuiteLayoutType,
+  DEFAULT_SAMPLE_TREE,
+} from './mindmap-types'
+export type {
+  BlockSuiteMindmapNode,
+  BlockSuiteMindmapNodeWithMeta,
+  ConversionResult,
+  MindmapElementRef,
+  SurfaceBlockModelRef,
+} from './mindmap-types'
+
+// Re-export conversion utilities
+export {
+  reactFlowToBlockSuiteTree,
+  blockSuiteTreeToReactFlow,
+  semanticNodeToMindmapNode,
+  textToMindmapTree,
+  getTreeDepth,
+  countTreeNodes,
+} from './mindmap-utils'
