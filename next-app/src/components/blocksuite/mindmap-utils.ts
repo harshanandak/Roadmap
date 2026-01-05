@@ -84,6 +84,12 @@ export function reactFlowToBlockSuiteTree(
     depth = 0,
     currentPath = new Set<string>()
   ): BlockSuiteMindmapNodeWithMeta | null {
+    // Skip if already processed (prevents duplicate nodes when roots share children)
+    // This ensures each node appears exactly once in the final combined tree
+    if (processedNodes.has(nodeId)) {
+      return null
+    }
+
     // Prevent infinite loops (cycle detection within current traversal path)
     if (currentPath.has(nodeId)) {
       warnings.push(`Circular reference detected at node "${nodeId}"`)
@@ -334,7 +340,10 @@ export function textToMindmapTree(text: string): BlockSuiteMindmapNode | null {
     return { node, endIdx: idx }
   }
 
-  const result = buildFromLines(0, lines[0].indent)
+  // Use minimum indent as base (in case first line is not the least indented)
+  // This handles cases where input text has varying indentation levels
+  const minBaseIndent = Math.min(...lines.map((l) => l.indent))
+  const result = buildFromLines(0, minBaseIndent)
   return result?.node || null
 }
 
