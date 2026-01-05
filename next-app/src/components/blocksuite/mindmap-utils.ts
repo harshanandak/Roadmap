@@ -90,9 +90,8 @@ export function reactFlowToBlockSuiteTree(
       return null
     }
 
-    // Track this node in current path and mark as processed
+    // Track this node in current path for cycle detection
     const pathWithCurrent = new Set(currentPath).add(nodeId)
-    processedNodes.add(nodeId)
 
     // Prevent too deep trees (safety limit)
     if (depth > 20) {
@@ -105,6 +104,10 @@ export function reactFlowToBlockSuiteTree(
       orphanedNodes.push(nodeId)
       return null
     }
+
+    // Only mark as processed AFTER validating the node exists
+    // This ensures orphan detection only counts valid, processed nodes
+    processedNodes.add(nodeId)
 
     const children: BlockSuiteMindmapNodeWithMeta[] = []
     const childIds = childrenMap.get(nodeId) || []
@@ -282,7 +285,10 @@ export function textToMindmapTree(text: string): BlockSuiteMindmapNode | null {
   if (lines.length === 0) return null
 
   // Normalize indentation to use smallest non-zero indent as unit
-  const indentUnit = Math.min(...lines.filter((l) => l.indent > 0).map((l) => l.indent)) || 2
+  // Use explicit check for Infinity since Math.min(...[]) returns Infinity (which is truthy)
+  const indentedLines = lines.filter((l) => l.indent > 0).map((l) => l.indent)
+  const minIndent = indentedLines.length > 0 ? Math.min(...indentedLines) : 2
+  const indentUnit = Number.isFinite(minIndent) ? minIndent : 2
 
   function buildFromLines(
     startIdx: number,
@@ -303,8 +309,9 @@ export function textToMindmapTree(text: string): BlockSuiteMindmapNode | null {
       const nextLine = lines[idx]
       if (nextLine.indent <= baseIndent) break
 
-      // Direct child has indent exactly baseIndent + indentUnit
-      if (nextLine.indent === baseIndent + indentUnit || nextLine.indent > baseIndent) {
+      // Only process lines that are exactly one indent level deeper as direct children.
+      // Lines with deeper indentation will be handled recursively by their parent.
+      if (nextLine.indent === baseIndent + indentUnit) {
         const childResult = buildFromLines(idx, nextLine.indent)
         if (childResult) {
           node.children?.push(childResult.node)
@@ -312,6 +319,9 @@ export function textToMindmapTree(text: string): BlockSuiteMindmapNode | null {
         } else {
           idx++
         }
+      } else if (nextLine.indent > baseIndent + indentUnit) {
+        // Skip deeper nested lines - they'll be processed by their immediate parent
+        idx++
       } else {
         idx++
       }

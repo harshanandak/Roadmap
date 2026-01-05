@@ -258,7 +258,6 @@ export function MindMapCanvas({
                 })
 
                 mindmapIdRef.current = mindmapId
-                console.log('MindMap created with ID:', mindmapId)
               } else if (attempts < MAX_ATTEMPTS) {
                 // Surface not ready yet, retry
                 attempts++
