@@ -236,3 +236,139 @@ export function validateMindMapCanvasProps(props: unknown): ValidatedMindMapCanv
 export function safeValidateMindMapCanvasProps(props: unknown) {
   return MindMapCanvasPropsSchema.safeParse(props)
 }
+
+// ============================================================
+// Migration Schemas (Phase 3: Data Migration)
+// ============================================================
+
+/**
+ * Migration status schema
+ */
+export const MigrationStatusSchema = z.enum([
+  'pending',
+  'in_progress',
+  'success',
+  'warning',
+  'failed',
+  'skipped',
+])
+
+/**
+ * Lost edge reason schema
+ */
+export const LostEdgeReasonSchema = z.enum([
+  'multiple_parents',
+  'circular_reference',
+  'orphaned_node',
+])
+
+/**
+ * Lost edge schema for tracking edges lost during DAG→Tree conversion
+ */
+export const LostEdgeSchema = z.object({
+  sourceId: z.string().min(1),
+  targetId: z.string().min(1),
+  sourceTitle: z.string().optional(),
+  targetTitle: z.string().optional(),
+  reason: LostEdgeReasonSchema,
+})
+
+/**
+ * Migration options schema for API validation
+ * Safety: dryRun defaults to true to prevent accidental writes
+ */
+export const MigrationOptionsSchema = z.object({
+  dryRun: z.boolean().default(true),
+  batchSize: z.number().int().min(1).max(50).default(10),
+  maxWarningsPerMap: z.number().int().min(1).max(100).default(50),
+  skipLargeMaps: z.boolean().optional().default(false),
+  maxSizeBytes: z.number().int().positive().optional().default(100 * 1024), // 100KB
+})
+
+/**
+ * Single mind map migration request schema
+ */
+export const MigrateSingleRequestSchema = z.object({
+  dryRun: z.boolean().default(true),
+  skipLargeMaps: z.boolean().optional().default(false), // Default false for single map (process by default)
+  maxSizeBytes: z.number().int().positive().optional().default(100 * 1024), // 100KB default
+  force: z.boolean().optional().default(false), // Force re-migration of already migrated maps
+})
+
+/**
+ * Workspace batch migration request schema
+ */
+export const MigrateWorkspaceRequestSchema = z.object({
+  dryRun: z.boolean().default(true),
+  batchSize: z.number().int().min(1).max(50).default(10),
+  skipLargeMaps: z.boolean().optional().default(true), // Default true for batch safety
+  maxSizeBytes: z.number().int().positive().optional().default(100 * 1024), // 100KB default
+  limit: z.number().int().min(1).max(100).optional(), // Max maps to process in one request
+  force: z.boolean().optional().default(false), // Force re-migration of already migrated maps
+})
+
+/**
+ * Migration result schema for validation
+ */
+export const MigrationResultSchema = z.object({
+  mindMapId: z.string().min(1),
+  workspaceId: z.string(),
+  status: MigrationStatusSchema,
+  nodeCount: z.number().int().min(0),
+  edgeCount: z.number().int().min(0),
+  treeNodeCount: z.number().int().min(0),
+  lostEdgeCount: z.number().int().min(0),
+  warnings: z.array(z.string()),
+  error: z.string().optional(),
+  durationMs: z.number().min(0),
+  sizeBytes: z.number().int().min(0).optional(),
+})
+
+/**
+ * Inferred types from schemas
+ */
+export type ValidatedMigrationOptions = z.infer<typeof MigrationOptionsSchema>
+export type ValidatedMigrateSingleRequest = z.infer<typeof MigrateSingleRequestSchema>
+export type ValidatedMigrateWorkspaceRequest = z.infer<typeof MigrateWorkspaceRequestSchema>
+
+/**
+ * Validate migration options and throw on error
+ */
+export function validateMigrationOptions(options: unknown): ValidatedMigrationOptions {
+  return MigrationOptionsSchema.parse(options)
+}
+
+/**
+ * Safe validation for migration options that returns result object instead of throwing
+ */
+export function safeValidateMigrationOptions(options: unknown) {
+  return MigrationOptionsSchema.safeParse(options)
+}
+
+/**
+ * Validate single migration request and throw on error
+ */
+export function validateMigrateSingleRequest(request: unknown): ValidatedMigrateSingleRequest {
+  return MigrateSingleRequestSchema.parse(request)
+}
+
+/**
+ * Safe validation for single migration request
+ */
+export function safeValidateMigrateSingleRequest(request: unknown) {
+  return MigrateSingleRequestSchema.safeParse(request)
+}
+
+/**
+ * Validate workspace migration request and throw on error
+ */
+export function validateMigrateWorkspaceRequest(request: unknown): ValidatedMigrateWorkspaceRequest {
+  return MigrateWorkspaceRequestSchema.parse(request)
+}
+
+/**
+ * Safe validation for workspace migration request
+ */
+export function safeValidateMigrateWorkspaceRequest(request: unknown) {
+  return MigrateWorkspaceRequestSchema.safeParse(request)
+}

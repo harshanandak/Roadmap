@@ -120,6 +120,124 @@ export interface SurfaceBlockModelRef {
   getElementById: (id: string) => MindmapElementRef | null
 }
 
+// ============================================================
+// Migration Types (Phase 3: Data Migration)
+// ============================================================
+
+/**
+ * Migration status for mind map to BlockSuite conversion
+ */
+export type MigrationStatus =
+  | 'pending'      // Not yet migrated
+  | 'in_progress'  // Currently migrating
+  | 'success'      // Migrated successfully
+  | 'warning'      // Migrated with warnings (lost edges)
+  | 'failed'       // Migration failed
+  | 'skipped'      // Skipped (too large, invalid data)
+
+/**
+ * Lost edge record from DAG-to-tree conversion
+ * BlockSuite trees cannot represent DAG structures (nodes with multiple parents)
+ */
+export interface LostEdge {
+  /** Source node ID */
+  sourceId: string
+  /** Target node ID */
+  targetId: string
+  /** Source node title (for display) */
+  sourceTitle?: string
+  /** Target node title (for display) */
+  targetTitle?: string
+  /** Reason the edge was lost */
+  reason: 'multiple_parents' | 'circular_reference' | 'orphaned_node'
+}
+
+/**
+ * Migration options for controlling behavior
+ */
+export interface MigrationOptions {
+  /** If true, validate and preview without saving (default: true for safety) */
+  dryRun?: boolean
+  /** Batch size for workspace migrations (default: 10) */
+  batchSize?: number
+  /** Maximum warnings per map before flagging (default: 50) */
+  maxWarningsPerMap?: number
+  /** If true, skip maps that exceed size threshold */
+  skipLargeMaps?: boolean
+  /** Maximum JSONB size in bytes before skipping (default: 100KB) */
+  maxSizeBytes?: number
+}
+
+/**
+ * Result of a single migration operation
+ */
+export interface MigrationResult {
+  /** Mind map ID that was migrated */
+  mindMapId: string
+  /** Workspace ID containing the mind map */
+  workspaceId: string
+  /** Migration status after operation */
+  status: MigrationStatus
+  /** Number of source nodes */
+  nodeCount: number
+  /** Number of source edges */
+  edgeCount: number
+  /** Number of nodes in resulting tree */
+  treeNodeCount: number
+  /** Number of edges lost during DAG→Tree conversion */
+  lostEdgeCount: number
+  /** Warnings generated during migration */
+  warnings: string[]
+  /** Error message if failed */
+  error?: string
+  /** Duration of migration in milliseconds */
+  durationMs: number
+  /** Estimated size of JSONB tree in bytes */
+  sizeBytes?: number
+}
+
+/**
+ * Result of batch migration for multiple mind maps
+ */
+export interface BatchMigrationResult {
+  /** Unique batch ID for tracking */
+  batchId: string
+  /** Total maps processed */
+  totalMaps: number
+  /** Successfully migrated count */
+  successful: number
+  /** Failed migration count */
+  failed: number
+  /** Skipped (already migrated or excluded) */
+  skipped: number
+  /** Migrated with warnings (lost edges) */
+  withWarnings: number
+  /** Individual results for each map */
+  results: MigrationResult[]
+  /** Batch start timestamp */
+  startedAt: string
+  /** Batch completion timestamp */
+  completedAt: string
+}
+
+/**
+ * Migration data stored with mind map in database
+ */
+export interface MindMapMigrationData {
+  /** Converted BlockSuite tree structure */
+  blocksuite_tree: BlockSuiteMindmapNode | null
+  /** Current migration status */
+  migration_status: MigrationStatus
+  /** Warnings generated during migration */
+  migration_warnings: string[]
+  /** Count of edges lost during conversion */
+  migration_lost_edges: number
+  /** Timestamp of successful migration */
+  migrated_at: string | null
+  /** Estimated JSONB size in bytes */
+  blocksuite_size_bytes: number | null
+}
+
 /**
  * Default sample tree for testing
  */

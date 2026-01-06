@@ -168,3 +168,54 @@ export {
   getTreeDepth,
   countTreeNodes,
 } from './mindmap-utils'
+
+// ============================================================
+// Migration Utilities (Phase 3: Data Migration)
+// ============================================================
+
+// Re-export migration types
+export type {
+  MigrationStatus,
+  LostEdge,
+  MigrationOptions,
+  MigrationResult,
+  BatchMigrationResult,
+  MindMapMigrationData,
+} from './mindmap-types'
+
+// Re-export migration utilities
+export {
+  DEFAULT_MIGRATION_OPTIONS,
+  TOAST_THRESHOLD_BYTES,
+  estimateJSONBSize,
+  formatBytes,
+  checkSizeThreshold,
+  extractLostEdges,
+  validateMindMapForMigration,
+  migrateToBlockSuite,
+  getBlockSuiteTree,
+  summarizeMigration,
+  createBatchResult,
+} from './migration-utils'
+
+// Re-export migration schemas
+export {
+  MigrationStatusSchema,
+  LostEdgeReasonSchema,
+  LostEdgeSchema,
+  MigrationOptionsSchema,
+  MigrateSingleRequestSchema,
+  MigrateWorkspaceRequestSchema,
+  MigrationResultSchema,
+  validateMigrationOptions,
+  safeValidateMigrationOptions,
+  validateMigrateSingleRequest,
+  safeValidateMigrateSingleRequest,
+  validateMigrateWorkspaceRequest,
+  safeValidateMigrateWorkspaceRequest,
+} from './schema'
+export type {
+  ValidatedMigrationOptions,
+  ValidatedMigrateSingleRequest,
+  ValidatedMigrateWorkspaceRequest,
+} from './schema'
