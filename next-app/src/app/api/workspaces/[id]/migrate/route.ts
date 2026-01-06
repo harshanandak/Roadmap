@@ -235,15 +235,20 @@ export async function POST(
       return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
     }
 
-    // Get pending mind maps (not yet migrated or failed) - explicit team_id filtering + RLS
+    // Get mind maps to migrate - explicit team_id filtering + RLS
+    // If force=true, include all maps including already migrated ones
+    // Otherwise, only get pending/failed/null status maps
     // Fetch one extra to detect if there are more records for pagination
     const fetchLimit = options.limit || options.batchSize
+    const statusFilter = options.force
+      ? ['pending', 'failed', 'success', 'warning', 'skipped', null]
+      : ['pending', 'failed', null]
     const { data: pendingMaps, error: mapsError } = await supabase
       .from('mind_maps')
       .select('id')
       .eq('workspace_id', workspaceId)
       .eq('team_id', workspace.team_id)
-      .in('migration_status', ['pending', 'failed', null])
+      .in('migration_status', statusFilter)
       .limit(fetchLimit + 1)
 
     if (mapsError) {
@@ -266,8 +271,8 @@ export async function POST(
     const startedAt = new Date().toISOString()
     const results: MigrationResult[] = []
 
-    // Process each map
-    for (const map of pendingMaps.slice(0, options.batchSize)) {
+    // Process each map (respects limit if specified, otherwise uses batchSize)
+    for (const map of pendingMaps.slice(0, fetchLimit)) {
       // Get nodes and edges for this map with team_id filtering for multi-tenancy security
       const [nodesResult, edgesResult] = await Promise.all([
         supabase

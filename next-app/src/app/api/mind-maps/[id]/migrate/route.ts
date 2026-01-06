@@ -230,10 +230,10 @@ export async function POST(
       return NextResponse.json({ error: 'Mind map not found' }, { status: 404 })
     }
 
-    // Check if already migrated (unless it's a dry run)
-    if (!options.dryRun && mindMap.migration_status === 'success') {
+    // Check if already migrated (unless it's a dry run or force is specified)
+    if (!options.dryRun && !options.force && mindMap.migration_status === 'success') {
       return NextResponse.json(
-        { error: 'Mind map already migrated. Use dryRun to preview re-migration.' },
+        { error: 'Mind map already migrated. Use dryRun to preview or force=true to re-migrate.' },
         { status: 400 }
       )
     }
