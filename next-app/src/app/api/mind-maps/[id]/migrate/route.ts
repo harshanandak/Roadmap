@@ -84,7 +84,19 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get mind map with migration status (RLS handles team access)
+    // Get user's team memberships for explicit team_id filtering
+    const { data: userTeams, error: teamsError } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('user_id', user.id)
+
+    if (teamsError || !userTeams || userTeams.length === 0) {
+      return NextResponse.json({ error: 'No team membership found' }, { status: 403 })
+    }
+
+    const userTeamIds = userTeams.map((t) => t.team_id)
+
+    // Get mind map with migration status (explicit team_id filtering + RLS)
     const { data: mindMap, error } = await supabase
       .from('mind_maps')
       .select(`
@@ -98,6 +110,7 @@ export async function GET(
         blocksuite_size_bytes
       `)
       .eq('id', mindMapId)
+      .in('team_id', userTeamIds)
       .single()
 
     if (error || !mindMap) {
@@ -191,11 +204,24 @@ export async function POST(
       }
     }
 
-    // Get mind map (RLS handles team access)
+    // Get user's team memberships for explicit team_id filtering
+    const { data: userTeams, error: teamsError } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('user_id', user.id)
+
+    if (teamsError || !userTeams || userTeams.length === 0) {
+      return NextResponse.json({ error: 'No team membership found' }, { status: 403 })
+    }
+
+    const userTeamIds = userTeams.map((t) => t.team_id)
+
+    // Get mind map (explicit team_id filtering + RLS)
     const { data: mindMap, error: mapError } = await supabase
       .from('mind_maps')
       .select('id, workspace_id, team_id, migration_status')
       .eq('id', mindMapId)
+      .in('team_id', userTeamIds)
       .single()
 
     if (mapError || !mindMap) {

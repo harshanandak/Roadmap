@@ -94,7 +94,7 @@ export async function GET(
       return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
     }
 
-    // Get migration status counts for all mind maps in workspace
+    // Get migration status counts for all mind maps in workspace (explicit team_id filtering + RLS)
     const { data: mindMaps, error: mapsError } = await supabase
       .from('mind_maps')
       .select(`
@@ -105,6 +105,7 @@ export async function GET(
         migrated_at
       `)
       .eq('workspace_id', workspaceId)
+      .eq('team_id', workspace.team_id)
 
     if (mapsError) {
       sanitizeDbError(mapsError)
@@ -234,11 +235,12 @@ export async function POST(
       return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
     }
 
-    // Get pending mind maps (not yet migrated or failed)
+    // Get pending mind maps (not yet migrated or failed) - explicit team_id filtering + RLS
     const { data: pendingMaps, error: mapsError } = await supabase
       .from('mind_maps')
       .select('id')
       .eq('workspace_id', workspaceId)
+      .eq('team_id', workspace.team_id)
       .in('migration_status', ['pending', 'failed', null])
       .limit(options.limit || options.batchSize)
 
