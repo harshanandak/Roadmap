@@ -230,12 +230,22 @@ export async function POST(
       return NextResponse.json({ error: 'Mind map not found' }, { status: 404 })
     }
 
-    // Check if already migrated (unless it's a dry run or force is specified)
-    if (!options.dryRun && !options.force && mindMap.migration_status === 'success') {
-      return NextResponse.json(
-        { error: 'Mind map already migrated. Use dryRun to preview or force=true to re-migrate.' },
-        { status: 400 }
-      )
+    // Check if already migrated or in progress (unless it's a dry run or force is specified)
+    // Block: 'success' (already migrated), 'warning' (migrated with warnings), 'in_progress' (race condition)
+    // Allow: 'pending', 'failed', 'skipped' (can retry)
+    if (!options.dryRun && !options.force) {
+      if (mindMap.migration_status === 'in_progress') {
+        return NextResponse.json(
+          { error: 'Migration already in progress. Please wait for it to complete.' },
+          { status: 409 } // Conflict
+        )
+      }
+      if (mindMap.migration_status === 'success' || mindMap.migration_status === 'warning') {
+        return NextResponse.json(
+          { error: 'Mind map already migrated. Use dryRun to preview or force=true to re-migrate.' },
+          { status: 400 }
+        )
+      }
     }
 
     // Get nodes and edges with team_id filtering for multi-tenancy security
