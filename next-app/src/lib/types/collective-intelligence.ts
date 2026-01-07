@@ -221,6 +221,7 @@ export type CompressionJobType =
   | 'l3_clustering'
   | 'l4_extraction'
   | 'full_refresh'
+  | 'mindmap_embed' // Phase 5: BlockSuite mind map embedding
 
 export type CompressionJobStatus = 'pending' | 'running' | 'completed' | 'failed'
 

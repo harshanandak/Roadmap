@@ -56,9 +56,10 @@ WHERE embedding_status IS NOT NULL;
 -- Extend document_chunks to support mind map content alongside regular documents
 
 -- Source type to distinguish mind map chunks from document chunks
+-- Matches DocumentSourceType: upload, url, integration, generated, blocksuite_mindmap
 ALTER TABLE document_chunks
 ADD COLUMN IF NOT EXISTS source_type TEXT DEFAULT 'document'
-  CHECK (source_type IN ('document', 'blocksuite_mindmap', 'url', 'upload'));
+  CHECK (source_type IN ('document', 'upload', 'url', 'integration', 'generated', 'blocksuite_mindmap'));
 
 -- Mind map reference for mind map chunks (NULL for regular documents)
 ALTER TABLE document_chunks

@@ -45,7 +45,9 @@ export function extractTextFromBlockSuiteTree(
   tree: BlockSuiteMindmapNode | null,
   options: ExtractionOptions = {}
 ): ExtractionResult {
-  const { maxDepth = Infinity, includeEmpty = false } = options
+  // Default maxDepth to 50 to prevent stack overflow on malicious/corrupted trees
+  // 50 is far more than any practical mind map but provides safety
+  const { maxDepth = 50, includeEmpty = false } = options
 
   // Handle null/undefined tree
   if (!tree) {

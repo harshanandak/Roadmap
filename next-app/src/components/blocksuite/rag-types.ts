@@ -97,7 +97,7 @@ export interface ExtractionResult {
  * Options for text extraction
  */
 export interface ExtractionOptions {
-  /** Maximum depth to extract (default: unlimited) */
+  /** Maximum depth to extract (default: 50, prevents stack overflow) */
   maxDepth?: number
   /** Include nodes with empty text (default: false) */
   includeEmpty?: boolean

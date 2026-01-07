@@ -17,8 +17,8 @@
  */
 
 import type { ExtractionResult, ExtractedTextNode } from './rag-types'
-import type { MindMapChunkForEmbedding, ChunkOptions, MindMapChunkMetadata } from './rag-types'
-import { estimateTokens, getSubtreeText } from './text-extractor'
+import type { MindMapChunkForEmbedding, ChunkOptions } from './rag-types'
+import { estimateTokens } from './text-extractor'
 
 // =============================================================================
 // DEFAULT OPTIONS
@@ -39,18 +39,31 @@ export const DEFAULT_CHUNK_OPTIONS: Required<ChunkOptions> = {
 // =============================================================================
 
 /**
+ * Context for chunking (required for multi-tenant safety)
+ */
+export interface ChunkContext {
+  mindMapId: string
+  teamId: string
+  workspaceId?: string
+}
+
+/**
  * Chunk mind map tree for embedding with path context
  * Strategy: Path-preserving subtree chunks (300 tokens target)
  *
  * @param extraction - Result from extractTextFromBlockSuiteTree()
- * @param mindMapId - Mind map ID for metadata
+ * @param context - Context containing mindMapId, teamId (REQUIRED), workspaceId
  * @param options - Chunking options
  * @returns Array of chunks ready for embedding API
  *
  * @example
  * ```typescript
  * const extraction = extractTextFromBlockSuiteTree(tree)
- * const chunks = chunkMindmapForEmbedding(extraction, mindMapId)
+ * const chunks = chunkMindmapForEmbedding(extraction, {
+ *   mindMapId: '123',
+ *   teamId: 'team-456',  // REQUIRED for RLS
+ *   workspaceId: 'ws-789'
+ * })
  *
  * // Each chunk has content like:
  * // "Product Strategy > Goals > Revenue: Increase revenue by 20%..."
@@ -58,9 +71,15 @@ export const DEFAULT_CHUNK_OPTIONS: Required<ChunkOptions> = {
  */
 export function chunkMindmapForEmbedding(
   extraction: ExtractionResult,
-  mindMapId: string,
+  context: ChunkContext,
   options: ChunkOptions = {}
 ): MindMapChunkForEmbedding[] {
+  const { mindMapId, teamId, workspaceId } = context
+
+  // Validate teamId is provided (multi-tenant safety)
+  if (!teamId) {
+    throw new Error('teamId is required for multi-tenant safety')
+  }
   const opts = { ...DEFAULT_CHUNK_OPTIONS, ...options }
   const {
     maxTokensPerChunk,
@@ -98,6 +117,8 @@ export function chunkMindmapForEmbedding(
         heading: node.text,
         metadata: {
           mindMapId,
+          teamId,
+          workspaceId,
           path: node.path,
           nodeType: node.nodeType,
           depth: node.depth,
@@ -116,6 +137,8 @@ export function chunkMindmapForEmbedding(
           heading: node.text,
           metadata: {
             mindMapId,
+            teamId,
+            workspaceId,
             path: node.path,
             nodeType: node.nodeType,
             depth: node.depth,
@@ -128,8 +151,16 @@ export function chunkMindmapForEmbedding(
       for (const child of node.children) {
         processNode(child)
       }
+    } else {
+      // Subtree too small to chunk on its own
+      // BUT we must still recurse into children - they might have
+      // enough content individually or their own children to process
+      // This prevents data loss when a parent node has small text
+      // but children have substantial content
+      for (const child of node.children) {
+        processNode(child)
+      }
     }
-    // Skip if too small (will be included in parent's chunk)
   }
 
   // Process all root nodes
@@ -192,18 +223,18 @@ function getSubtreeTextWithContext(
  * Chunk multiple mind maps in batch
  * Useful for workspace-level embedding jobs
  *
- * @param extractions - Array of extraction results with IDs
+ * @param extractions - Array of extraction results with context
  * @param options - Chunking options
  * @returns All chunks with mind map IDs in metadata
  */
 export function batchChunkMindmaps(
-  extractions: Array<{ mindMapId: string; extraction: ExtractionResult }>,
+  extractions: Array<{ context: ChunkContext; extraction: ExtractionResult }>,
   options: ChunkOptions = {}
 ): MindMapChunkForEmbedding[] {
   const allChunks: MindMapChunkForEmbedding[] = []
 
-  for (const { mindMapId, extraction } of extractions) {
-    const chunks = chunkMindmapForEmbedding(extraction, mindMapId, options)
+  for (const { context, extraction } of extractions) {
+    const chunks = chunkMindmapForEmbedding(extraction, context, options)
     allChunks.push(...chunks)
   }
 
