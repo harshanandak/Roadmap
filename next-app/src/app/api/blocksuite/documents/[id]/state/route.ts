@@ -273,8 +273,13 @@ export async function PUT(
       .eq('id', id)
 
     if (updateError) {
-      console.warn('Metadata update error:', updateError)
-      // Don't fail - state was saved successfully
+      // Rollback: Delete the uploaded state to maintain consistency
+      console.error('Metadata update failed, rolling back storage upload:', updateError)
+      await supabase.storage.from(BUCKET).remove([doc.storage_path])
+      return NextResponse.json(
+        { error: 'Failed to update document metadata' },
+        { status: 500 }
+      )
     }
 
     // SECURITY: Audit log for large uploads (>100KB)

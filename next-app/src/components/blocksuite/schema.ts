@@ -477,12 +477,12 @@ export function safeValidateStateSave(data: unknown) {
 export const YjsUpdatePayloadSchema = z.object({
   /** Base64-encoded Yjs update binary */
   update: z.string().min(1).max(10485760), // Max 10MB encoded
-  /** Document ID this update belongs to */
+  /** Document ID this update belongs to (supports timestamp IDs like Date.now().toString()) */
   documentId: z
     .string()
     .min(1)
     .max(100)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'documentId must be alphanumeric'),
+    .regex(/^[a-zA-Z0-9_-]+$/, 'documentId must contain only alphanumeric characters, hyphens, or underscores'),
   /** Origin of the update (for filtering own broadcasts) */
   origin: z.string().max(50).optional(),
 })
