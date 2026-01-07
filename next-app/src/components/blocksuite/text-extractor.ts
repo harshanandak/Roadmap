@@ -222,7 +222,7 @@ export function getSubtreeText(
  * Used to avoid re-embedding unchanged trees
  *
  * @param tree - BlockSuite mindmap tree
- * @returns Hash result with MD5 hash and statistics
+ * @returns Hash result with SHA-256 hash and statistics
  *
  * @example
  * ```typescript
@@ -254,9 +254,9 @@ export function computeTreeHash(
     texts.push(`${depth}:${path.join('/')}:${node.text}`)
   })
 
-  // Compute MD5 hash of all content
+  // Compute SHA-256 hash of all content (cryptographically secure)
   const content = texts.join('\n')
-  const hash = createHash('md5').update(content).digest('hex')
+  const hash = createHash('sha256').update(content).digest('hex')
 
   return {
     hash,

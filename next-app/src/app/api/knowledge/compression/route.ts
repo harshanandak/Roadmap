@@ -12,6 +12,15 @@ import { embedMindMap } from '@/lib/ai/embeddings/mindmap-embedding-service'
 import type { CompressionJobType, CompressionJobStatus } from '@/lib/types/collective-intelligence'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+// =============================================================================
+// CONFIGURATION
+// =============================================================================
+
+const MINDMAP_EMBED_CONFIG = {
+  defaultBatchLimit: 10, // Default number of mind maps to process per job
+  maxBatchLimit: 50, // Maximum allowed batch limit
+}
+
 /**
  * POST /api/knowledge/compression
  *
@@ -55,10 +64,12 @@ export async function POST(request: NextRequest) {
       jobType,
       workspaceId,
       documentIds,
+      batchLimit,
     } = body as {
       jobType: CompressionJobType
       workspaceId?: string
       documentIds?: string[]
+      batchLimit?: number // Optional: number of mind maps to process per job
     }
 
     // Validate job type
@@ -72,7 +83,12 @@ export async function POST(request: NextRequest) {
 
     // Handle mindmap_embed job type separately
     if (jobType === 'mindmap_embed') {
-      const result = await runMindmapEmbedJob(supabase, teamId, workspaceId, user.id)
+      // Validate and clamp batch limit
+      const effectiveBatchLimit = Math.min(
+        Math.max(1, batchLimit || MINDMAP_EMBED_CONFIG.defaultBatchLimit),
+        MINDMAP_EMBED_CONFIG.maxBatchLimit
+      )
+      const result = await runMindmapEmbedJob(supabase, teamId, workspaceId, user.id, effectiveBatchLimit)
       return NextResponse.json({
         job: result,
         message: `Mind map embedding job completed: ${result.processed} processed, ${result.failed} failed`,
@@ -180,13 +196,19 @@ interface MindmapEmbedJobResult {
 
 /**
  * Run mind map embedding job for pending mind maps
- * Processes up to 10 mind maps per invocation
+ *
+ * @param supabase - Authenticated Supabase client
+ * @param teamId - Team ID for filtering
+ * @param workspaceId - Optional workspace filter
+ * @param _triggeredBy - User ID who triggered the job
+ * @param batchLimit - Number of mind maps to process per job (default: 10)
  */
 async function runMindmapEmbedJob(
   supabase: SupabaseClient,
   teamId: string,
   workspaceId: string | undefined,
-  _triggeredBy: string
+  _triggeredBy: string,
+  batchLimit: number = MINDMAP_EMBED_CONFIG.defaultBatchLimit
 ): Promise<MindmapEmbedJobResult> {
   const startedAt = new Date().toISOString()
   const errors: string[] = []
@@ -202,7 +224,7 @@ async function runMindmapEmbedJob(
       .eq('team_id', teamId)
       .in('embedding_status', ['pending', 'error'])
       .not('blocksuite_tree', 'is', null)
-      .limit(10)
+      .limit(batchLimit)
 
     if (workspaceId) {
       query = query.eq('workspace_id', workspaceId)

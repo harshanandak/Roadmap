@@ -116,6 +116,16 @@ describe('computeTreeHash', () => {
     }
     expect(computeTreeHash(tree1).hash).not.toBe(computeTreeHash(tree2).hash)
   })
+
+  it('should produce SHA-256 hash (64 hex characters)', () => {
+    const tree: BlockSuiteMindmapNode = {
+      text: 'Test',
+      children: []
+    }
+    const result = computeTreeHash(tree)
+    // SHA-256 produces 64 hex characters (256 bits = 32 bytes = 64 hex chars)
+    expect(result.hash).toMatch(/^[a-f0-9]{64}$/)
+  })
 })
 
 describe('walkBlockSuiteTree', () => {

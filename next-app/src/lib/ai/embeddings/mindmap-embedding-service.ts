@@ -21,6 +21,8 @@ const EMBEDDING_CONFIG = {
   model: 'text-embedding-3-large',
   dimensions: 1536, // Match existing schema (Matryoshka dimensionality)
   maxBatchSize: 50, // Max chunks per API call
+  maxRetries: 3, // Max retry attempts for API calls
+  baseDelayMs: 1000, // Base delay for exponential backoff (1 second)
 }
 
 // =============================================================================
@@ -173,7 +175,8 @@ export async function embedMindMap(
     let totalTokens = 0
 
     for (const batch of batches) {
-      const response = await fetch('https://api.openai.com/v1/embeddings', {
+      // Use retry wrapper for resilience against transient errors
+      const response = await fetchWithRetry('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -185,11 +188,6 @@ export async function embedMindMap(
           dimensions: EMBEDDING_CONFIG.dimensions,
         }),
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(`Embedding API error: ${error.error?.message || response.statusText}`)
-      }
 
       const data = await response.json()
 
@@ -286,4 +284,77 @@ export async function embedMindMap(
  */
 function formatEmbeddingForPgvector(embedding: number[]): string {
   return `[${embedding.join(',')}]`
+}
+
+/**
+ * Fetch with exponential backoff retry
+ * Retries on transient errors (rate limits, server errors)
+ */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries: number = EMBEDDING_CONFIG.maxRetries,
+  baseDelayMs: number = EMBEDDING_CONFIG.baseDelayMs
+): Promise<Response> {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options)
+
+      // Don't retry on client errors (except rate limits)
+      if (response.ok) {
+        return response
+      }
+
+      // Retry on rate limits (429) and server errors (5xx)
+      if (response.status === 429 || response.status >= 500) {
+        const errorData = await response.json().catch(() => ({}))
+        lastError = new Error(
+          `API error ${response.status}: ${errorData.error?.message || response.statusText}`
+        )
+
+        // If we have retries left, wait and try again
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delay = baseDelayMs * Math.pow(2, attempt)
+          console.log(
+            `[Embed] Retry ${attempt + 1}/${maxRetries} after ${delay}ms (status: ${response.status})`
+          )
+          await sleep(delay)
+          continue
+        }
+      }
+
+      // Non-retryable error
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(
+        `Embedding API error: ${errorData.error?.message || response.statusText}`
+      )
+    } catch (error) {
+      // Network errors are retryable
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        lastError = error
+        if (attempt < maxRetries) {
+          const delay = baseDelayMs * Math.pow(2, attempt)
+          console.log(`[Embed] Retry ${attempt + 1}/${maxRetries} after ${delay}ms (network error)`)
+          await sleep(delay)
+          continue
+        }
+      }
+
+      // Re-throw non-retryable errors
+      throw error
+    }
+  }
+
+  // All retries exhausted
+  throw lastError || new Error('Max retries exceeded')
+}
+
+/**
+ * Sleep helper for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
