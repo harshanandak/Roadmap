@@ -148,12 +148,15 @@ export class HybridProvider {
       )
 
       if (result.success) {
-        this.syncVersion++
-
         // Update metadata in PostgreSQL
-        // Note: Only clear isDirty after metadata update succeeds to prevent stale metadata
-        const metadataSuccess = await this.updateMetadata(result.size ?? state.length)
+        // Note: Only increment syncVersion and clear isDirty after metadata update succeeds
+        // to prevent desynchronization between local and database sync versions
+        const metadataSuccess = await this.updateMetadata(
+          result.size ?? state.length,
+          this.syncVersion + 1
+        )
         if (metadataSuccess) {
+          this.syncVersion++
           this.isDirty = false
         }
       } else {
@@ -195,16 +198,21 @@ export class HybridProvider {
   /**
    * Update document metadata in PostgreSQL
    * Note: Explicit team_id filtering required per project conventions
+   * @param sizeBytes - Size of the saved state in bytes
+   * @param newSyncVersion - The new sync version to write (passed to ensure atomicity)
    * @returns true if update succeeded, false otherwise
    */
-  private async updateMetadata(sizeBytes: number): Promise<boolean> {
+  private async updateMetadata(
+    sizeBytes: number,
+    newSyncVersion: number
+  ): Promise<boolean> {
     try {
       const { error } = await this.supabase
         .from('blocksuite_documents')
         .update({
           storage_size_bytes: sizeBytes,
           last_sync_at: new Date().toISOString(),
-          sync_version: this.syncVersion,
+          sync_version: newSyncVersion,
           updated_at: new Date().toISOString(),
         })
         .eq('id', this.documentId)
@@ -222,14 +230,32 @@ export class HybridProvider {
   }
 
   /**
+   * Convert Uint8Array to base64 string safely (handles large arrays)
+   * Uses chunked processing to avoid spread operator argument limits (~65K)
+   */
+  private uint8ArrayToBase64(bytes: Uint8Array): string {
+    // Process in 32KB chunks to stay well under the ~65K argument limit
+    const CHUNK_SIZE = 0x8000
+    let binaryString = ''
+
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+      const chunk = bytes.subarray(i, Math.min(i + CHUNK_SIZE, bytes.length))
+      // Use apply with array to avoid spread operator limits
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk))
+    }
+
+    return btoa(binaryString)
+  }
+
+  /**
    * Broadcast update to other clients via Supabase Realtime
    */
   private broadcast(update: Uint8Array): void {
     if (!this.channel) return
 
     try {
-      // Convert Uint8Array to base64 for transmission
-      const base64 = btoa(String.fromCharCode(...update))
+      // Convert Uint8Array to base64 for transmission (chunked for large updates)
+      const base64 = this.uint8ArrayToBase64(update)
 
       const payload: YjsUpdatePayload = {
         update: base64,
