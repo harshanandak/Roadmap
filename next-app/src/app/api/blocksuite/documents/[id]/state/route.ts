@@ -312,7 +312,22 @@ export async function PUT(
     if (updateError) {
       // Rollback: Delete the uploaded state to maintain consistency
       console.error('Metadata update failed, rolling back storage upload:', updateError)
-      await supabase.storage.from(BUCKET).remove([doc.storage_path])
+      const { error: cleanupError } = await supabase.storage
+        .from(BUCKET)
+        .remove([doc.storage_path])
+
+      if (cleanupError) {
+        // Log orphaned file for manual/cron cleanup
+        // TODO: Add background job to scan for orphaned storage files (files with no metadata record)
+        auditLog('orphaned_storage_file', {
+          storagePath: doc.storage_path,
+          documentId: id,
+          teamId: doc.team_id,
+          reason: 'cleanup_failed_after_metadata_error',
+          cleanupError: cleanupError.message,
+        })
+      }
+
       return NextResponse.json(
         { error: 'Failed to update document metadata' },
         { status: 500 }
