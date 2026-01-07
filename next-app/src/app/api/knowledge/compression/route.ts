@@ -9,7 +9,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { runCompressionJob, listJobs } from '@/lib/ai/compression'
 import { embedMindMap } from '@/lib/ai/embeddings/mindmap-embedding-service'
-import type { CompressionJobType, CompressionJobStatus } from '@/lib/types/collective-intelligence'
+import {
+  COMPRESSION_JOB_TYPES,
+  isValidCompressionJobType,
+  type CompressionJobStatus,
+} from '@/lib/types/collective-intelligence'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // =============================================================================
@@ -61,26 +65,21 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json()
-    const {
-      jobType,
-      workspaceId,
-      documentIds,
-      batchLimit,
-    } = body as {
-      jobType: CompressionJobType
+    const { jobType, workspaceId, documentIds, batchLimit } = body as {
+      jobType: unknown // Don't trust - validate at runtime
       workspaceId?: string
       documentIds?: string[]
-      batchLimit?: number // Optional: number of mind maps to process per job
+      batchLimit?: number
     }
 
-    // Validate job type
-    const validJobTypes: CompressionJobType[] = ['l2_summary', 'l3_clustering', 'l4_extraction', 'full_refresh', 'mindmap_embed']
-    if (!jobType || !validJobTypes.includes(jobType)) {
+    // Validate job type using type guard (single source of truth)
+    if (!isValidCompressionJobType(jobType)) {
       return NextResponse.json(
-        { error: `Invalid job type. Must be one of: ${validJobTypes.join(', ')}` },
+        { error: `Invalid job type. Must be one of: ${COMPRESSION_JOB_TYPES.join(', ')}` },
         { status: 400 }
       )
     }
+    // TypeScript now knows jobType is CompressionJobType
 
     // Handle mindmap_embed job type separately
     if (jobType === 'mindmap_embed') {

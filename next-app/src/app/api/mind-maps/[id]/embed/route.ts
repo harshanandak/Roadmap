@@ -22,6 +22,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: mindMapId } = await params
+  const startTime = Date.now() // Track for consistent durationMs in responses
 
   try {
     const supabase = await createClient()
@@ -101,6 +102,7 @@ export async function POST(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Embedding failed',
+        durationMs: Date.now() - startTime, // Consistent with success/error responses
       },
       { status: 500 }
     )
