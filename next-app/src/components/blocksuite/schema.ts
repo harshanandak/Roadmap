@@ -476,7 +476,8 @@ export function safeValidateStateSave(data: unknown) {
  */
 export const YjsUpdatePayloadSchema = z.object({
   /** Base64-encoded Yjs update binary */
-  update: z.string().min(1).max(10485760), // Max 10MB encoded
+  // Note: Binary 10MB (10,485,760 bytes) becomes ~14MB when base64 encoded (4/3 ratio)
+  update: z.string().min(1).max(13981014), // Max 10MB binary → ~14MB base64
   /** Document ID this update belongs to (supports timestamp IDs like Date.now().toString()) */
   documentId: z
     .string()

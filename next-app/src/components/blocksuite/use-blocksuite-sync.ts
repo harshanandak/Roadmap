@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client'
 import { HybridProvider } from './hybrid-provider'
 import {
   DEFAULT_DEBOUNCE_MS,
+  getStoragePath,
   type UseBlockSuiteSyncOptions,
   type UseBlockSuiteSyncReturn,
 } from './persistence-types'
@@ -208,8 +209,9 @@ export function useBlockSuiteDocument(options: {
         }
 
         // Create new document
+        // SECURITY: Use getStoragePath() to sanitize inputs and prevent path traversal
         const id = Date.now().toString()
-        const storagePath = `${teamId}/${id}.yjs`
+        const storagePath = getStoragePath(teamId, id)
 
         const { error } = await supabase.from('blocksuite_documents').insert({
           id,
