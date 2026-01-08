@@ -156,6 +156,29 @@ Multi-model orchestration, capability-based routing, and production-ready stream
 - Layer 4: `callWithRetry()` - Exponential backoff for 429 errors
 - Layer 5: `logSlowRequest()` - Monitoring for requests >60s
 
+**Code Quality Fixes** (Greptile Review):
+- Single-quote consistency in `agent-executor.ts` imports
+- Exported `redactId()` from `openrouter.ts` for reuse
+- Fixed GLM 4.7 priority comment accuracy (tools priority 2, not 1)
+- Added `workspaceId` to sdk-chat request type
+- Type-safe `ExecutableTool` interface in `agent-loop.ts` (replaces `as any`)
+- Added clarifying comment for MODEL_ROUTING vs priority distinction
+
+**Security Fix**:
+- Removed hardcoded debug code from `unified-chat/route.ts`:
+  - `DEBUG_ENDPOINT` (localhost:7242)
+  - `DEBUG_LOG_PATH` (Windows path)
+  - `sendDebug()` function with hardcoded session IDs
+  - All 5 `sendDebug()` calls throughout the route
+
+**Commits**:
+- `e9c550f` - feat: integrate reliability utilities and fallback chain
+- `5842f51` - fix: resolve modelId correctly for logging in sdk-chat
+- `f904c7d` - feat: add optimization/strategy tools to unified-chat
+- `64731b5` - fix: Greptile review round 2
+- `27fbfb7` - fix: type-safe tool execution, MODEL_ROUTING comments
+- `db84d78` - fix: remove hardcoded debug code from unified-chat
+
 ### API
 
 #### BlockSuite Document API Routes (2026-01-07)
