@@ -354,6 +354,14 @@ export const MODEL_REGISTRY: ModelConfig[] = [
 /**
  * Capability-based model routing with fallback chains
  *
+ * NOTE: This is DIFFERENT from ModelConfig.priority:
+ * - priority: Used for auto-selection in unified-chat (lower = better)
+ * - MODEL_ROUTING: Used for executeWithFallback() in specific capability chains
+ *
+ * Example: agentic_tool_use uses GLM 4.7 as primary (best for complex multi-step
+ * workflows), with Claude Haiku as fallback (faster for simpler tool calls).
+ * This is intentional even though Claude Haiku has tools priority=1.
+ *
  * When primary model fails (rate limit, error, etc.), automatically
  * falls back to the next model in the chain.
  *
