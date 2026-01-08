@@ -226,14 +226,14 @@ export const MODEL_REGISTRY: ModelConfig[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Grok 4 Fast - LARGEST context (2M), real-time data
+  // Grok 4.1 Fast - LARGEST context (2M), real-time data
   // Routes here when context exceeds 200K tokens
   // ─────────────────────────────────────────────────────────────────────────
   {
-    key: "grok-4",
+    key: "grok-4.1",
     provider: "openrouter",
-    modelId: "x-ai/grok-4-fast:nitro",
-    displayName: "Grok 4 Fast",
+    modelId: "x-ai/grok-4.1-fast:nitro",
+    displayName: "Grok 4.1 Fast",
     icon: "🚀",
     capabilities: ["large_context", "speed", "realtime"],
     contextLimit: 2_000_000,
@@ -247,30 +247,6 @@ export const MODEL_REGISTRY: ModelConfig[] = [
     isSlowModel: false,
     priority: { vision: 99, tools: 3, reasoning: 4, default: 3 },
     role: "chat",
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Gemini 2.5 Flash - VISION ONLY (internal image analyzer)
-  // NOT a chat model - only used for Step 1 of image analysis
-  // User NEVER sees output from this model directly
-  // ─────────────────────────────────────────────────────────────────────────
-  {
-    key: "gemini-flash",
-    provider: "openrouter",
-    modelId: "google/gemini-2.5-flash-preview",
-    displayName: "Gemini Flash (Vision)",
-    icon: "👁️",
-    capabilities: ["vision", "speed"],
-    contextLimit: 1_000_000,
-    compactAt: 800_000, // 80% of 1M
-    costPer1M: { input: 0.15, output: 0.6 },
-    // NEW: Capability flags
-    supportsVision: true, // PRIMARY VISION MODEL
-    supportsTools: true,
-    supportsReasoning: false,
-    isSlowModel: false,
-    priority: { vision: 1, tools: 4, reasoning: 99, default: 99 }, // Only for vision
-    role: "vision", // Internal only - never chat-facing
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -396,12 +372,12 @@ export const MODEL_ROUTING = {
   /** Visual reasoning - image analysis, diagrams, charts */
   visual_reasoning: {
     primary: "google/gemini-3-flash-preview",
-    fallback: "x-ai/grok-4-fast:nitro",
-    tertiary: "google/gemini-2.5-flash-preview",
+    fallback: "x-ai/grok-4.1-fast:nitro",
+    tertiary: "moonshotai/kimi-k2-thinking:nitro",
   },
   /** Large context - documents >200K tokens */
   large_context: {
-    primary: "x-ai/grok-4-fast:nitro",
+    primary: "x-ai/grok-4.1-fast:nitro",
     fallback: "google/gemini-3-flash-preview",
     tertiary: "moonshotai/kimi-k2-thinking:nitro",
   },
@@ -511,16 +487,26 @@ export function getChatModels(): ModelConfig[] {
 }
 
 /**
- * Get the vision model (for internal image analysis)
+ * Get the best vision model (for image analysis)
+ *
+ * Returns the model with highest vision priority (lowest priority.vision number).
+ * Currently returns Gemini 3 Flash which handles both vision and chat.
  *
  * Usage:
  * ```typescript
  * const visionModel = getVisionModel()
- * // Returns: Gemini Flash
+ * // Returns: Gemini 3 Flash
  * ```
  */
 export function getVisionModel(): ModelConfig | undefined {
-  return MODEL_REGISTRY.find((m) => m.supportsVision && m.role === "vision");
+  const visionModels = MODEL_REGISTRY.filter((m) => m.supportsVision);
+  if (visionModels.length === 0) return undefined;
+  // Return the model with lowest (best) vision priority
+  return visionModels.reduce(
+    (best, current) =>
+      current.priority.vision < best.priority.vision ? current : best,
+    visionModels[0]
+  );
 }
 
 /**

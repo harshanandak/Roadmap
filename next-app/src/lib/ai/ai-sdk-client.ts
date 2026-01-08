@@ -55,11 +55,11 @@ export const aiModels = {
   ),
 
   /**
-   * Grok 4 Fast
+   * Grok 4.1 Fast
    * Real-time reasoning, 2M context, fastest via nitro
    * Cost: $0.20/M input, $0.50/M output
    */
-  grok4Fast: openrouter("x-ai/grok-4-fast:nitro", defaultProviderSettings),
+  grok41Fast: openrouter("x-ai/grok-4.1-fast:nitro", defaultProviderSettings),
 
   /**
    * Kimi K2 Thinking (CHEAPEST)
@@ -122,8 +122,8 @@ export const aiModels = {
  * GLM 4.7 for agentic/reasoning, MiniMax M2.1 for coding
  */
 export const recommendedModels = {
-  /** Fast responses, real-time data (Grok 4) */
-  speed: aiModels.grok4Fast,
+  /** Fast responses, real-time data (Grok 4.1) */
+  speed: aiModels.grok41Fast,
 
   /** Best reasoning quality (GLM 4.7 - top HLE/GPQA scores) */
   quality: aiModels.glm47,
@@ -171,7 +171,7 @@ export function getModelById(modelId: string): LanguageModel {
  */
 export const modelIdMap: Record<string, LanguageModel> = {
   "anthropic/claude-haiku-4.5:nitro": aiModels.claudeHaiku,
-  "x-ai/grok-4-fast:nitro": aiModels.grok4Fast,
+  "x-ai/grok-4.1-fast:nitro": aiModels.grok41Fast,
   "moonshotai/kimi-k2-thinking:nitro": aiModels.kimiK2,
   "deepseek/deepseek-v3.2:nitro": aiModels.deepseekV32,
   // NEW Phase 6 models
@@ -183,9 +183,16 @@ export const modelIdMap: Record<string, LanguageModel> = {
 /**
  * Get AI SDK model from existing AIModel interface
  * Bridges the gap between existing model config and AI SDK
+ *
+ * Privacy-first: Always applies data_collection: 'deny' even for unmapped models
  */
 export function getModelFromConfig(modelId: string): LanguageModel {
-  return modelIdMap[modelId] || openrouter(modelId);
+  // First check if we have a pre-configured model with full settings
+  if (modelIdMap[modelId]) {
+    return modelIdMap[modelId];
+  }
+  // Fallback: Create model with default privacy settings
+  return openrouter(modelId, defaultProviderSettings);
 }
 
 /**

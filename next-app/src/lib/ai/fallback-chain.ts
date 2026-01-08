@@ -11,7 +11,7 @@
  * @see MODEL_ROUTING in models-config.ts for capability definitions
  */
 
-import { openrouter } from './ai-sdk-client'
+import { getModelFromConfig } from './ai-sdk-client'
 import { MODEL_ROUTING, type RoutingCapability } from './models-config'
 import type { LanguageModel } from 'ai'
 
@@ -49,9 +49,10 @@ export interface FallbackChain {
 export function createFallbackChain(capability: RoutingCapability): FallbackChain {
   const routing = MODEL_ROUTING[capability]
   return {
-    primary: openrouter(routing.primary),
-    fallback: openrouter(routing.fallback),
-    tertiary: openrouter(routing.tertiary),
+    // Use getModelFromConfig to apply provider settings (data_collection: 'deny', reasoning, etc.)
+    primary: getModelFromConfig(routing.primary),
+    fallback: getModelFromConfig(routing.fallback),
+    tertiary: getModelFromConfig(routing.tertiary),
   }
 }
 
