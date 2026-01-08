@@ -295,7 +295,7 @@ export const MODEL_REGISTRY: ModelConfig[] = [
     supportsTools: true,
     supportsReasoning: true,
     isSlowModel: false,
-    priority: { vision: 99, tools: 1, reasoning: 1, default: 2 }, // Best for tools + reasoning
+    priority: { vision: 99, tools: 2, reasoning: 1, default: 2 }, // Best for reasoning, 2nd for tools (Claude Haiku is faster for pure tool use)
     role: "chat",
   },
 
@@ -375,7 +375,7 @@ export const MODEL_ROUTING = {
   /** Agentic tool use - multi-step workflows, tool calling */
   agentic_tool_use: {
     primary: "z-ai/glm-4.7",
-    fallback: "google/gemini-3-flash-preview",
+    fallback: "anthropic/claude-haiku-4.5:nitro", // Chat model with supportsTools: true
     tertiary: "minimax/minimax-m2.1",
   },
   /** Coding tasks - code generation, debugging, refactoring */

@@ -508,6 +508,11 @@ export async function streamWithTimeout<T>(
 
   try {
     return await streamFn(controller.signal)
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeoutMs}ms`)
+    }
+    throw error
   } finally {
     clearTimeout(timeout)
   }
@@ -534,8 +539,13 @@ export async function callWithRetry<T>(
     try {
       return await fn()
     } catch (error: unknown) {
-      const err = error as { status?: number }
-      if (err.status === 429 && attempt < maxRetries - 1) {
+      // Check multiple error formats for rate limiting
+      const isRateLimit =
+        (error as { status?: number }).status === 429 ||
+        (error instanceof Error && error.message?.includes('rate limit')) ||
+        (error instanceof Error && error.message?.includes('429'))
+
+      if (isRateLimit && attempt < maxRetries - 1) {
         const delay = baseDelay * Math.pow(2, attempt)
         console.warn(
           `[AI_RATE_LIMIT] Attempt ${attempt + 1}/${maxRetries} - Retrying in ${delay}ms...`
