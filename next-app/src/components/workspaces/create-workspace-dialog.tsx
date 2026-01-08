@@ -66,7 +66,7 @@ export function CreateWorkspaceDialog({ teamId, onSuccess, open: externalOpen, o
         team_id: teamId,
         name,
         description,
-        phase: 'research', // Default phase, actual phase is calculated from work items
+        phase: 'design', // Default phase (4-phase system: design → build → refine → launch)
         enabled_modules: allModules,
         mode, // Workspace lifecycle mode
         mode_changed_at: new Date().toISOString(),
