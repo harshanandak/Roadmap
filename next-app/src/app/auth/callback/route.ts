@@ -34,19 +34,19 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!userProfile) {
+    if (!userProfile && user.email) {
       // Create user record explicitly (handles trigger race condition)
+      // Only attempt if email exists - required by users table NOT NULL constraint
       const { error: upsertError } = await supabase
         .from('users')
         .upsert({
           id: user.id,
-          email: user.email!,
+          email: user.email,
           name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
         }, { onConflict: 'id' })
 
       if (upsertError) {
         console.error('Failed to create user record:', upsertError)
-        // Continue anyway - the trigger might have created it by now
       }
     }
 
