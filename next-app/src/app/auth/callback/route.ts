@@ -113,17 +113,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Handle returnTo redirect (e.g., from invitation acceptance)
-  if (returnTo) {
-    return NextResponse.redirect(new URL(returnTo, request.url))
-  }
-
-  // Ensure user record exists in public.users
+  // Ensure user record exists in public.users (must happen before any redirects)
   const userResult = await ensureUserRecord(supabase, user)
   if (!userResult.success) {
     const errorUrl = new URL('/login', request.url)
     errorUrl.searchParams.set('error', userResult.error)
     return NextResponse.redirect(errorUrl)
+  }
+
+  // Handle returnTo redirect (e.g., from invitation acceptance)
+  // This comes after ensureUserRecord but before onboarding check because
+  // invitation flows handle team joining themselves
+  if (returnTo) {
+    return NextResponse.redirect(new URL(returnTo, request.url))
   }
 
   // Check if user needs onboarding
