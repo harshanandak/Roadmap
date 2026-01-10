@@ -54,9 +54,12 @@ export async function updateSession(request: NextRequest) {
                           request.nextUrl.pathname.startsWith('/teams')
 
   // Redirect unauthenticated users from protected routes OR onboarding
+  // Preserve the original URL as returnTo so user can continue after login
   if (!user && (isProtectedRoute || isOnboardingPage)) {
     const url = request.nextUrl.clone()
+    const originalPath = request.nextUrl.pathname + request.nextUrl.search
     url.pathname = '/login'
+    url.searchParams.set('returnTo', originalPath)
     return NextResponse.redirect(url)
   }
 

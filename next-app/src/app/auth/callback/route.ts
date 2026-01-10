@@ -103,6 +103,9 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient()
 
   // Exchange auth code for session
+  // Note: If no code is provided (e.g., direct navigation to /auth/callback),
+  // we skip code exchange and check for existing session via getUser() below.
+  // This safely handles both fresh auth flows and edge cases.
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
@@ -130,7 +133,10 @@ export async function GET(request: NextRequest) {
   if (!userResult.success) {
     // Sign out user to prevent middleware redirect loop
     // (authenticated user on /login would be redirected to /dashboard)
-    await supabase.auth.signOut()
+    const { error: signOutError } = await supabase.auth.signOut()
+    if (signOutError) {
+      console.error('Failed to sign out user after account setup failure:', signOutError)
+    }
 
     const errorUrl = new URL('/login', request.url)
     errorUrl.searchParams.set('error', userResult.error)
