@@ -36,20 +36,22 @@ async function ensureUserRecord(
     return { success: false, error: 'missing_email' }
   }
 
-  // Create user record (handles trigger race condition)
-  const { error: upsertError } = await supabase
+  // Create user record only if it doesn't exist (handles trigger race condition)
+  // Using insert instead of upsert to avoid overwriting user's customized profile name
+  const { error: insertError } = await supabase
     .from('users')
-    .upsert({
+    .insert({
       id: user.id,
       email: user.email,
       name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-    }, { onConflict: 'id' })
+    })
 
-  if (!upsertError) {
+  // 23505 = unique_violation (user already exists via trigger, which is fine)
+  if (!insertError || insertError.code === '23505') {
     return { success: true }
   }
 
-  console.error('Failed to create user record:', upsertError)
+  console.error('Failed to create user record:', insertError)
 
   // Verify user exists (trigger may have succeeded)
   const { data: verifyUser, error: verifyError } = await supabase
@@ -101,9 +103,8 @@ export async function GET(request: NextRequest) {
       console.error('Failed to exchange code for session:', error)
       const errorUrl = new URL('/login', request.url)
       errorUrl.searchParams.set('error', 'invalid_code')
-      if (returnTo) {
-        errorUrl.searchParams.set('returnTo', returnTo)
-      }
+      // Don't preserve returnTo on auth errors - security measure
+      // to prevent malicious returnTo from persisting through failed attempts
       return NextResponse.redirect(errorUrl)
     }
   }
@@ -133,12 +134,19 @@ export async function GET(request: NextRequest) {
   // This comes after ensureUserRecord but before onboarding check because
   // invitation flows handle team joining themselves
   if (returnTo) {
-    // Security: Only allow relative paths to prevent open redirects
-    if (!returnTo.startsWith('/') || returnTo.startsWith('//')) {
-      console.error('Invalid returnTo parameter:', returnTo)
+    // Security: Validate returnTo is same-origin to prevent open redirects
+    // This handles edge cases like /\evil.com that bypass simple startsWith checks
+    try {
+      const returnUrl = new URL(returnTo, request.url)
+      if (returnUrl.origin !== new URL(request.url).origin) {
+        console.error('Invalid returnTo parameter (different origin):', returnTo)
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      return NextResponse.redirect(returnUrl)
+    } catch {
+      console.error('Invalid returnTo parameter (malformed URL):', returnTo)
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-    return NextResponse.redirect(new URL(returnTo, request.url))
   }
 
   // Check if user needs onboarding
