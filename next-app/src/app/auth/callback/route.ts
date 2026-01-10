@@ -37,7 +37,9 @@ async function ensureUserRecord(
   }
 
   // Create user record only if it doesn't exist (handles trigger race condition)
-  // Using insert instead of upsert to avoid overwriting user's customized profile name
+  // Using insert + unique violation check because Supabase JS client doesn't support
+  // ON CONFLICT DO NOTHING directly. Error code 23505 = unique_violation (safe to ignore)
+  // We use insert instead of upsert to avoid overwriting user's customized profile name
   const { error: insertError } = await supabase
     .from('users')
     .insert({
@@ -71,6 +73,7 @@ async function ensureUserRecord(
 
 /**
  * Checks if user has team membership (completed onboarding).
+ * Returns true on error to fail-safe (let dashboard handle errors).
  */
 async function hasTeamMembership(
   supabase: SupabaseClient,
@@ -84,9 +87,12 @@ async function hasTeamMembership(
 
   if (teamError) {
     console.error('Failed to query team membership:', teamError)
+    // Return true to avoid redirecting to onboarding on error
+    // Better to let them access dashboard and show error there
+    return true
   }
 
-  return !!teamMembers && teamMembers.length > 0
+  return teamMembers.length > 0
 }
 
 export async function GET(request: NextRequest) {
@@ -109,7 +115,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: getUserError } = await supabase.auth.getUser()
+
+  if (getUserError) {
+    console.error('Failed to get user after code exchange:', getUserError)
+  }
 
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -124,15 +134,12 @@ export async function GET(request: NextRequest) {
 
     const errorUrl = new URL('/login', request.url)
     errorUrl.searchParams.set('error', userResult.error)
-    if (returnTo) {
-      errorUrl.searchParams.set('returnTo', returnTo)
-    }
+    // Don't preserve returnTo on account setup errors - security measure
+    // to prevent malicious returnTo from persisting through failed attempts
     return NextResponse.redirect(errorUrl)
   }
 
   // Handle returnTo redirect (e.g., from invitation acceptance)
-  // This comes after ensureUserRecord but before onboarding check because
-  // invitation flows handle team joining themselves
   if (returnTo) {
     // Security: Validate returnTo is same-origin to prevent open redirects
     // This handles edge cases like /\evil.com that bypass simple startsWith checks
@@ -142,6 +149,23 @@ export async function GET(request: NextRequest) {
         console.error('Invalid returnTo parameter (different origin):', returnTo)
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
+
+      // Only allow returnTo bypass for invitation acceptance paths
+      // These flows handle team joining themselves
+      const isInvitationPath =
+        returnUrl.pathname.startsWith('/accept-invite') ||
+        (returnUrl.pathname.startsWith('/teams/') &&
+          returnUrl.pathname.includes('/invitations/'))
+
+      if (!isInvitationPath) {
+        // For non-invitation paths, check team membership first
+        // This prevents new users from bypassing onboarding with returnTo=/dashboard
+        const hasTeam = await hasTeamMembership(supabase, user.id)
+        if (!hasTeam) {
+          return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+      }
+
       return NextResponse.redirect(returnUrl)
     } catch {
       console.error('Invalid returnTo parameter (malformed URL):', returnTo)
