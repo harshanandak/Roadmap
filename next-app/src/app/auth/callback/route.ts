@@ -73,19 +73,24 @@ async function ensureUserRecord(
 
 /**
  * Checks if user has team membership (completed onboarding).
- * Returns true on error to fail-safe (let dashboard handle errors).
+ * Returns false on error to redirect to onboarding (prevents redirect loops).
  */
 async function hasTeamMembership(
   supabase: SupabaseClient,
   userId: string
 ): Promise<boolean> {
-  const { data: teamMembers, error: teamError } = await supabase
+  const { data: teamMember, error: teamError } = await supabase
     .from('team_members')
     .select('team_id')
     .eq('user_id', userId)
     .limit(1)
+    .single()
 
   if (teamError) {
+    // PGRST116 = "no rows found" which means user has no teams (expected for new users)
+    if (teamError.code === 'PGRST116') {
+      return false
+    }
     console.error('Failed to query team membership:', teamError)
     // Return false to redirect to onboarding on error
     // Dashboard also redirects to onboarding when query fails, so returning true
@@ -93,7 +98,7 @@ async function hasTeamMembership(
     return false
   }
 
-  return teamMembers.length > 0
+  return teamMember !== null
 }
 
 export async function GET(request: NextRequest) {
