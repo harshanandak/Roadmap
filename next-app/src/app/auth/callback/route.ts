@@ -87,9 +87,10 @@ async function hasTeamMembership(
 
   if (teamError) {
     console.error('Failed to query team membership:', teamError)
-    // Return true to avoid redirecting to onboarding on error
-    // Better to let them access dashboard and show error there
-    return true
+    // Return false to redirect to onboarding on error
+    // Dashboard also redirects to onboarding when query fails, so returning true
+    // would create a redirect loop: callback → dashboard → onboarding → ...
+    return false
   }
 
   return teamMembers.length > 0

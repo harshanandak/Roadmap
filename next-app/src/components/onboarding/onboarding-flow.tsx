@@ -132,8 +132,19 @@ export function OnboardingFlow({ user, returnTo }: OnboardingFlowProps) {
         })
       }
 
-      // Redirect to returnTo destination or the new workspace
-      router.push(returnTo || `/workspaces/${workspaceId}`)
+      // Validate returnTo is same-origin before redirecting (prevents open redirect)
+      let destination = `/workspaces/${workspaceId}`
+      if (returnTo) {
+        try {
+          const returnUrl = new URL(returnTo, window.location.origin)
+          if (returnUrl.origin === window.location.origin) {
+            destination = returnTo
+          }
+        } catch {
+          // Invalid URL, use default destination
+        }
+      }
+      router.push(destination)
       router.refresh()
     } catch (error: unknown) {
       console.error('Error creating team and workspace:', error)
