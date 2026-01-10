@@ -150,25 +150,30 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
 
-      // Only allow returnTo bypass for invitation acceptance paths
-      // These flows handle team joining themselves
-      const isInvitationPath =
-        returnUrl.pathname.startsWith('/accept-invite') ||
-        (returnUrl.pathname.startsWith('/teams/') &&
-          returnUrl.pathname.includes('/invitations/'))
+      // Only allow returnTo bypass for invitation acceptance path
+      // This flow handles team joining itself
+      const isInvitationPath = returnUrl.pathname.startsWith('/accept-invite')
 
       if (!isInvitationPath) {
         // For non-invitation paths, check team membership first
         // This prevents new users from bypassing onboarding with returnTo=/dashboard
         const hasTeam = await hasTeamMembership(supabase, user.id)
         if (!hasTeam) {
-          return NextResponse.redirect(new URL('/onboarding', request.url))
+          // Preserve returnTo so user can continue after completing onboarding
+          const onboardingUrl = new URL('/onboarding', request.url)
+          onboardingUrl.searchParams.set('returnTo', returnTo)
+          return NextResponse.redirect(onboardingUrl)
         }
       }
 
       return NextResponse.redirect(returnUrl)
-    } catch {
-      console.error('Invalid returnTo parameter (malformed URL):', returnTo)
+    } catch (error) {
+      // Distinguish URL parsing errors from other errors for better debugging
+      if (error instanceof TypeError) {
+        console.error('Invalid returnTo parameter (malformed URL):', returnTo)
+      } else {
+        console.error('Error processing returnTo redirect:', error)
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

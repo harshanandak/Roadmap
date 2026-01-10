@@ -114,15 +114,18 @@ export default function AcceptInvitePage() {
     setAccepting(true)
 
     try {
-      // Create user profile if it doesn't exist
-      await supabase.from('users').upsert(
-        {
-          id: user.id,
-          email: user.email!,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0],
-        },
-        { onConflict: 'id' }
-      )
+      // Create user profile if it doesn't exist (don't overwrite customized names)
+      // Using insert + unique violation check to preserve existing user profiles
+      const { error: insertError } = await supabase.from('users').insert({
+        id: user.id,
+        email: user.email!,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+      })
+
+      // Ignore unique violation (23505) - user already exists, which is fine
+      if (insertError && insertError.code !== '23505') {
+        throw insertError
+      }
 
       // Add user as team member
       const memberId = `member_${Date.now()}`
