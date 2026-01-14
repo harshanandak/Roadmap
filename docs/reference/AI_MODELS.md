@@ -17,7 +17,7 @@
 
 ### Model Routing Strategy
 
-See [AI_TOOL_ARCHITECTURE.md](../implementation/advanced-ai-system/AI_TOOL_ARCHITECTURE.md) for full routing configuration.
+See [AI_TOOL_ARCHITECTURE.md](../implementation/week-7/advanced-ai-system/AI_TOOL_ARCHITECTURE.md) for full routing configuration.
 
 ### Key Changes
 

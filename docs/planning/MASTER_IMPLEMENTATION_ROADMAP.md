@@ -1,5 +1,7 @@
 # Master Implementation Roadmap
 
+> **Split Version Available**: This file has been split into smaller files for better AI readability. See [roadmap/README.md](roadmap/README.md) for the organized version.
+
 **Last Updated**: 2025-12-01
 **Purpose**: Complete dependency graph and implementation sequence for future features
 **Status**: Planning Document - Not Yet Implemented

@@ -1,257 +1,176 @@
-# 📚 Project Guidelines & Quick Reference
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
 
-**Last Updated**: 2025-12-31 <!-- AI Architecture Plan: 6-phase refactor, 38+ tools -> 7 generalized, multi-model orchestration -->
+Open `@/openspec/AGENTS.md` when request mentions: proposals, specs, breaking changes, architecture shifts, or is ambiguous.
+
+<!-- OPENSPEC:END -->
+
+# Project Guidelines
+
 **Project**: Product Lifecycle Management Platform
-**Tech Stack**: Next.js 16.1.1 + TypeScript + Supabase + Vercel
-**Current Status**: Week 7/12 Complete + Security Sprint (95% overall)
+**Stack**: Next.js 16.1.1 + TypeScript + Supabase + Vercel
+**Status**: Week 7/12 (95% complete)
+**Canonical Architecture**: [docs/ARCHITECTURE_CONSOLIDATION.md](docs/ARCHITECTURE_CONSOLIDATION.md)
+
+### Mission
+
+Transform roadmap manager into **Product Lifecycle Management Platform**:
+
+1. **Research & Ideate** - AI-powered mind mapping, web search, knowledge base
+2. **Plan & Structure** - Features, timeline, dependencies
+3. **Review & Gather Feedback** - Stakeholder input (invite-based, public links, iframe)
+4. **Execute Collaboratively** - Team assignment, task tracking, real-time collaboration
+5. **Test & Iterate** - User feedback collection and analysis
+6. **Measure Success** - Analytics, expected vs actual performance tracking
 
 ---
 
-## 🚨 ARCHITECTURE GUARDRAILS (MANDATORY)
+## TIER 1: ABSOLUTE RULES
 
-**CRITICAL**: If the user proposes changes that contradict these established decisions, Claude MUST:
-1. **STOP** and question the deviation
-2. **REMIND** the user of the established architecture
-3. **ASK** "Why are we changing this approach? We already decided on X."
+<critical>
+These rules apply to EVERY action. Violations cause production bugs.
+</critical>
 
-### Established Architecture Decisions (Do NOT Deviate Without Explicit Discussion)
+### Data Integrity
 
-| Decision | Correct Approach | WRONG Approach |
-|----------|------------------|----------------|
-| **Phase vs Status** | Phase IS the status for work items (same field) | Separate phase and status fields |
-| **Workspace Display** | Shows AGGREGATION (distribution across phases) | Has single stage/phase value |
-| **Timeline Items** | Have SEPARATE status field for task execution | Share status with work items |
-| **Design Thinking** | METHODOLOGY for how to work (not lifecycle) | Lifecycle stages to progress through |
-| **Strategy Display** | DIFFERENT at org level vs work-item level | Same display everywhere |
-| **Phase Upgrades** | Prompted at WORK ITEM level (80% threshold) | Prompted at workspace level |
+```typescript
+// ALWAYS - No exceptions
+const id = Date.now().toString()          // NEVER use UUID
+const query = supabase.from('table')
+  .select('*')
+  .eq('team_id', teamId)                  // NEVER skip team_id filter
 
-### Canonical Reference
-**`docs/ARCHITECTURE_CONSOLIDATION.md`** is the single source of truth. When in doubt, consult this file.
+// Migration template - ALL tables need these
+CREATE TABLE table_name (
+  id TEXT PRIMARY KEY,
+  team_id TEXT NOT NULL,                  -- NULL breaks RLS silently!
+  -- other fields
+);
+CREATE INDEX idx_table_team ON table_name(team_id);
+-- RLS policies for SELECT/INSERT/UPDATE/DELETE required
+```
 
-### Example Corrections
+**Full patterns**: [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md)
 
-**User says**: "Let's add a status field to work items"
-**Claude responds**: "Wait - we established that phase IS the status for work items. They're the same field. Why do we need a separate status? The timeline items have separate status for task-level tracking. Are you sure you want to change this?"
+### Architecture Guardrails
 
-**User says**: "The workspace should show which stage it's in"
-**Claude responds**: "We decided that workspaces show phase DISTRIBUTION (aggregation), not a single stage. Each work item has its own phase. The workspace shows '10 in research, 15 in planning...' - why would we want a single stage value?"
+<reasoning>
+Before implementing: Does this contradict established architecture?
+If yes: STOP. Question the user. "We decided X. Why change to Y?"
+</reasoning>
 
-**User says**: "Design Thinking should be our lifecycle stages"
-**Claude responds**: "Design Thinking is documented as a METHODOLOGY/framework for HOW to work at each phase, not lifecycle stages to progress through. The phases are: research → planning → execution → review → complete. Design Thinking (Empathize, Define, Ideate, Prototype, Test) guides the APPROACH at each phase. Did you want to reconsider this?"
+| Decision | Correct | WRONG |
+|----------|---------|-------|
+| **Phase vs Status** | `phase` field IS the status for work items | Separate `status` field |
+| **Workspace Display** | Shows phase DISTRIBUTION (aggregation) | Single stage/phase value |
+| **Timeline Items** | Have SEPARATE `status` field | Share status with work items |
+| **Design Thinking** | METHODOLOGY for how to work | Lifecycle stages |
+| **Strategy Display** | DIFFERENT at org vs work-item level | Same everywhere |
+| **Phase Upgrades** | Prompted at WORK ITEM level (80%) | Workspace level |
+
+#### Example Corrections
+
+**User**: "Let's add a status field to work items"
+**Claude**: "Wait - we established that `phase` IS the status for work items. They're the same field. Timeline items have separate status for task-level tracking. Are you sure you want to change this?"
+
+**User**: "The workspace should show which stage it's in"
+**Claude**: "We decided workspaces show phase DISTRIBUTION, not a single stage. Each work item has its own phase. The workspace shows '10 in research, 15 in planning...' - why would we want a single stage value?"
+
+**User**: "Design Thinking should be our lifecycle stages"
+**Claude**: "Design Thinking is a METHODOLOGY for HOW to work at each phase, not lifecycle stages. The phases are: research → planning → execution → review → complete. Design Thinking guides the APPROACH. Did you want to reconsider this?"
+
+### UI/Code Standards
+
+| DO | DON'T |
+|----|-------|
+| `import { X } from '@/components/ui/x'` (shadcn/ui) | Custom CSS files |
+| Tailwind classes, mobile-first | Inline styles |
+| TypeScript strict mode, interfaces | `any` type |
+| Explicit error handling | Silent failures |
 
 ---
 
-## 🎯 QUICK START
+## TIER 2: WORKFLOW & DECISIONS
 
-### Essential Documentation (Read These First!)
+### Before Any Implementation
 
-#### Planning & Architecture
-0. **[docs/ARCHITECTURE_CONSOLIDATION.md](docs/ARCHITECTURE_CONSOLIDATION.md)** - ⭐ CANONICAL source of truth for all architecture decisions
-1. **[docs/implementation/README.md](docs/implementation/README.md)** - Week-by-week implementation guide (main entry point)
-2. **[docs/planning/MASTER_IMPLEMENTATION_ROADMAP.md](docs/planning/MASTER_IMPLEMENTATION_ROADMAP.md)** - Complete dependency graph and implementation sequence for future features
-3. **[docs/reference/ARCHITECTURE.md](docs/reference/ARCHITECTURE.md)** - System architecture with Mermaid diagrams
-4. **[docs/reference/API_REFERENCE.md](docs/reference/API_REFERENCE.md)** - Complete API documentation (20+ routes)
+<verification_checklist>
+1. [ ] Read existing code first (NEVER propose changes to unread files)
+2. [ ] Check 5-Question Framework below
+3. [ ] Use TodoWrite for multi-step tasks
+4. [ ] Create branch: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`
+</verification_checklist>
 
-#### Progress Tracking
-5. **[docs/planning/PROGRESS.md](docs/planning/PROGRESS.md)** - Weekly tracker with completion percentages
-6. **[docs/reference/CHANGELOG.md](docs/reference/CHANGELOG.md)** - Migration history, feature tracking
-7. **[docs/planning/NEXT_STEPS.md](docs/planning/NEXT_STEPS.md)** - Immediate actions, priorities, blockers
+### 5-Question Framework
 
-#### AI Architecture (Dec 2025)
-8. **[docs/implementation/advanced-ai-system/AI_TOOL_ARCHITECTURE.md](docs/implementation/advanced-ai-system/AI_TOOL_ARCHITECTURE.md)** - 6-phase AI refactor: 38+ tools -> 7 generalized, multi-model orchestration, agent memory
+| # | Question | If NO |
+|---|----------|-------|
+| 1 | Data dependencies exist and stable? | POSTPONE |
+| 2 | Module APIs defined and stable? | PARTIAL impl |
+| 3 | Provides standalone user value? | POSTPONE |
+| 4 | Database schema finalized? | PARTIAL impl |
+| 5 | Can be fully tested? | POSTPONE |
 
-#### Postponed Features
-9. **[docs/postponed/README.md](docs/postponed/README.md)** - Postponed features index
-10. **[docs/processes/POSTPONED_FEATURES_PROCESS.md](docs/processes/POSTPONED_FEATURES_PROCESS.md)** - Tracking process
+| Result | Action |
+|--------|--------|
+| All ✅ | **PROCEED** - Full implementation |
+| Some ❌ | **PARTIAL** - Build foundation, enhance later |
+| Many ❌ | **POSTPONE** - Document in [docs/postponed/](docs/postponed/) |
 
-#### Configuration & Standards
-11. **[docs/planning/RECOMMENDED_AGENTS.md](docs/planning/RECOMMENDED_AGENTS.md)** - Claude agents by phase
-12. **[docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md)** - TypeScript, Next.js, Supabase patterns
-13. **[docs/reference/MCP_USAGE_GUIDE.md](docs/reference/MCP_USAGE_GUIDE.md)** - MCP usage examples
+### Phase Transition Requirements
 
-#### UI Component Selection
-14. **[docs/reference/SHADCN_REGISTRY_COMPONENT_GUIDE.md](docs/reference/SHADCN_REGISTRY_COMPONENT_GUIDE.md)** - 14 shadcn/ui registries with 1000+ components
+| From → To | Required Fields | Rationale |
+|-----------|-----------------|-----------|
+| research → planning | `purpose` filled, 1+ timeline items OR scope defined | Ready to plan |
+| planning → execution | `target_release`, `acceptance_criteria`, `priority`, `estimated_hours` | Planning complete |
+| execution → review | `progress_percent` >= 80, `actual_start_date` set | Work substantially done |
+| review → complete | Feedback addressed, `status` = 'completed' | Approved |
 
-### Tech Stack
-```
-Framework:    Next.js 16.1.1 + TypeScript (App Router, Server Components)
-Database:     Supabase (PostgreSQL + Real-time + Auth + RLS)
-UI:           shadcn/ui + Tailwind CSS + Lucide React
-Mind Mapping: XYFlow/ReactFlow (custom nodes, AI-powered)
-Charts:       Recharts (10+ chart types)
-Testing:      Playwright (E2E, Chromium-only CI)
-Code Review:  Greptile (AI-powered PR reviews)
-Payments:     Stripe (Checkout, Subscriptions, Webhooks)
-Email:        Resend (Invitations, notifications)
-AI:           OpenRouter (GLM 4.7, MiniMax M2.1, Gemini 3 Flash, Kimi K2, DeepSeek V3.2)
-State:        Zustand + React Query
-Deployment:   Vercel (Serverless functions)
-```
+### Git Workflow
 
-### AI Model Routing (Dec 2025)
+**Rule**: Main branch is ALWAYS production-ready. Never commit directly to main.
 
-| Capability | Primary | Fallback | Tertiary |
-|------------|---------|----------|----------|
-| Strategic Reasoning | GLM 4.7 | DeepSeek V3.2 | Gemini 3 Flash |
-| Agentic Tool Use | GLM 4.7 | Gemini 3 Flash | MiniMax M2.1 |
-| Coding | MiniMax M2.1 | GLM 4.7 | Kimi K2 |
-| Visual Reasoning | Gemini 3 Flash | Grok 4 Fast | GPT-4o |
-| Large Context | Grok 4.1 Fast | Gemini 3 Flash | Kimi K2 |
-| Default Chat | Kimi K2 | GLM 4.7 | MiniMax M2.1 |
+| Step | Command |
+|------|---------|
+| 1. Start fresh | `git checkout main && git pull` |
+| 2. Create branch | `git checkout -b feat/name` |
+| 3. Develop | Code → `git add` → `git commit -m "feat: ..."` |
+| 4. Push | `git push -u origin feat/name` |
+| 5. Create PR | `gh pr create --title "..." --body "..."` |
+| 6. Self-review | Review diff on GitHub, fix issues |
+| 7. Merge | `gh pr merge --squash` |
 
-**AVOID**: Claude Sonnet models (too costly for this project)
+#### Branch Naming Convention
 
-**Full Details**: [AI_TOOL_ARCHITECTURE.md](docs/implementation/advanced-ai-system/AI_TOOL_ARCHITECTURE.md)
+| Type | Format | Example |
+|------|--------|---------|
+| Feature | `feat/description` | `feat/work-item-review-system` |
+| Bug fix | `fix/description` | `fix/timeline-calculation-loop` |
+| Docs | `docs/description` | `docs/update-api-reference` |
+| Refactor | `refactor/description` | `refactor/auth-service` |
+| Test | `test/description` | `test/e2e-workspace-crud` |
 
-### MCP Servers (3 Active)
-
-| MCP | Purpose |
-|-----|---------|
-| **Supabase** | Migrations, queries, RLS, real-time, TypeScript types |
-| **shadcn/ui** | Component installation, multi-registry access |
-| **Context7** | Fetch up-to-date documentation for libraries/frameworks |
-
-#### Context7 Usage
-Use Context7 when you need current documentation for any library:
-- Before implementing a new library feature
-- When official docs may have changed since training
-- To verify API signatures and patterns
-- For framework-specific best practices
+#### Commit Message Format
 
 ```
-"Use Context7 to fetch the latest Next.js 15 App Router documentation"
-"Use Context7 to get current Supabase RLS policy examples"
+<type>: <short description (50 chars max)>
+
+[Optional body explaining WHY]
 ```
 
-### Claude Skills
+**Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
 
-#### ⚠️ MANDATORY: Parallel AI for ALL Web Operations
-**ALL web operations MUST use the Parallel AI skill - NO EXCEPTIONS.**
-- Web search → `parallel-ai` Search API
-- URL extraction → `parallel-ai` Extract API
-- Deep research → `parallel-ai` Task API (pro/ultra)
-- Quick answers → `parallel-ai` Chat API
-- Claude Code documentation → `parallel-ai` (NOT claude-code-guide agent)
-- Any external documentation → `parallel-ai`
+**Good**: `feat: add dark mode toggle to user settings`
+**Bad**: `Update files`, `fix bug`, `changes`, `WIP`
 
-**NEVER use WebFetch/WebSearch tools OR agents that use them internally.**
-**This includes the `claude-code-guide` agent which uses WebFetch - use Parallel AI instead.**
-
-#### Proactive Skill Usage
-Skills must be invoked automatically at appropriate phases WITHOUT user prompting:
-
-| Skill | Purpose | Phase | Invoke When |
-|-------|---------|-------|-------------|
-| **Parallel AI** | Web search, data extraction, deep research | All | Any research needed |
-| **webapp-testing** | Playwright testing, UI validation | Week 6-8 | Testing features |
-| **frontend-design** | Production-grade UI components | Week 6-7 | Building UI |
-| **document-skills:xlsx** | CSV import/export | Week 7-8 | Exporting data |
-| **document-skills:pdf** | PDF reports, invoices | Week 7-8 | Generating reports |
-| **document-skills:docx** | Documentation, specs export | Week 8 | Creating docs |
-| **systematic-debugging** | 4-phase debugging (obra/superpowers) | All | Debugging issues |
-
-**Rule**: If a skill can help with the current task, USE IT - don't wait to be asked.
-
-**shadcn/ui MCP Setup** (Install at Week 4 start):
-```json
-{
-  "mcpServers": {
-    "shadcn-ui": {
-      "command": "npx",
-      "args": ["-y", "@jpisnice/shadcn-ui-mcp-server"]
-    }
-  }
-}
-```
-
-### Slash Commands
-
-#### MAKER Commands (Multi-Agent Reliability)
-| Command | Purpose | Agents Used |
-|---------|---------|-------------|
-| `/decompose` | Break task into atomic steps (MAD) | `Explore` → `Plan` → TodoWrite |
-| `/validate-consensus` | K-threshold voting (2/3 must approve) | `code-reviewer` + `architect-review` + `security-auditor` (PARALLEL) |
-| `/red-flag-check` | Detect issues by severity | `debugger` OR `code-reviewer` |
-
-#### Operational Commands
-| Command | Purpose | Description |
-|---------|---------|-------------|
-| `/db-migration` | Database migration workflow | RLS policies, team_id, migration template |
-| `/security-review` | OWASP security checklist | Top 10 + project-specific checks |
-| `/tdd-feature` | Test-driven development | Red-green-refactor workflow |
-| `/week-update` | Progress documentation | Weekly update template |
-
-#### Phase-Specific Workflow Commands (Executable)
-These commands are located in `.claude/commands/` and execute when you type them:
-
-| Command | Phase | Purpose | Next Command |
-|---------|-------|---------|--------------|
-| `/status-check` | 1 | Read PROGRESS.md, select task | → `/research-plan` |
-| `/research-plan` | 2 | Research, create plan, **CREATE BRANCH** | → `/parallel-dev` |
-| `/parallel-dev` | 3 | Implement with parallel agents | → `/quality-review` |
-| `/quality-review` | 4 | Type check, code review, security | → `/test` |
-| `/test` | 5 | Run E2E tests, fix failures | → `/deploy` |
-| `/deploy` | 6 | **Create PR, WAIT FOR REVIEW** | → Manual review on GitHub |
-| (manual review) | 6 | **Self-review on GitHub (CRITICAL)** | → `/merge` |
-| `/merge` | 7 | Squash-merge PR after approval | → `/status-check` (next task) |
-
-**CRITICAL**: `/deploy` does NOT auto-merge. Manual review required before `/merge`.
-
-**Command Locations**:
-- Commands (manual trigger): `.claude/commands/*.md` - Type `/command-name` to execute
-- Skills (auto-trigger): `.claude/skills/*/SKILL.md` - Claude invokes automatically when relevant
-
-**Workflow Benefits**: Granular control, pause/resume between phases, re-run individual phases, **enforced self-review catches 80% of bugs**
-**Full Guide**: [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md)
-
-**Full workflow docs**: [docs/processes/MAKER_WORKFLOW.md](docs/processes/MAKER_WORKFLOW.md)
-
-### Dev Server Policy
-
-**IMPORTANT**: Always run on **localhost:3000** only.
-
-```bash
-# Kill existing processes, then start
-taskkill /F /IM node.exe 2>nul
-cd next-app && npm run dev
-```
-
-**Rules:**
-- ✅ Only ONE dev server on port 3000
-- ❌ NEVER run on other ports (3001, 3002)
-- ❌ If port occupied, kill process first
-
-### React Grab (Frontend Speed Boost)
-
-**66% faster UI changes, 33% less tokens** by giving Claude exact file paths.
-
-**Install** (Dev Only):
-```bash
-cd next-app && npm install react-grab --save-dev
-```
-
-**Setup** - Add to `next-app/src/app/layout.tsx`:
-```tsx
-import { ReactGrab } from 'react-grab'
-
-// In your layout, add conditionally:
-{process.env.NODE_ENV === 'development' && <ReactGrab />}
-```
-
-**Usage**:
-1. Run dev server → Click any element in browser
-2. Copy component stack (shows file paths + line numbers)
-3. Paste into Claude prompt
-
-**Best For**: Spacing/layout tweaks, minor visual changes, finding component files.
-
-⚠️ **DEV ONLY** - Never use in production. Link: https://www.react-grab.com/
+**Full guide**: [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md)
 
 ---
 
-## 🤖 Multi-Agent Orchestration
+## TIER 3: MULTI-AGENT ORCHESTRATION
 
 ### When to Use Multiple Agents
+
 | Scenario | Pattern | Example |
 |----------|---------|---------|
 | Feature needs multiple specializations | **Parallel** | UI + Types + Schema |
@@ -260,7 +179,8 @@ import { ReactGrab } from 'react-grab'
 | Uncertain scope | **Exploration** | Explore → Plan → Implement |
 
 ### Parallel Execution (SINGLE message)
-Launch independent agents together for maximum efficiency:
+
+Launch independent agents together:
 ```
 "Launch frontend-developer and typescript-pro in parallel:
 - frontend-developer: Build ReactFlow canvas
@@ -268,6 +188,7 @@ Launch independent agents together for maximum efficiency:
 ```
 
 ### Sequential Pipeline
+
 When agents depend on each other:
 1. `api-architect` → Design endpoint structure
 2. `typescript-pro` → Create types from design
@@ -275,7 +196,7 @@ When agents depend on each other:
 4. `frontend-developer` → Build consuming UI
 
 ### Context Handoff Template
-When switching agents mid-feature:
+
 ```
 Previous: [agent-name] completed:
 - [What was done]
@@ -288,24 +209,15 @@ Next: [agent-name] should:
 - Constraints: [limitations]
 ```
 
-### Failure Recovery
-If an agent produces poor results:
-1. Review output, identify specific issues
-2. Provide corrective context
-3. Re-launch with more specific instructions
+### Context Management
 
----
-
-## 🧠 Context Management
-
-### When to Reset Context (`/clear`)
+**When to `/clear`**:
 - After 50+ tool calls in a session
 - Switching between unrelated features
 - Before complex multi-file changes
 - When Claude "forgets" earlier decisions
 
-### Sub-Agent Pattern
-Use Task tool to preserve main context:
+**Sub-Agent Pattern** (preserve main context):
 
 | Task Type | Agent | Benefit |
 |-----------|-------|---------|
@@ -314,7 +226,7 @@ Use Task tool to preserve main context:
 | Code quality | `code-reviewer` | Fresh perspective |
 | Debug issues | `debugger` | Focused investigation |
 
-### Context Preservation Tips
+**Context Preservation Tips**:
 - Reference file paths explicitly (use React Grab!)
 - Summarize decisions before complex operations
 - Use TodoWrite for multi-step tasks
@@ -322,119 +234,9 @@ Use Task tool to preserve main context:
 
 ---
 
-## 🔀 PROFESSIONAL DEVELOPER WORKFLOW
-
-**Full Guide**: [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md) - Complete tutorial with examples, checklists, and learning resources
-
-This section provides a quick reference for the daily development workflow used by professional developers.
-
----
-
-### 8-Step Workflow (Quick Reference)
-
-**Rule**: Main branch is ALWAYS production-ready. Never commit directly to main.
-
-| Step | Command | Time |
-|------|---------|------|
-| 1. Start fresh | `git checkout main && git pull` | 10s |
-| 2. Create branch | `git checkout -b feat/name` | 5s |
-| 3. Develop | Code → `git add` → `git commit -m "feat: ..."` | 30-180min |
-| 4. Push | `git push -u origin feat/name` | 10s |
-| 5. Create PR | `gh pr create --title "..." --body "..."` | 3-5min |
-| 6. Self-review | Review diff on GitHub, fix issues | 5-15min ⚠️ |
-| 7. Merge | `gh pr merge --squash` | 30s |
-| 8. Verify | Test on production | 2-5min |
-
-**Total Overhead**: ~10-25 minutes beyond development time
-**Bugs Prevented**: ~80% caught before production (via self-review)
-
----
-
-### Branch Naming Convention
-
-| Type | Format | Example |
-|------|--------|---------|
-| Feature | `feat/description` | `feat/work-item-review-system` |
-| Bug fix | `fix/description` | `fix/timeline-calculation-loop` |
-| Docs | `docs/description` | `docs/update-api-reference` |
-| Refactor | `refactor/description` | `refactor/auth-service` |
-| Test | `test/description` | `test/e2e-workspace-crud` |
-
----
-
-### Commit Message Format
-
-```
-<type>: <short description (50 chars max)>
-
-[Optional body explaining WHY this change was made]
-```
-
-**Types**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
-
-**Good Examples**:
-- `feat: add dark mode toggle to user settings`
-- `fix: resolve infinite loop in timeline calculation`
-- `docs: update API reference for work items endpoint`
-
-**Bad Examples**: `Update files`, `fix bug`, `changes`, `WIP`
-
----
-
-### Enforcing the Workflow
-
-**Option A: Branch Protection** (Recommended for solo)
-- GitHub → Settings → Branches → Add rule for `main`
-- Require PR before merging (0 approvals for self-merge)
-- Allow bypass for emergencies
-
-**Option B: Pre-Push Hook** (Strict)
-- Install Husky: `npm install --save-dev husky`
-- Create hook to block direct pushes to main
-- See full guide for implementation
-
----
-
-## 📋 PROJECT OVERVIEW
-
-### Mission
-Transform roadmap manager into **Product Lifecycle Management Platform**:
-
-1. **Research & Ideate** - AI-powered mind mapping, web search, knowledge base
-2. **Plan & Structure** - Features, timeline, dependencies
-3. **Review & Gather Feedback** - Stakeholder input (invite-based, public links, iframe)
-4. **Execute Collaboratively** - Team assignment, task tracking, real-time collaboration
-5. **Test & Iterate** - User feedback collection and analysis
-6. **Measure Success** - Analytics, expected vs actual performance tracking
-
-### Key Features (15 Modules)
-
-| Module | Week | Status | Description |
-|--------|------|--------|-------------|
-| **Foundation & Multi-Tenancy** 🏗️ | 1-2 | ✅ 100% | Auth, teams, RLS, base schema |
-| **Mind Mapping** 🧠 | 3 | ✅ 100% | XYFlow canvas, 5 node types, convert to features |
-| Feature Planning 📋 | 4 | ⚠️ 80% | CRUD, timeline breakdown, rich text |
-| Dependency Management 🔗 | 4 | ⚠️ 80% | Visual graph, 4 link types (critical path pending) |
-| **Team Management** 👥 | 5 | ✅ 100% | Invitations, roles, phase assignments |
-| **Work Items UI** 📝 | 5 | ✅ 100% | Full CRUD, product tasks, dual canvas |
-| Timeline Visualization 📅 | 6 | ❌ 0% | Gantt chart, swimlanes, drag-to-reschedule |
-| Project Execution 🚀 | 6 | ❌ 0% | Team assignment, status tracking |
-| Collaboration 🤝 | 6 | ❌ 0% | Real-time editing, live cursors (Pro) |
-| **Analytics & Metrics** 📊 | 7 | ✅ 95% | 4 pre-built dashboards, custom builder (Pro) |
-| **AI Assistant** 🤖 | 7 | ✅ 95% | Chat panel, agentic mode, 20+ tools |
-| **Workspace Modes** 🎯 | 7 | ✅ 100% | 4 lifecycle modes, progressive forms, templates |
-| **Strategy Alignment** 🎯 | 7 | ✅ 100% | OKR/Pillar hierarchy, drag-drop, AI suggestions |
-| **Knowledge Base** 📚 | 7 | ✅ 90% | RAG, pgvector, L2-L4 compression |
-| Review & Feedback 👥 | 7 | ✅ 100% | Public forms, voting, insights dashboard |
-| Billing & Testing 💳 | 8 | ❌ 0% | Stripe integration, E2E test suite |
-
----
-
-## 🏛️ PLATFORM ARCHITECTURE (Core Concepts)
+## TIER 4: ARCHITECTURE DETAILS
 
 ### Two-Layer System
-
-The platform uses a **two-layer architecture** (NOT three):
 
 ```
 WORKSPACE (Aggregation View)
@@ -453,36 +255,26 @@ WORKSPACE (Aggregation View)
 
 ### Phase vs Status Clarification
 
-| Entity | Phase/Status Field | Purpose |
-|--------|-------------------|---------|
-| **Work Item** | `phase` (IS the status) | Lifecycle stage: research → planning → execution → review → complete |
-| **Timeline Item** | `status` (separate field) | Task execution: not_started, in_progress, blocked, completed, on_hold, cancelled |
-| **Workspace** | NO phase/status field | Shows DISTRIBUTION of work item phases |
+| Entity | Field | Purpose |
+|--------|-------|---------|
+| **Work Item** | `phase` (IS the status) | Lifecycle: research → planning → execution → review → complete |
+| **Timeline Item** | `status` (separate) | Task execution: not_started, in_progress, blocked, completed |
+| **Workspace** | NO phase/status | Shows DISTRIBUTION of work item phases |
 
-**Critical**: Work items do NOT have a separate `status` field. The `phase` field serves as both the lifecycle stage AND the status.
+**Critical**: Work items do NOT have a separate `status` field. The `phase` field serves as both lifecycle stage AND status.
 
-### Design Thinking as Methodology
+### Workspace Mode vs Phase
 
-Design Thinking is a **human-centered, iterative methodology** that guides HOW to work at each phase:
+| Concept | Definition | Applies To | Values |
+|---------|------------|------------|--------|
+| **Workspace Mode** | Lifecycle context for project | Workspace | development, launch, growth, maintenance |
+| **Work Item Phase** | Stage/status of individual item | Work Item | research, planning, execution, review, complete |
 
-| What It IS | What It Is NOT |
-|------------|-----------------|
-| Methodology/framework for problem-solving | Lifecycle stages or phases |
-| Guides the approach at each phase | Replacement for work item phases |
-| Provides tools (empathy maps, prototyping, testing) | Status tracking mechanism |
-| Informs AI suggestions and guiding questions | Workspace mode |
+**Mode Influences**: Default phase for new items, type weight focus, form field visibility, template suggestions
 
-**Major Frameworks**:
-- **Stanford d.school**: Empathize → Define → Ideate → Prototype → Test
-- **Double Diamond**: Discover → Define → Develop → Deliver
-- **IDEO HCD**: Inspiration → Ideation → Implementation
-- **IBM Enterprise**: The Loop + Hills, Playbacks, Sponsor Users
-
-**Platform Integration**: AI actively suggests Design Thinking methods, shows guiding questions as tooltips, and references case studies for inspiration.
+**Phase Does NOT**: Have "workspace phase", determine mode, aggregate across items
 
 ### Strategy Levels (Four-Tier Hierarchy)
-
-The platform supports a **phase-agnostic** strategy system with four levels:
 
 ```
 ORGANIZATION STRATEGY (Pillars - Team-wide)
@@ -491,467 +283,272 @@ ORGANIZATION STRATEGY (Pillars - Team-wide)
               └── PROCESS STRATEGY (Methodology - Execution)
 ```
 
-| Level | Name | Fields | Display Context |
-|-------|------|--------|-----------------|
-| **Pillar** | Organization-wide theme | user_stories, case_studies, examples | Full tree view at org level |
-| **Objective** | Team/department goal | metrics, owners | Nested under pillar |
-| **Key Result** | Measurable outcome | target, actual | Progress indicators |
-| **Initiative** | Specific action | timeline, assignees | Task-like cards |
+| Level | Name | Display Context |
+|-------|------|-----------------|
+| **Pillar** | Organization-wide theme | Full tree at org level |
+| **Objective** | Team/department goal | Nested under pillar |
+| **Key Result** | Measurable outcome | Progress indicators |
+| **Initiative** | Specific action | Task-like cards |
 
-**Different Displays**:
-- **Organization Level**: Full strategy tree, high-level metrics, user stories, case studies
-- **Work Item Level**: Derived/aligned strategies only, alignment strength (weak/medium/strong), actionable view
+**Different Displays**: Org level shows full tree with case studies; Work item level shows aligned strategies with strength indicators.
 
-### Workspace Mode vs Phase
+### Design Thinking as Methodology
 
-| Concept | Definition | Applies To | Values |
-|---------|------------|------------|--------|
-| **Workspace Mode** | Lifecycle context for the project | Workspace (aggregation) | development, launch, growth, maintenance |
-| **Work Item Phase** | Lifecycle stage/status of individual item | Work Item | research, planning, execution, review, complete |
+Design Thinking guides HOW to work at each phase (NOT lifecycle stages):
 
-**Mode Influences**:
-- Default phase for new work items
-- Type weight focus (e.g., maintenance mode prioritizes bugs)
-- Form field visibility
-- Template suggestions
+| What It IS | What It Is NOT |
+|------------|-----------------|
+| Methodology for problem-solving | Lifecycle stages or phases |
+| Guides approach at each phase | Replacement for phases |
+| Provides tools (empathy maps, prototyping) | Status tracking |
 
-**Phase Does NOT**:
-- Have a "workspace phase" or "workspace stage"
-- Determine mode (mode is set explicitly by user)
-- Aggregate across items (workspace shows distribution)
+**Frameworks**: Stanford d.school (Empathize → Define → Ideate → Prototype → Test), Double Diamond, IDEO HCD, IBM Enterprise
 
-### Phase Upgrade Prompting
-
-**When to Prompt**: Real-time as fields are filled, when 80% threshold reached
-
-| Aspect | Details |
-|--------|---------|
-| **Threshold** | 80% field completion for current phase |
-| **Level** | Work item level (NOT workspace level) |
-| **Frequency** | Real-time as fields are filled |
-| **UI Location** | Banner in work item detail header |
-| **Calculation** | Based on required fields for phase transition |
-
-**Phase Transition Requirements**:
-
-| From → To | Required Fields | Rationale |
-|-----------|-----------------|-----------|
-| research → planning | `purpose` filled, 1+ timeline items OR scope defined | Ready to plan |
-| planning → execution | `target_release`, `acceptance_criteria`, `priority`, `estimated_hours` | Planning complete |
-| execution → review | `progress_percent` >= 80, `actual_start_date` set | Work substantially done |
-| review → complete | Feedback addressed, `status` = 'completed' | Approved |
+**Platform Integration**: AI suggests methods, shows guiding questions as tooltips, references case studies.
 
 ---
 
-## 🏗️ ARCHITECTURE PRINCIPLES
+## TIER 5: PROJECT REFERENCE
 
-### Multi-Tenant System
-- **Team Isolation**: All tables have `team_id` for data separation
-- **Row-Level Security**: RLS policies enforce access control
-- **ID Format**: Timestamp-based TEXT IDs (`Date.now().toString()`) - NEVER use UUID
-- **Workspace = Project**: Each workspace is a separate product/project
+### Current Module Status
 
-### Database Schema (Supabase)
+| Module | Week | Status | Description |
+|--------|------|--------|-------------|
+| **Foundation & Multi-Tenancy** | 1-2 | ✅ 100% | Auth, teams, RLS, base schema |
+| **Mind Mapping** | 3 | ✅ 100% | XYFlow canvas, 5 node types |
+| Feature Planning | 4 | ⚠️ 80% | CRUD, timeline, rich text |
+| Dependency Management | 4 | ⚠️ 80% | Visual graph, 4 link types |
+| **Team Management** | 5 | ✅ 100% | Invitations, roles, phases |
+| **Work Items UI** | 5 | ✅ 100% | Full CRUD, dual canvas |
+| Timeline Visualization | 6 | ❌ 0% | Gantt chart, swimlanes |
+| Project Execution | 6 | ❌ 0% | Team assignment, tracking |
+| Collaboration | 6 | ❌ 0% | Real-time editing (Pro) |
+| **Analytics & Metrics** | 7 | ✅ 95% | 4 dashboards, custom builder |
+| **AI Assistant** | 7 | ✅ 95% | Chat panel, 20+ tools |
+| **Workspace Modes** | 7 | ✅ 100% | 4 lifecycle modes |
+| **Strategy Alignment** | 7 | ✅ 100% | OKR/Pillar hierarchy |
+| **Knowledge Base** | 7 | ✅ 90% | RAG, pgvector |
+| Review & Feedback | 7 | ✅ 100% | Public forms, voting |
+| Billing & Testing | 8 | ❌ 0% | Stripe, E2E suite |
 
-#### Core Tables
-```
-users           - User accounts (Supabase Auth)
-teams           - Organizations/teams
-team_members    - Team membership and roles
-subscriptions   - Stripe billing data
-workspaces      - Projects with phase and modules
-```
+**Full progress**: [docs/planning/PROGRESS.md](docs/planning/PROGRESS.md)
 
-#### Feature Tables
-```
-work_items      - Top-level roadmap items (features, bugs, enhancements)
-timeline_items  - MVP/SHORT/LONG breakdowns
-linked_items    - Dependencies and relationships
-product_tasks   - Execution tasks
-```
-
-#### Mind Mapping Tables
-```
-mind_maps       - Canvas data (ReactFlow JSON)
-work_flows      - Hierarchical sub-canvases
-```
-
-#### Review & Feedback Tables
-```
-feedback        - User/stakeholder feedback
-```
-
-#### Phase System Tables
-```
-user_phase_assignments    - Phase-based permissions
-phase_assignment_history  - Audit trail
-phase_access_requests     - Self-service permission requests
-phase_workload_cache      - Performance optimization
-```
-
-### Data Sync Strategy
-1. **Write**: Save to Supabase immediately (no localStorage)
-2. **Read**: Load from Supabase, cache in React Query
-3. **Real-time**: Subscribe to Supabase Realtime for live updates
-4. **Conflict resolution**: Last write wins (timestamp-based)
-
----
-
-## 💻 CODING STANDARDS
-
-### Core Rules
-
-| ✅ DO | ❌ DON'T |
-|-------|----------|
-| Use strict TypeScript (interfaces, no `any`) | Use `any` type |
-| Use `Date.now().toString()` for IDs | Use UUID |
-| Always filter by `team_id` | Skip `team_id` filtering |
-| Use shadcn/ui + Tailwind CSS | Use inline styles or custom CSS |
-| Enable RLS on all tables | Skip RLS policies |
-| Handle errors explicitly | Skip error handling |
-
-### Quick Patterns
-```typescript
-// IDs
-const id = Date.now().toString()
-
-// Queries - ALWAYS filter by team_id
-const { data } = await supabase
-  .from('work_items')
-  .select('*')
-  .eq('team_id', teamId)
-
-// Components
-import { Button } from '@/components/ui/button'
-```
-
-**Full Patterns**: See [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md)
-
----
-
-## ✅ 5-QUESTION FRAMEWORK
-
-Before implementing ANY feature, validate timing:
-
-| # | Question | Check |
-|---|----------|-------|
-| 1 | **Data Dependencies**: Do required tables/APIs exist and are they stable? | ✅/❌ |
-| 2 | **Integration Points**: Are module APIs defined and stable? | ✅/❌ |
-| 3 | **User Experience**: Does this provide standalone value? | ✅/❌ |
-| 4 | **Database Schema**: Are required tables/columns finalized? | ✅/❌ |
-| 5 | **Testing Feasibility**: Can this be fully tested? | ✅/❌ |
-
-| Result | Action |
-|--------|--------|
-| All ✅ | **PROCEED NOW** - Full implementation |
-| Some ❌ | **PARTIAL** - Build foundation, enhance later |
-| Many ❌ | **POSTPONE** - Document in [postponed-features.md](docs/implementation/postponed-features.md) |
-
-**Remember**: Better to postpone and build correctly than implement early and rework!
-
----
-
-## 📁 DOCUMENTATION ORGANIZATION
-
-### File Structure
+### Tech Stack
 
 ```
-docs/
-├── implementation/         # Week-by-week progress (11 files)
-│   ├── README.md          # Main implementation entry point
-│   ├── week-X-Y.md        # Add all week-related work HERE
-│   ├── database-schema.md # Schema reference
-│   ├── postponed-features.md
-│   └── advanced-ai-system/ # Advanced AI documentation
-├── reference/              # Technical references (15 files)
-│   ├── API_REFERENCE.md   # Consolidate all API docs HERE
-│   ├── ARCHITECTURE.md    # System design
-│   ├── CODE_PATTERNS.md   # Code examples
-│   ├── CHANGELOG.md       # Migration history
-│   ├── MCP_USAGE_GUIDE.md # MCP examples
-│   ├── PHASE_PERMISSIONS_GUIDE.md
-│   └── SHADCN_REGISTRY_COMPONENT_GUIDE.md
-├── planning/               # Project management (7 files)
-│   ├── PROGRESS.md        # Weekly progress tracking
-│   ├── NEXT_STEPS.md      # Immediate priorities
-│   ├── MASTER_IMPLEMENTATION_ROADMAP.md
-│   └── RECOMMENDED_AGENTS.md
-├── research/               # Architecture decisions & research (12 files)
-│   ├── architecture-decisions/
-│   ├── core-research/
-│   └── supporting-research/
-├── postponed/              # Deferred feature specs (6 files)
-│   └── [FEATURE_NAME].md
-├── testing/                # Testing & security
-│   └── SECURITY_AUDIT_REPORT.md
-└── processes/              # How-to guides (5 files)
+Framework:    Next.js 16.1.1 + TypeScript (App Router, Server Components)
+Database:     Supabase (PostgreSQL + Real-time + Auth + RLS)
+UI:           shadcn/ui + Tailwind CSS + Lucide React
+Mind Mapping: XYFlow/ReactFlow (custom nodes, AI-powered)
+Charts:       Recharts (10+ chart types)
+Testing:      Playwright (E2E, Chromium-only CI)
+Code Review:  Greptile (AI-powered PR reviews)
+Payments:     Stripe (Checkout, Subscriptions, Webhooks)
+Email:        Resend (Invitations, notifications)
+AI:           OpenRouter (multi-model)
+State:        Zustand + React Query
+Deployment:   Vercel (Serverless)
 ```
 
-### Documentation Rules
+### AI Model Routing
 
-**✅ DO**:
-- Add implementations to `docs/implementation/week-X-Y.md` immediately
-- Consolidate API docs into `docs/reference/API_REFERENCE.md`
-- Update week files with full details (what, why, files, dependencies)
-- Delete scattered files after consolidating
-- Update `docs/implementation/README.md` for architecture changes
+| Capability | Primary | Fallback | Tertiary |
+|------------|---------|----------|----------|
+| Strategic Reasoning | GLM 4.7 | DeepSeek V3.2 | Gemini 3 Flash |
+| Agentic Tool Use | GLM 4.7 | Gemini 3 Flash | MiniMax M2.1 |
+| Coding | MiniMax M2.1 | GLM 4.7 | Kimi K2 |
+| Visual Reasoning | Gemini 3 Flash | Grok 4 Fast | GPT-4o |
+| Large Context | Grok 4.1 Fast | Gemini 3 Flash | Kimi K2 |
+| Default Chat | Kimi K2 | GLM 4.7 | MiniMax M2.1 |
 
-**❌ DON'T**:
-- Create summary/implementation files in root
-- Create duplicate documentation in multiple locations
-- Skip updating week files
-- Leave scattered .md files after completing work
+**AVOID**: Claude Sonnet models (too costly for this project)
 
-### Update Triggers
+**Full AI architecture**: [docs/implementation/week-7/advanced-ai-system/AI_TOOL_ARCHITECTURE.md](docs/implementation/week-7/advanced-ai-system/AI_TOOL_ARCHITECTURE.md)
 
-| Change Type | Update These Files |
-|-------------|-------------------|
-| Database table/column | `docs/reference/CHANGELOG.md` |
-| API endpoint | `docs/reference/API_REFERENCE.md` |
-| Feature completion | `docs/planning/PROGRESS.md` + `week-X.md` |
-| Architecture change | `docs/reference/ARCHITECTURE.md` |
-| Postponed feature | `docs/postponed/[NAME].md` + `postponed-features.md` |
-| Tech stack change | `README.md` + `CLAUDE.md` |
-| Process change | `CLAUDE.md` |
+### Database Schema Overview
 
-### Update Checklist Template
+| Category | Tables | Purpose |
+|----------|--------|---------|
+| **Core** | `users`, `teams`, `team_members`, `subscriptions`, `workspaces` | Auth, multi-tenancy, billing |
+| **Features** | `work_items`, `timeline_items`, `linked_items`, `product_tasks` | Roadmap items, dependencies |
+| **Mind Mapping** | `mind_maps`, `work_flows` | Canvas data, sub-canvases |
+| **Phases** | `user_phase_assignments`, `phase_assignment_history`, `phase_access_requests` | Phase permissions |
+| **Feedback** | `feedback` | User/stakeholder feedback |
 
-Use this for major changes:
-```markdown
-- [ ] What changed? [Description]
-- [ ] docs/implementation/week-X-Y.md updated?
-- [ ] Dependencies documented? (satisfied/created)
-- [ ] docs/planning/PROGRESS.md updated?
-- [ ] docs/reference/CHANGELOG.md entry added?
-- [ ] Scattered files deleted?
-```
+**Full schema**: [docs/architecture/database-schema.md](docs/architecture/database-schema.md)
 
-### File Creation Rules
+### Domain Terminology
 
-| Need | Location | Convention |
-|------|----------|------------|
-| Migration | `supabase/migrations/` | `YYYYMMDDHHMMSS_[action]_[table].sql` |
-| API route | `next-app/src/app/api/[resource]/` | `route.ts` |
-| Component | `next-app/src/components/[feature]/` | `[name].tsx` (kebab-case) |
-| Types | `next-app/src/lib/types/` | **EXTEND** existing file |
-| Week docs | `docs/implementation/` | Add entry to `week-X-Y.md` |
-| Postponed | `docs/postponed/` | `[FEATURE_NAME].md` |
-
-**Never Create - Always Extend**:
-| ❌ Don't Create | ✅ Instead Extend |
-|-----------------|-------------------|
-| `FEATURE_SUMMARY.md` in root | `docs/implementation/week-X.md` |
-| `API_ROUTES.md` (new file) | `docs/reference/API_REFERENCE.md` |
-| `src/types/newFeature.ts` | `src/lib/types/[existing].ts` |
-
-### Pre-File-Creation Checklist
-
-Before creating ANY new file:
-```markdown
-- [ ] Is there an existing file this should extend instead?
-- [ ] Does location match directory structure?
-- [ ] Does filename follow naming convention?
-- [ ] For docs: Should this be an entry in week-X.md?
-- [ ] For types: Can this be added to existing [feature]-types.ts?
-
-If ANY check fails → DO NOT CREATE, extend existing file instead.
-```
-
-### Documentation Quality Standards
-
-**Core Files Must Be**:
-- ✅ **Consistent** - Same information across all files
-- ✅ **Current** - "Last Updated" within 1 week
-- ✅ **Complete** - No missing sections or TODOs
-- ✅ **Cross-Referenced** - Valid links between docs
-
-**Red Flags to Fix Immediately**:
-- ❌ Progress percentage differs by >10% across files
-- ❌ Database schema documented but migration missing
-- ❌ Tech stack mismatch between files
-- ❌ Last Updated > 2 weeks ago on core files
-
----
-
-## 📅 WEEKLY PROGRESSION TRACKING
-
-### When to Update Weekly Files
-
-Update the current week file **immediately after**:
-- ✅ Feature completion or major milestone
-- ✅ Architecture changes or new patterns introduced
-- ✅ Database schema modifications
-- ✅ Dependency changes (satisfied or newly created)
-- ✅ Postponed features or deferred work
-- ✅ Progress percentage changes
-
-### Required Cross-Linking
-
-**Link to Related Weeks**:
-- If satisfying dependency → Link to week that created it
-- If creating dependency → Link to future week that needs it
-- If postponing feature → Link to target week for implementation
-
-**Link to Related Docs**:
-- Postponed features → `docs/postponed/[FEATURE_NAME].md`
-- Architecture changes → `docs/reference/ARCHITECTURE.md`
-- API changes → `docs/reference/API_REFERENCE.md`
-- Database changes → `docs/reference/CHANGELOG.md`
-
-### Weekly Entry Format
-
-Every entry in `docs/implementation/week-X-Y.md` must include:
-
-```markdown
-### ✅ [Feature Name] (YYYY-MM-DD)
-
-**What Changed**:
-- [Bullet points describing what was built/modified]
-
-**Why**:
-- [Rationale for approach]
-
-**5-Question Validation**:
-| Q | Status | Notes |
-|---|--------|-------|
-| 1. Data Dependencies | ✅/❌ | [tables/APIs needed] |
-| 2. Integration Points | ✅/❌ | [modules affected] |
-| 3. Standalone Value | ✅/❌ | [user value] |
-| 4. Schema Finalized | ✅/❌ | [tables/columns] |
-| 5. Can Test | ✅/❌ | [test approach] |
-
-**Result**: ✅ PROCEED / ⚠️ PARTIAL / ❌ POSTPONE
-
-**Progress**: Week X: [old%] → [new%]
-
-**Dependencies Satisfied**:
-- ✅ [Dependency from Week Y]
-
-**Dependencies Created**:
-- ⏳ [For Week Z] - [What needs this]
-
-**Files Modified**:
-- `path/to/file.tsx` - [purpose]
-- Created: `path/to/new.tsx` - [purpose]
-
-**Links**:
-- Related: [week-Y.md](week-Y.md#section)
-- Postponed: [docs/postponed/FEATURE.md](../postponed/FEATURE.md)
-```
-
----
-
-## 🔧 NAMING CONVENTIONS
-
-### Pre-Naming Checklist (REQUIRED before creating any new entity)
-
-Before naming ANY new table, field, component, or concept:
-
-| Check | Question |
-|-------|----------|
-| **User-Friendly** | Would a non-technical Product Manager understand this term? |
-| **Consistent** | Does it match existing naming patterns in the codebase? |
-| **Clear** | Is the name self-explanatory without documentation? |
-| **Relationship** | Does the name show how it relates to parent/child entities? |
-| **Future-Proof** | Will this name still make sense if we add more features? |
-
-**If ANY check fails → STOP and discuss naming before proceeding.**
-
-### Established Terminology
-
-| Concept | DB Name | UI Label |
-|---------|---------|----------|
+| Concept | DB Table | UI Label |
+|---------|----------|----------|
 | Organization | `team` | "Team" |
 | Product/Project | `workspace` | "Workspace" |
 | Feature/Bug/etc | `work_item` | "Work Item" |
 | Timeline breakdown | `timeline_item` | "Timeline" |
 | Execution task | `product_task` | "Task" |
 | Dependency | `linked_item` | "Dependency" |
-| Type variants | `type` field | "Type" (concept/feature/bug/enhancement) |
-| Phase | `phase` field | "Phase" (research→complete) |
 
-### Anti-Patterns (NEVER use)
-
-| ❌ Bad | ✅ Better | Problem |
-|--------|----------|---------|
-| `feature` (table) | `work_item` | Too specific |
-| `task` for timeline | `timeline_item` | Confuses with execution |
-| `project` | `workspace` | Conflicts |
-| `ticket`, `story` | `work_item` | Jira/Agile specific |
-
-### Renaming Migration Cost Matrix
-
-| What Changes | Files Affected | Migration Required | Risk |
-|--------------|----------------|-------------------|------|
-| Table name | 20-50+ files | YES - data migration | 🔴 HIGH |
-| Column name | 10-30 files | YES - column rename | 🟡 MEDIUM |
-| FK name | 5-15 files | YES - constraint rename | 🟡 MEDIUM |
-| Component name | 2-10 files | NO | 🟢 LOW |
-| UI label only | 1-5 files | NO | 🟢 LOW |
+**Anti-patterns** (NEVER use):
+- `feature` table → use `work_item`
+- `task` for timeline → use `timeline_item`
+- `project` → use `workspace`
+- `ticket`, `story` → use `work_item`
 
 ---
 
-## 🎯 QUICK COMMANDS
+## TIER 6: COMMANDS & SKILLS
 
-### Development
-```bash
-npm run dev              # Start dev server
-npm run build            # Build for production
-npm run lint             # Run ESLint
-npm run check:links      # Validate doc links
+### MCP Servers
+
+| Server | Purpose | When to Use |
+|--------|---------|-------------|
+| **Supabase** | Migrations, queries, RLS, types | Database operations |
+| **shadcn/ui** | Component installation | Adding UI components |
+| **Context7** | Library documentation | Before implementing library features |
+
+#### Context7 Usage
+
+Use Context7 when you need current documentation:
+- Before implementing a new library feature
+- When official docs may have changed since training
+- To verify API signatures and patterns
+
+```
+"Use Context7 to fetch the latest Next.js 15 App Router documentation"
+"Use Context7 to get current Supabase RLS policy examples"
 ```
 
-### Database
+#### shadcn/ui MCP Setup
+
+```json
+{
+  "mcpServers": {
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["-y", "@jpisnice/shadcn-ui-mcp-server"]
+    }
+  }
+}
+```
+
+### Skills (Auto-Invoke)
+
+| Skill | Purpose | Trigger |
+|-------|---------|---------|
+| **parallel-ai** | Web search, extraction, research | ALL web operations (MANDATORY) |
+| **webapp-testing** | Playwright testing | Testing features (Week 6-8) |
+| **frontend-design** | Production-grade UI | Building UI (Week 6-7) |
+| **document-skills:xlsx/pdf/docx** | Document generation | Exporting data/reports |
+| **systematic-debugging** | 4-phase debugging | Debugging issues |
+
+**NEVER use WebFetch/WebSearch directly. NEVER use claude-code-guide agent. Use parallel-ai skill instead.**
+
+**Rule**: If a skill can help with the current task, USE IT - don't wait to be asked.
+
+### Slash Commands
+
+#### MAKER Commands (Multi-Agent Reliability)
+
+| Command | Purpose | Agents Used |
+|---------|---------|-------------|
+| `/decompose` | Break task into atomic steps | `Explore` → `Plan` → TodoWrite |
+| `/validate-consensus` | K-threshold voting (2/3 approve) | `code-reviewer` + `architect-review` + `security-auditor` |
+| `/red-flag-check` | Detect issues by severity | `debugger` OR `code-reviewer` |
+
+#### Operational Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/db-migration` | RLS policies, team_id, migration template |
+| `/security-review` | OWASP Top 10 + project checks |
+| `/tdd-feature` | Red-green-refactor workflow |
+| `/week-update` | Weekly progress documentation |
+
+#### Phase Workflow Commands
+
+| Phase | Command | Purpose | Next |
+|-------|---------|---------|------|
+| 1 | `/status-check` | Read PROGRESS.md, select task | `/research-plan` |
+| 2 | `/research-plan` | Research, plan, CREATE BRANCH | `/parallel-dev` |
+| 3 | `/parallel-dev` | Implement with parallel agents | `/quality-review` |
+| 4 | `/quality-review` | Type check, code review, security | `/test` |
+| 5 | `/test` | Run E2E tests, fix failures | `/deploy` |
+| 6 | `/deploy` | Create PR, WAIT FOR REVIEW | Manual review |
+| 7 | `/merge` | Squash-merge after approval | `/status-check` |
+
+**CRITICAL**: `/deploy` does NOT auto-merge. Manual self-review required before `/merge`.
+
+**Command Locations**:
+- Commands: `.claude/commands/*.md` - Type `/command-name`
+- Skills: `.claude/skills/*/SKILL.md` - Auto-invoked
+
+**Full workflow**: [docs/processes/MAKER_WORKFLOW.md](docs/processes/MAKER_WORKFLOW.md)
+
+---
+
+## TIER 7: COMMON PATTERNS
+
+### Quick Commands
+
 ```bash
+# Dev server (Port 3000 ONLY - kill existing first)
+taskkill /F /IM node.exe 2>nul
+cd next-app && npm run dev
+
+# Database
 npx supabase db push                  # Apply migrations
 npx supabase gen types typescript     # Generate types
+
+# Testing
+npm run test:e2e         # Playwright E2E
+npm run test             # Jest unit
+
+# Build & Deploy
+npm run build && npm run lint
+vercel --prod
 ```
-
-### Testing
-```bash
-npm run test:e2e         # Playwright E2E tests
-npm run test             # Jest unit tests
-```
-
-### Deployment
-```bash
-vercel --prod            # Deploy to production
-```
-
----
-
-## 🔍 COMMON PATTERNS
 
 ### Database Migrations
-1. Create migration: `supabase/migrations/YYYYMMDDHHMMSS_*.sql`
+
+1. Create: `supabase/migrations/YYYYMMDDHHMMSS_*.sql`
 2. Include: team_id, indexes, RLS policies (SELECT/INSERT/UPDATE/DELETE)
 3. Apply: `npx supabase db push`
 4. Generate types: `npx supabase gen types typescript > lib/supabase/types.ts`
 
 ### Real-time Subscriptions
-- Use `supabase.channel()` with team_id filter
-- Return unsubscribe function from useEffect
+
+```typescript
+// Use supabase.channel() with team_id filter
+const channel = supabase.channel('changes')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    filter: `team_id=eq.${teamId}`
+  }, callback)
+  .subscribe()
+
+// Return unsubscribe in useEffect cleanup
+return () => { channel.unsubscribe() }
+```
 
 ### Feature Gates
-- Check team plan before Pro features
-- Show upgrade modal for Pro-only features
 
-### E2E Testing
-- Use Playwright with `test.describe()`
-- Test complete user flows end-to-end
+```typescript
+// Check team plan before Pro features
+if (team.plan === 'pro') {
+  // Show Pro feature
+} else {
+  // Show upgrade modal
+}
+```
 
-**Full Patterns**: See [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md)
+### UI Patterns
 
----
-
-## 🎨 UI PATTERNS
-
-### shadcn/ui Install
 ```bash
+# Install shadcn/ui components
 npx shadcn-ui@latest add button card dialog form input select table tabs toast
 ```
 
-### Tailwind Patterns
 ```tsx
 // ✅ Responsive, mobile-first
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -960,63 +557,205 @@ npx shadcn-ui@latest add button card dialog form input select table tabs toast
 <div style={{ display: 'flex' }}>
 ```
 
----
+**Full patterns**: [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md)
 
-## 🚀 DEPLOYMENT
+### React Grab (Frontend Speed Boost)
+
+**66% faster UI changes, 33% less tokens** by giving exact file paths.
 
 ```bash
-# 1. Test locally
-npm run dev
-
-# 2. Apply migrations
-npx supabase db push
-
-# 3. Run tests
-npm run test:e2e
-
-# 4. Commit & push
-git add . && git commit -m "feat: description" && git push
-
-# 5. Verify: https://platform-test-cyan.vercel.app
+# Install (Dev Only)
+cd next-app && npm install react-grab --save-dev
 ```
+
+```tsx
+// Add to next-app/src/app/layout.tsx
+import { ReactGrab } from 'react-grab'
+
+// In layout, add conditionally:
+{process.env.NODE_ENV === 'development' && <ReactGrab />}
+```
+
+**Usage**: Run dev server → Click element → Copy component stack → Paste into prompt
+
+**DEV ONLY** - Never use in production.
 
 ---
 
-## 📚 REFERENCE DOCS
+## TIER 8: DOCUMENTATION
 
-### Implementation-Specific
-- **Sidebar**: [docs/reference/SIDEBAR_IMPLEMENTATION.md](docs/reference/SIDEBAR_IMPLEMENTATION.md)
-- **Database Schema**: [docs/implementation/database-schema.md](docs/implementation/database-schema.md)
-- **MCP Usage**: [docs/reference/MCP_USAGE_GUIDE.md](docs/reference/MCP_USAGE_GUIDE.md)
+### File Structure
 
-### External
+```
+docs/
+├── implementation/         # Week-by-week progress
+│   ├── README.md          # Main entry point
+│   ├── week-X-Y.md        # Add all week work HERE
+│   ├── database-schema.md
+│   └── advanced-ai-system/
+├── reference/              # Technical references
+│   ├── API_REFERENCE.md
+│   ├── ARCHITECTURE.md
+│   ├── CODE_PATTERNS.md
+│   ├── CHANGELOG.md
+│   └── DEVELOPER_WORKFLOW.md
+├── planning/               # Project management
+│   ├── PROGRESS.md
+│   ├── NEXT_STEPS.md
+│   └── MASTER_IMPLEMENTATION_ROADMAP.md
+├── postponed/              # Deferred features
+└── processes/              # How-to guides
+```
+
+### Documentation Rules
+
+**DO**:
+- Add implementations to `docs/implementation/week-X-Y.md` immediately
+- Consolidate API docs into `docs/reference/API_REFERENCE.md`
+- Update week files with full details (what, why, files)
+- Delete scattered files after consolidating
+
+**DON'T**:
+- Create summary files in root
+- Create duplicate documentation
+- Skip updating week files
+- Leave scattered .md files
+
+### Update Triggers
+
+| Change Type | Update These Files |
+|-------------|-------------------|
+| Database table/column | `docs/reference/CHANGELOG.md` |
+| API endpoint | `docs/reference/API_REFERENCE.md` |
+| Feature completion | `docs/planning/PROGRESS.md` + `week-X.md` |
+| Architecture change | `docs/architecture/ARCHITECTURE.md` |
+| Postponed feature | `docs/postponed/[NAME].md` |
+| Tech stack change | `README.md` + `CLAUDE.md` |
+
+### File Creation Rules
+
+| Need | Location | Convention |
+|------|----------|------------|
+| Migration | `supabase/migrations/` | `YYYYMMDDHHMMSS_[action]_[table].sql` |
+| API route | `next-app/src/app/api/[resource]/` | `route.ts` |
+| Component | `next-app/src/components/[feature]/` | `[name].tsx` |
+| Types | `next-app/src/lib/types/` | **EXTEND** existing file |
+| Week docs | `docs/implementation/` | Add to `week-X-Y.md` |
+
+**Never Create - Always Extend**:
+- `FEATURE_SUMMARY.md` → add to `week-X.md`
+- `API_ROUTES.md` → add to `API_REFERENCE.md`
+- `newFeature.ts` → extend existing types file
+
+### Documentation Links
+
+#### Primary (Read First)
+
+| Doc | Purpose |
+|-----|---------|
+| [ARCHITECTURE_CONSOLIDATION.md](docs/ARCHITECTURE_CONSOLIDATION.md) | **Canonical source of truth** |
+| [docs/implementation/README.md](docs/implementation/README.md) | Week-by-week guide |
+| [docs/planning/PROGRESS.md](docs/planning/PROGRESS.md) | Current status |
+| [docs/planning/NEXT_STEPS.md](docs/planning/NEXT_STEPS.md) | Immediate priorities |
+
+#### Reference (As Needed)
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/reference/API_REFERENCE.md](docs/reference/API_REFERENCE.md) | 20+ API routes |
+| [docs/reference/CODE_PATTERNS.md](docs/reference/CODE_PATTERNS.md) | TypeScript, Supabase patterns |
+| [docs/reference/DEVELOPER_WORKFLOW.md](docs/reference/DEVELOPER_WORKFLOW.md) | Full workflow tutorial |
+| [docs/reference/PHASE_PERMISSIONS_GUIDE.md](docs/reference/PHASE_PERMISSIONS_GUIDE.md) | Phase-based access |
+| [docs/reference/SHADCN_REGISTRY_COMPONENT_GUIDE.md](docs/reference/SHADCN_REGISTRY_COMPONENT_GUIDE.md) | 14 registries, 1000+ components |
+| [docs/reference/MCP_USAGE_GUIDE.md](docs/reference/MCP_USAGE_GUIDE.md) | MCP examples |
+
+#### External Docs
+
 - [Next.js 15](https://nextjs.org/docs) | [Supabase](https://supabase.com/docs) | [shadcn/ui](https://ui.shadcn.com)
 - [ReactFlow](https://reactflow.dev) | [Playwright](https://playwright.dev) | [Stripe](https://stripe.com/docs)
 
 ---
 
-## ⚠️ CRITICAL REMINDERS
+## SELF-VERIFICATION
+
+<before_commit>
+- [ ] No `any` types added?
+- [ ] All queries filter by `team_id`?
+- [ ] RLS policies if new table?
+- [ ] No hardcoded secrets?
+- [ ] No custom CSS files?
+- [ ] Mobile-first responsive?
+</before_commit>
+
+<before_pr>
+- [ ] Branch follows convention? (`feat/`, `fix/`, etc.)
+- [ ] Commit messages: `type: description`?
+- [ ] Self-reviewed diff on GitHub?
+- [ ] Updated [docs/planning/PROGRESS.md](docs/planning/PROGRESS.md)?
+- [ ] Updated [docs/implementation/week-X.md](docs/implementation/)?
+</before_pr>
+
+<before_new_file>
+- [ ] Is there an existing file to extend instead?
+- [ ] Does location match directory structure?
+- [ ] Does filename follow naming convention?
+- [ ] For docs: Should this be in week-X.md?
+- [ ] For types: Can this extend existing [feature]-types.ts?
+
+If ANY fails → DO NOT CREATE, extend existing file.
+</before_new_file>
+
+---
+
+## ERROR HANDLING
+
+**Uncertain about approach?**
+→ Use `Explore` agent to investigate, then `Plan` agent
+
+**Contradicting user request?**
+→ STOP. Quote established architecture. Ask "Why change this?"
+
+**Missing context?**
+→ Ask user directly via AskUserQuestion tool
+
+**Test failures?**
+→ Read error, fix issue, re-run. Never skip tests.
+
+**RLS returning empty `{}`?**
+→ Check: team_id NOT NULL? RLS policy exists? team_id filter in query?
+
+**Agent produces poor results?**
+1. Review output, identify specific issues
+2. Provide corrective context
+3. Re-launch with more specific instructions
+
+---
+
+## CRITICAL REMINDERS
 
 ### Always
+
 - ✅ Timestamp IDs: `Date.now().toString()`
 - ✅ Filter by `team_id` in ALL queries
 - ✅ Enable RLS on ALL tables
-- ✅ **`team_id TEXT NOT NULL`** in all multi-tenant tables (NULL breaks RLS silently!)
+- ✅ `team_id TEXT NOT NULL` (NULL breaks RLS silently!)
 - ✅ TypeScript strict mode, no `any`
 - ✅ shadcn/ui components only
 - ✅ Mobile-first design
 - ✅ Check Pro tier feature gates
 
 ### Never
+
 - ❌ UUID for IDs
 - ❌ Skip RLS policies
 - ❌ Skip team_id filtering
-- ❌ Allow NULL team_id (causes silent RLS failures with empty `{}` errors)
+- ❌ Allow NULL team_id
 - ❌ Custom CSS files
 - ❌ Hardcode API keys
+- ❌ WebFetch/WebSearch directly (use parallel-ai)
 
 ---
 
-**Ready to build! 🚀**
+**Ready to build!**
 
-See [docs/implementation/README.md](docs/implementation/README.md) for detailed implementation steps.
+Start with [docs/implementation/README.md](docs/implementation/README.md) for implementation steps.

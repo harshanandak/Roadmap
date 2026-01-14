@@ -66,7 +66,7 @@ Claude agents mapped to implementation phases with specific use cases.
 - **[Implementation Plan](../implementation/README.md)** - Week-by-week implementation guide
 - **[Architecture Reference](../reference/ARCHITECTURE.md)** - System architecture and diagrams
 - **[API Reference](../reference/API_REFERENCE.md)** - Complete API documentation
-- **[Database Schema](../implementation/database-schema.md)** - Multi-tenant database design
+- **[Database Schema](../architecture/database-schema.md)** - Multi-tenant database design
 
 ---
 

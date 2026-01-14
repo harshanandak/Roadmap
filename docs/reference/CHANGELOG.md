@@ -1,5 +1,7 @@
 # 📜 CHANGELOG
 
+> **Split Version Available**: This file has been split into smaller files for better AI readability. See [changelog/README.md](changelog/README.md) for the organized version.
+
 **Last Updated**: 2026-01-08
 **Project**: Product Lifecycle Management Platform
 **Format**: Based on [Keep a Changelog](https://keepachangelog.com/)

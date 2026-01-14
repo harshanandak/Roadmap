@@ -1,5 +1,8 @@
 # 🏗️ SYSTEM ARCHITECTURE
 
+> ⚠️ **Note**: For architecture DECISIONS (source of truth), see [ARCHITECTURE_CONSOLIDATION.md](../ARCHITECTURE_CONSOLIDATION.md).
+> This document provides detailed technical diagrams and implementation specifics.
+
 **Last Updated**: 2025-12-11
 **Project**: Product Lifecycle Management Platform
 **Tech Stack**: Next.js 15 + TypeScript + Supabase + Vercel

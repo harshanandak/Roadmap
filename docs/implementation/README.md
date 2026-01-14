@@ -13,8 +13,8 @@
 This implementation plan has been split into multiple files for better token efficiency (83% savings when loading specific weeks).
 
 ### 📖 Overview & Architecture
-- **[Database Schema](database-schema.md)** - Multi-tenant PostgreSQL schema, RLS policies, all tables
-- **[Postponed Features](postponed-features.md)** - Mind Map enhancements and other deferred features
+- **[Database Schema](../architecture/database-schema.md)** - Multi-tenant PostgreSQL schema, RLS policies, all tables
+- **[Postponed Features](../postponed/README.md)** - Mind Map enhancements and other deferred features
 
 ### 📅 Weekly Implementation Guides
 - **[Week 1-2: Foundation & Multi-Tenancy](week-1-2-foundation.md)** - Next.js setup, auth, teams, workspaces
@@ -22,7 +22,7 @@ This implementation plan has been split into multiple files for better token eff
 - **[Week 4: Feature Planning & Dependencies](week-4-dependencies.md)** - Feature CRUD, dependency graph, critical path analysis
 - **[Week 5: External Review System](week-5-review-system.md)** - Invite-based, public links, iframe embeds, feedback
 - **[Week 6: Timeline & Execution](week-6-timeline-execution.md)** - Gantt chart, team assignment, **Work Item Detail Page (8-Tab Structure)**
-- **[Week 7: AI Integration & Analytics](week-7-ai-analytics.md)** - AI chat, agentic mode, **Feedback Module**, **Integrations**, **AI Visual Prototypes**
+- **[Week 7: AI Integration & Analytics](week-7/README.md)** - AI chat, agentic mode, **Feedback Module**, **Integrations**, **AI Visual Prototypes**
 - **[Workspace Timeline Architecture Refactor](../postponed/WORKSPACE_TIMELINE_ARCHITECTURE.md)** - Major architecture update (post-Week 7)
 - **[Week 8: Billing, Testing & Launch](week-8-billing-testing.md)** - Stripe, E2E tests, documentation, production deployment
 

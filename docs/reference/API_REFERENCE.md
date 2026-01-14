@@ -1,5 +1,7 @@
 # 📘 API REFERENCE
 
+> **Split Version Available**: This file has been split into smaller files for better AI readability. See [api-reference/README.md](api-reference/README.md) for the organized version.
+
 **Last Updated:** 2025-12-28 (Verified)
 **Version:** 1.3
 **Base URL (Production):** `https://platform-test-cyan.vercel.app`
