@@ -20,7 +20,7 @@
  * @see context-compactor.ts for compaction logic
  */
 
-import type { CoreMessage, LanguageModel } from 'ai'
+import type { ModelMessage, LanguageModel } from 'ai'
 import {
   type ModelConfig,
   type ModelCapability,
@@ -78,7 +78,7 @@ export interface RoutingDecision {
   languageModel: LanguageModel
 
   /** Messages to use (may be compacted) */
-  messages: CoreMessage[]
+  messages: ModelMessage[]
 
   /** Why this model was selected */
   reason: RoutingReason
@@ -105,7 +105,7 @@ export type RoutingReason =
  */
 export interface RoutingContext {
   /** Current conversation messages */
-  messages: CoreMessage[]
+  messages: ModelMessage[]
 
   /** User's model selection (if any) */
   userModelKey?: string | null
@@ -287,7 +287,7 @@ export async function routeRequest(context: RoutingContext): Promise<RoutingDeci
  */
 function createDecision(
   model: ModelConfig,
-  messages: CoreMessage[],
+  messages: ModelMessage[],
   reason: RoutingReason,
   session: SessionState,
   compaction?: CompactionResult

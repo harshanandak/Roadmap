@@ -15,7 +15,7 @@
  */
 
 import { generateText } from 'ai'
-import type { CoreMessage } from 'ai'
+import type { ModelMessage } from 'ai'
 import { openrouter } from './ai-sdk-client'
 import type { ModelConfig } from './models-config'
 import { getModelByCapability } from './models-config'
@@ -29,7 +29,7 @@ import { getModelByCapability } from './models-config'
  */
 export interface CompactionResult {
   /** Compacted messages (older messages summarized) */
-  messages: CoreMessage[]
+  messages: ModelMessage[]
 
   /** Estimated token count after compaction */
   estimatedTokens: number
@@ -98,7 +98,7 @@ export function estimateTokens(text: string): number {
  *
  * Accounts for role overhead and content structure.
  */
-export function estimateMessageTokens(message: CoreMessage): number {
+export function estimateMessageTokens(message: ModelMessage): number {
   // Role overhead: ~4 tokens for role markers
   const roleOverhead = 4
 
@@ -130,7 +130,7 @@ export function estimateMessageTokens(message: CoreMessage): number {
  * @returns Token estimation with usage info
  */
 export function estimateConversationTokens(
-  messages: CoreMessage[],
+  messages: ModelMessage[],
   model: ModelConfig
 ): TokenEstimate {
   const perMessage = messages.map((m) => estimateMessageTokens(m))
@@ -168,7 +168,7 @@ const RECENT_TURNS_TO_KEEP = 10
  * @param messages - Messages to summarize
  * @returns Summary text
  */
-async function summarizeMessages(messages: CoreMessage[]): Promise<string> {
+async function summarizeMessages(messages: ModelMessage[]): Promise<string> {
   if (messages.length === 0) return ''
 
   // Format messages for summarization
@@ -218,7 +218,7 @@ Keep the summary under 500 words. Focus on information that would be useful for 
  * @returns Compacted messages and metadata
  */
 export async function compactContext(
-  messages: CoreMessage[],
+  messages: ModelMessage[],
   model: ModelConfig
 ): Promise<CompactionResult> {
   // Estimate current usage
@@ -255,12 +255,12 @@ export async function compactContext(
   const summary = await summarizeMessages(messagesToSummarize)
 
   // Create compacted messages
-  const summaryMessage: CoreMessage = {
+  const summaryMessage: ModelMessage = {
     role: 'assistant',
     content: `[Previous conversation summary]\n${summary}\n[End of summary - recent messages follow]`,
   }
 
-  const compactedMessages: CoreMessage[] = [
+  const compactedMessages: ModelMessage[] = [
     ...systemMessages,
     summaryMessage,
     ...messagesToKeep,

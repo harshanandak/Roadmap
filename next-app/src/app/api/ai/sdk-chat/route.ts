@@ -13,7 +13,7 @@
  *                               Parallel AI APIs
  */
 
-import { streamText, convertToCoreMessages, type UIMessage, type LanguageModel } from 'ai'
+import { streamText, convertToModelMessages, type UIMessage, type LanguageModel } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 import { openrouter, aiModels, getModelFromConfig } from '@/lib/ai/ai-sdk-client'
 import { parallelAITools, parallelAIQuickTools } from '@/lib/ai/tools/parallel-ai-tools'
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
     const result = streamText({
       model: aiModel,
       system: fullSystemPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: await convertToModelMessages(messages),
       tools,
       onFinish({ usage }) {
         const duration = Date.now() - streamStartTime
