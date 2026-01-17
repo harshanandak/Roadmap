@@ -130,12 +130,8 @@ export async function extractContent(options: {
         },
         full_content: includeFullContent ? {
           max_chars_per_result: maxCharsPerResult * 10
-        } : false
-      },
-      {
-        headers: {
-          'parallel-beta': 'search-extract-2025-10-10'
-        }
+        } : false,
+        betas: ['search-extract-2025-10-10']
       }
     );
 

@@ -433,7 +433,7 @@ export async function POST(request: Request) {
 
     // Convert messages for the AI SDK
     console.log('[Unified Chat] Converting messages, count:', messages.length)
-    const coreMessages = convertToModelMessages(messages)
+    const coreMessages = await convertToModelMessages(messages)
 
     // Use the existing session router for model initialization
     // But override with our analyzed model selection
