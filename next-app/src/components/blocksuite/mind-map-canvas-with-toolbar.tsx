@@ -12,6 +12,12 @@ import type {
 import { MindMapCanvas } from "./mind-map-canvas";
 import { MindmapToolbar } from "./mindmap-toolbar";
 
+// Development-only debug logger
+const debug =
+  process.env.NODE_ENV === "development"
+    ? console.log.bind(console)
+    : () => {};
+
 // Type for BlockSuite Doc (dynamically imported)
 type Doc = import("@blocksuite/store").Doc;
 
@@ -164,7 +170,7 @@ export function MindMapCanvasWithToolbar({
             text: "New Node",
             children: [],
           });
-          console.log(
+          debug(
             "[MindMapCanvasWithToolbar] Added child to node:",
             parentNodeId,
           );
@@ -234,7 +240,7 @@ export function MindMapCanvasWithToolbar({
               text: "New Node",
               children: [],
             });
-            console.log(
+            debug(
               "[MindMapCanvasWithToolbar] Added sibling to node:",
               nodeId,
             );
@@ -273,7 +279,7 @@ export function MindMapCanvasWithToolbar({
         if (mindmap.detachMindmap) {
           mindmap.detachMindmap(nodeId);
           setSelectedNodeId(null);
-          console.log("[MindMapCanvasWithToolbar] Deleted node:", nodeId);
+          debug("[MindMapCanvasWithToolbar] Deleted node:", nodeId);
         } else if (docRef.current && surfaceIdRef.current) {
           // Fallback: Try surface deleteElement
           // TODO: Migrate to store.getBlock() when upgrading BlockSuite (see getMindmapElement TODO)
@@ -283,7 +289,7 @@ export function MindMapCanvasWithToolbar({
           if (surface?.deleteElement) {
             surface.deleteElement(nodeId);
             setSelectedNodeId(null);
-            console.log(
+            debug(
               "[MindMapCanvasWithToolbar] Deleted node via surface:",
               nodeId,
             );
