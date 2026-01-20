@@ -367,7 +367,9 @@ export function MindMapCanvas({
           schema,
           id: collectionId,
         });
-        const doc = collection.createDoc({ id: docId });
+
+        // Create doc without ID first, then load with initialization callback
+        const doc = collection.createDoc();
 
         // Ensure doc was created successfully
         if (!doc) {
@@ -379,19 +381,15 @@ export function MindMapCanvas({
         // Store surface block reference for mindmap creation
         let surfaceId: string = "";
 
-        // Initialize with required root blocks
-        // Note: doc.load() may not accept a callback in all BlockSuite versions
-        // Try the callback pattern first, fall back to synchronous if needed
-        if (typeof doc.load === "function") {
-          doc.load();
-        }
-
-        // Add blocks after load
-        const pageBlockId = doc.addBlock("affine:page", {});
-        surfaceId = doc.addBlock("affine:surface", {}, pageBlockId);
-        // Add a note block for any text content
-        const noteBlockId = doc.addBlock("affine:note", {}, pageBlockId);
-        doc.addBlock("affine:paragraph", {}, noteBlockId);
+        // Initialize with required root blocks using load callback
+        // This is the proper BlockSuite v0.19.x pattern
+        doc.load(() => {
+          const pageBlockId = doc.addBlock("affine:page", {});
+          surfaceId = doc.addBlock("affine:surface", {}, pageBlockId);
+          // Add a note block for any text content
+          const noteBlockId = doc.addBlock("affine:note", {}, pageBlockId);
+          doc.addBlock("affine:paragraph", {}, noteBlockId);
+        });
 
         docRef.current = doc;
 
